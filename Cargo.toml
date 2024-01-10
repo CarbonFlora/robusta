@@ -2,7 +2,8 @@
 resolver = "2"
 members = [
     "robusta-term",
-    "robusta-core"
+    "robusta-core", 
+    #"robusta-gui"
 ]
 
 default-members = [
@@ -24,6 +25,7 @@ opt-level = 3
 inherits = "test"
 package.robusta-term.opt-level = 2
 package.robusta-core.opt-level = 2
+package.robusta-gui.opt-level = 2
 
 [workspace.package]
 version = "0.0.1"

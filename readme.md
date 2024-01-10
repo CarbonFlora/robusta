@@ -12,6 +12,7 @@ Given station, bearing, line data information on plan, if a program can reconstr
         what is swizzling lol 
         --features mint for matrix interpo between libraries.
 - Move dependencies from term to other parts of the codebase. 
+- Use bevy in -gui to build the frontend. 
 
 
 ## Brainstorming
