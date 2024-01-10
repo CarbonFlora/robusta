@@ -1,0 +1,34 @@
+[workspace]
+resolver = "2"
+members = [
+    "robusta-term"
+]
+
+default-members = [
+  "robusta-term"
+]
+
+[profile.release]
+lto = "thin"
+# debug = true
+
+[profile.opt]
+inherits = "release"
+lto = "fat"
+codegen-units = 1
+# strip = "debuginfo" # TODO: or strip = true
+opt-level = 3
+
+[profile.integration]
+inherits = "test"
+package.robusta-term.opt-level = 2
+
+[workspace.package]
+version = "0.0.1"
+edition = "2021"
+authors = ["Zi Hao L. <https://github.com/CarbonFlora>"]
+categories = ["editor"]
+repository = ""
+homepage = ""
+license = "MPL-2.0"
+rust-version = "1.75"
