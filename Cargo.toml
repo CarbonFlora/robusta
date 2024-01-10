@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "robusta-term",
     "robusta-core", 
-    #"robusta-gui"
+    "robusta-gui"
 ]
 
 default-members = [
@@ -23,16 +23,21 @@ opt-level = 3
 
 [profile.integration]
 inherits = "test"
-package.robusta-term.opt-level = 2
-package.robusta-core.opt-level = 2
-package.robusta-gui.opt-level = 2
+
+# Enable a small amount of optimization in debug mode
+[profile.dev]
+opt-level = 1
+
+# Enable high optimizations for dependencies (incl. Bevy), but not for our code:
+[profile.dev.package."*"]
+opt-level = 3
 
 [workspace.package]
 version = "0.0.1"
 edition = "2021"
 authors = ["Zi Hao L. <https://github.com/CarbonFlora>"]
 categories = ["editor"]
-repository = ""
+repository = "https://github.com/CarbonFlora/robusta"
 homepage = ""
 license = "MPL-2.0"
 rust-version = "1.75"

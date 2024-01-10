@@ -13,6 +13,7 @@ Given station, bearing, line data information on plan, if a program can reconstr
         --features mint for matrix interpo between libraries.
 - Move dependencies from term to other parts of the codebase. 
 - Use bevy in -gui to build the frontend. 
+- egui and `cargo add bevy_pancam --features bevy_egui`
 
 
 ## Brainstorming
@@ -24,6 +25,7 @@ Everything is made of simple points. Since everything is simple geometry, the fu
 
 - Tags
 Playing on the idea if meta-entities, tags like polyline, alignments, line, arc are 
+    Use the Bevy ECS system alongside tags.
 
 - Alignments
 Technically this can be built with JUST lines or arcs, but for the sake of design it's complexes only. 
