@@ -11,6 +11,7 @@ Given station, bearing, line data information on plan, if a program can reconstr
         https://github.com/rustgd/cgmath
         what is swizzling lol 
         --features mint for matrix interpo between libraries.
+- Move dependencies from term to other parts of the codebase. 
 
 
 ## Brainstorming

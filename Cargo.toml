@@ -1,7 +1,8 @@
 [workspace]
 resolver = "2"
 members = [
-    "robusta-term"
+    "robusta-term",
+    "robusta-core"
 ]
 
 default-members = [
@@ -22,6 +23,7 @@ opt-level = 3
 [profile.integration]
 inherits = "test"
 package.robusta-term.opt-level = 2
+package.robusta-core.opt-level = 2
 
 [workspace.package]
 version = "0.0.1"

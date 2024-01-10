@@ -11,7 +11,7 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-fn using_dxf_init(file_name: String) {
+fn using_dxf_init(_file_name: String) {
     todo!();
 }
 

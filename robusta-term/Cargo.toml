@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.79"
-cgmath = "0.18.0"
 clap = { version = "4.4.14", features = ["derive"] }
 clap_complete = "4.4.6"
 dxf = { version = "0.5.0", features = ["serialize"] }
