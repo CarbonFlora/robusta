@@ -1,9 +1,10 @@
 [workspace]
 resolver = "2"
 members = [
-    "robusta-term",
-    "robusta-core", 
-    "robusta-gui"
+  "robusta-term",
+  "robusta-core", 
+  "robusta-gui", 
+  "robusta-2d"
 ]
 
 default-members = [

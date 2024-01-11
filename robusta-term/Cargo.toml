@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 robusta-core = { path = "../robusta-core" }
 robusta-gui = { path = "../robusta-gui" }
+robusta-2d = { path = "../robusta-2d" }
 
 anyhow = "1.0.79"
 clap = { version = "4.4.14", features = ["derive"] }

@@ -1,5 +1,5 @@
 use crate::args::RobustaArgs;
-use robusta_gui::two::startup_bevy_2d;
+use robusta_2d::app::bootstrap;
 
 use anyhow::Result;
 use clap::Parser;
@@ -14,9 +14,9 @@ pub fn init() -> Result<()> {
 }
 
 fn using_dxf_init(_file_name: String) {
-    startup_bevy_2d();
+    bootstrap();
 }
 
 fn integrated_init() {
-    startup_bevy_2d();
+    bootstrap();
 }

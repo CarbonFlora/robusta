@@ -3,6 +3,7 @@
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
 ## Todo!()
+- See egui dock, check for an example.
 - Reconstruct horizontal linework given a table
 - linear algebra library thru nalgebra, faer, or cgmath. 
     nalgebra - general purpose 
@@ -14,7 +15,7 @@ Given station, bearing, line data information on plan, if a program can reconstr
 - Move dependencies from term to other parts of the codebase. 
 - Use bevy in -gui to build the frontend. 
 - egui and `cargo add bevy_pancam --features bevy_egui`
-
+- multiple viewports
 
 ## Brainstorming
 - Meta-entities

@@ -1,24 +1,28 @@
 use bevy::prelude::*;
-// use bevy::input::keyboard::KeyboardInput;
-use bevy_pancam::{PanCamPlugin, PanCam};
-
 
 use crate::test::*;
 
-pub fn startup_bevy_2d() {
+pub fn bootstrap() {
     App::new()
-    .add_plugins(DefaultPlugins)
-    .add_plugins(PanCamPlugin::default())
-    .add_systems(Startup, pancam_setup)
-    .add_systems(Update, draw_cursor)
-    .add_systems(Update, draw_arc)
-    // .add_systems(Update, keyboard_events)
-    .run();
+        .add_plugins(DefaultPlugins)
+        .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin)
+        .add_plugins(bevy_egui::EguiPlugin)
+        .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
+        .add_plugins(bevy_pancam::PanCamPlugin::default())
+        .insert_resource(robusta_gui::uistate::UiState::new())
+        .add_systems(Startup, pancam_setup)
+        .add_systems(Update, draw_cursor)
+        .add_systems(Update, draw_arc)
+        // .add_systems(Update, keyboard_events)
+        .run();
 }
 
+/// Currently only 1 viewport is supported.
 fn pancam_setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default())
-    .insert(PanCam {zoom_to_cursor: false, ..default()});
+    commands.spawn(Camera2dBundle::default()).insert(bevy_pancam::PanCam {
+        zoom_to_cursor: false,
+        ..default()
+    });
 }
 
 fn draw_cursor(
