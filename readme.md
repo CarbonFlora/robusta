@@ -3,6 +3,7 @@
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
 ## Todo!()
+- update https://github.com/CarbonFlora/bevy-inspector-egui_25 to egui v0.25
 - See egui dock, check for an example.
 - Reconstruct horizontal linework given a table
 - linear algebra library thru nalgebra, faer, or cgmath. 
