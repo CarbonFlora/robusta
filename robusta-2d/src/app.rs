@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use robusta_gui::uistate::{show_ui_system, UiState};
 
 use crate::test::*;
 
@@ -9,20 +10,23 @@ pub fn bootstrap() {
         .add_plugins(bevy_egui::EguiPlugin)
         .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
         .add_plugins(bevy_pancam::PanCamPlugin::default())
-        .insert_resource(robusta_gui::uistate::UiState::new())
+        .insert_resource(UiState::new())
         .add_systems(Startup, pancam_setup)
         .add_systems(Update, draw_cursor)
         .add_systems(Update, draw_arc)
+        .add_systems(PostUpdate, show_ui_system) // Currently broken, as I'm waiting for bevy_egui 0.25. Compiles, but sub-resource failure.
         // .add_systems(Update, keyboard_events)
         .run();
 }
 
 /// Currently only 1 viewport is supported.
 fn pancam_setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle::default()).insert(bevy_pancam::PanCam {
-        zoom_to_cursor: false,
-        ..default()
-    });
+    commands
+        .spawn(Camera2dBundle::default())
+        .insert(bevy_pancam::PanCam {
+            zoom_to_cursor: false,
+            ..default()
+        });
 }
 
 fn draw_cursor(

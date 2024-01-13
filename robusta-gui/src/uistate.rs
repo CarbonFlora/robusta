@@ -2,17 +2,11 @@ use std::any::TypeId;
 
 use bevy::prelude::*;
 use bevy_asset::{ReflectAsset, UntypedAssetId};
-// use bevy_egui::EguiContext;
-use bevy_inspector_egui::bevy_inspector::hierarchy::{hierarchy_ui, SelectedEntities};
-use bevy_inspector_egui::bevy_inspector::{
-    self, ui_for_entities_shared_components, ui_for_entity_with_children,
-};
-// use bevy_inspector_egui::egui;
+use bevy_egui::EguiContext;
 // use bevy_mod_picking::backends::egui::EguiPointer;
 // use bevy_mod_picking::prelude::*;
-// use bevy_egui::EguiSet;
 use bevy_reflect::TypeRegistry;
-// use bevy_window::PrimaryWindow;
+use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 
 #[derive(Eq, PartialEq)]
@@ -35,17 +29,31 @@ enum EguiWindow {
 pub struct UiState {
     state: DockState<EguiWindow>,
     viewport_rect: egui::Rect,
-    selected_entities: SelectedEntities,
+    // selected_entities: SelectedEntities,
     selection: InspectorSelection,
     // gizmo_mode: GizmoMode,
 }
 
 struct TabViewer<'a> {
     world: &'a mut World,
-    selected_entities: &'a mut SelectedEntities,
+    // selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
     viewport_rect: &'a mut egui::Rect,
     // gizmo_mode: GizmoMode,
+}
+
+pub fn show_ui_system(world: &mut World) {
+    let Ok(egui_context) = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .get_single(world)
+    else {
+        return;
+    };
+    let mut egui_context = egui_context.clone();
+
+    world.resource_scope::<UiState, _>(|world, mut ui_state| {
+        ui_state.ui(world, egui_context.get_mut())
+    });
 }
 
 impl UiState {
@@ -60,7 +68,7 @@ impl UiState {
 
         Self {
             state,
-            selected_entities: SelectedEntities::default(),
+            // selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
             // gizmo_mode: GizmoMode::Translate,
@@ -71,7 +79,7 @@ impl UiState {
         let mut tab_viewer = TabViewer {
             world,
             viewport_rect: &mut self.viewport_rect,
-            selected_entities: &mut self.selected_entities,
+            // selected_entities: &mut self.selected_entities,
             selection: &mut self.selection,
             // gizmo_mode: self.gizmo_mode,
         };
@@ -95,40 +103,10 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
                 // draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
             }
-            EguiWindow::Hierarchy => {
-                let selected = hierarchy_ui(self.world, ui, self.selected_entities);
-                if selected {
-                    *self.selection = InspectorSelection::Entities;
-                }
-            }
+            EguiWindow::Hierarchy => (),
             EguiWindow::Resources => select_resource(ui, &type_registry, self.selection),
             EguiWindow::Assets => select_asset(ui, &type_registry, self.world, self.selection),
-            EguiWindow::Inspector => match *self.selection {
-                InspectorSelection::Entities => match self.selected_entities.as_slice() {
-                    &[entity] => ui_for_entity_with_children(self.world, entity, ui),
-                    entities => ui_for_entities_shared_components(self.world, entities, ui),
-                },
-                InspectorSelection::Resource(type_id, ref name) => {
-                    ui.label(name);
-                    bevy_inspector::by_type_id::ui_for_resource(
-                        self.world,
-                        type_id,
-                        ui,
-                        name,
-                        &type_registry,
-                    )
-                }
-                InspectorSelection::Asset(type_id, ref name, handle) => {
-                    ui.label(name);
-                    bevy_inspector::by_type_id::ui_for_asset(
-                        self.world,
-                        type_id,
-                        handle,
-                        ui,
-                        &type_registry,
-                    );
-                }
-            },
+            EguiWindow::Inspector => (),
         }
     }
 

@@ -3979,9 +3979,8 @@ name = "robusta-gui"
 version = "0.0.1"
 dependencies = [
  "bevy",
- "bevy-inspector-egui",
  "bevy_asset",
- "bevy_egui 0.24.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bevy_egui 0.24.0",
  "bevy_mod_picking",
  "bevy_reflect",
  "bevy_window",

@@ -12,14 +12,15 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bevy_egui = { path = "../robusta_bevy_egui" } # actual crate missing egui v.0.25
+
 bevy = { version = "0.12.1", features = ["dynamic_linking"] } #todo!() when releasing officially, remove dynamic linking.
 bevy_mod_picking = { version = "0.17.0", features = ["backend_egui"] }
 bevy_window = { version = "0.12.1", features = ["serialize"] }
-bevy-inspector-egui = "0.22.1"
 egui = { version = "0.25.0", features = ["serde"] }
 egui_dock = { version = "0.10.0", features = ["serde"] }
 bevy_asset = { version = "0.12.1", features = ["multi-threaded"] }
 bevy_reflect = "0.12.1"
-bevy_egui = "0.24.0"
+# bevy_egui = "0.24.0"
 
 
