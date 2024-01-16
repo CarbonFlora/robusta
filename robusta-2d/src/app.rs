@@ -1,26 +1,34 @@
 use bevy::prelude::*;
-use robusta_gui::uistate::{show_ui_system, UiState};
+// use bevy_egui::{
+//     egui::{self, ScrollArea},
+//     EguiContexts,
+// };
+use robusta_gui::uistate::{set_camera_viewport, show_ui_system, UiState};
 
 use crate::test::*;
 
 pub fn bootstrap() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin)
+        .add_plugins(bevy_framepace::FramepacePlugin)
+        // .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin)
         .add_plugins(bevy_egui::EguiPlugin)
-        .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
+        // .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
         .add_plugins(bevy_pancam::PanCamPlugin::default())
         .insert_resource(UiState::new())
         .add_systems(Startup, pancam_setup)
-        .add_systems(Update, draw_cursor)
+        .add_systems(PostUpdate, show_ui_system)
+        // .add_systems(Update, draw_cursor)
         .add_systems(Update, draw_arc)
-        .add_systems(PostUpdate, show_ui_system) // Currently broken, as I'm waiting for bevy_egui 0.25. Compiles, but sub-resource failure.
+        // .add_systems(PostUpdate, show_ui_system.after(set_camera_viewport))
+        .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
+        // .add_systems(PostUpdate, set_camera_viewport)
         // .add_systems(Update, keyboard_events)
         .run();
 }
 
-/// Currently only 1 viewport is supported.
 fn pancam_setup(mut commands: Commands) {
+    // commands.spawn((Camera2dBundle::default(), bevy_pancam::PanCam::default()));
     commands
         .spawn(Camera2dBundle::default())
         .insert(bevy_pancam::PanCam {
@@ -29,7 +37,7 @@ fn pancam_setup(mut commands: Commands) {
         });
 }
 
-fn draw_cursor(
+fn _draw_cursor(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     windows: Query<&Window>,
     mut gizmos: Gizmos,
