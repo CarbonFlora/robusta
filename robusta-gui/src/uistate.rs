@@ -1,23 +1,17 @@
-use std::any::TypeId;
+use crate::*;
 
-use bevy::{prelude::*, render::camera::Viewport};
-use bevy_asset::{ReflectAsset, UntypedAssetId};
-use bevy_egui::EguiContext;
-// use bevy_mod_picking::backends::egui::EguiPointer;
-// use bevy_mod_picking::prelude::*;
-use bevy_reflect::TypeRegistry;
-use bevy_window::PrimaryWindow;
-use egui_dock::{DockArea, DockState, NodeIndex, Style};
+use crate::blocks::asset::select_asset;
+use crate::blocks::resource::select_resource;
 
 #[derive(Eq, PartialEq)]
-enum InspectorSelection {
+pub enum InspectorSelection {
     Entities,
     Resource(TypeId, String),
     Asset(TypeId, String, UntypedAssetId),
 }
 
 #[derive(Debug)]
-enum EguiWindow {
+pub enum EguiWindow {
     GameView,
     Hierarchy,
     Resources,
@@ -27,32 +21,41 @@ enum EguiWindow {
 
 #[derive(Resource)]
 pub struct UiState {
-    state: DockState<EguiWindow>,
-    viewport_rect: egui::Rect,
+    pub state: DockState<EguiWindow>,
+    pub viewport_rect: egui::Rect,
     // selected_entities: SelectedEntities,
-    selection: InspectorSelection,
-    // gizmo_mode: GizmoMode,
+    pub selection: InspectorSelection,
 }
 
-struct TabViewer<'a> {
-    world: &'a mut World,
-    // selected_entities: &'a mut SelectedEntities,
-    selection: &'a mut InspectorSelection,
-    viewport_rect: &'a mut egui::Rect,
-}
+impl UiState {
+    pub fn new() -> Self {
+        let mut state = DockState::new(vec![EguiWindow::GameView]);
+        let tree = state.main_surface_mut();
+        let [game, _inspector] =
+            tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
+        let [game, _hierarchy] = tree.split_left(game, 0.2, vec![EguiWindow::Hierarchy]);
+        let [_game, _bottom] =
+            tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
 
-pub fn show_ui_system(world: &mut World) {
-    let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world)
-    else {
-        return;
-    };
-    let mut egui_context = egui_context.clone();
+        Self {
+            state,
+            // selected_entities: SelectedEntities::default(),
+            selection: InspectorSelection::Entities,
+            viewport_rect: egui::Rect::NOTHING,
+        }
+    }
 
-    world.resource_scope::<UiState, _>(|world, mut ui_state| {
-        ui_state.ui(world, egui_context.get_mut())
-    });
+    pub fn ui(&mut self, world: &mut World, ctx: &mut egui::Context) {
+        let mut tab_viewer = TabViewer {
+            world,
+            viewport_rect: &mut self.viewport_rect,
+            // selected_entities: &mut self.selected_entities,
+            selection: &mut self.selection,
+        };
+        DockArea::new(&mut self.state)
+            .style(Style::from_egui(ctx.style().as_ref()))
+            .show(ctx, &mut tab_viewer);
+    }
 }
 
 // make camera only render to view not obstructed by UI
@@ -80,36 +83,25 @@ pub fn set_camera_viewport(
     });
 }
 
-impl UiState {
-    pub fn new() -> Self {
-        let mut state = DockState::new(vec![EguiWindow::GameView]);
-        let tree = state.main_surface_mut();
-        let [game, _inspector] =
-            tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
-        let [game, _hierarchy] = tree.split_left(game, 0.2, vec![EguiWindow::Hierarchy]);
-        let [_game, _bottom] =
-            tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
+struct TabViewer<'a> {
+    world: &'a mut World,
+    // selected_entities: &'a mut SelectedEntities,
+    selection: &'a mut InspectorSelection,
+    viewport_rect: &'a mut egui::Rect,
+}
 
-        Self {
-            state,
-            // selected_entities: SelectedEntities::default(),
-            selection: InspectorSelection::Entities,
-            viewport_rect: egui::Rect::NOTHING,
-        }
-    }
+pub fn show_ui_system(world: &mut World) {
+    let Ok(egui_context) = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .get_single(world)
+    else {
+        return;
+    };
+    let mut egui_context = egui_context.clone();
 
-    fn ui(&mut self, world: &mut World, ctx: &mut egui::Context) {
-        let mut tab_viewer = TabViewer {
-            world,
-            viewport_rect: &mut self.viewport_rect,
-            // selected_entities: &mut self.selected_entities,
-            selection: &mut self.selection,
-            // gizmo_mode: self.gizmo_mode,
-        };
-        DockArea::new(&mut self.state)
-            .style(Style::from_egui(ctx.style().as_ref()))
-            .show(ctx, &mut tab_viewer);
-    }
+    world.resource_scope::<UiState, _>(|world, mut ui_state| {
+        ui_state.ui(world, egui_context.get_mut())
+    });
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -138,74 +130,5 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
     fn clear_background(&self, window: &Self::Tab) -> bool {
         !matches!(window, EguiWindow::GameView)
-    }
-}
-fn select_resource(
-    ui: &mut egui::Ui,
-    type_registry: &TypeRegistry,
-    selection: &mut InspectorSelection,
-) {
-    let mut resources: Vec<_> = type_registry
-        .iter()
-        .filter(|registration| registration.data::<ReflectResource>().is_some())
-        .map(|registration| {
-            (
-                registration.type_info().type_path_table().short_path(),
-                registration.type_id(),
-            )
-        })
-        .collect();
-    resources.sort_by(|(name_a, _), (name_b, _)| name_a.cmp(name_b));
-
-    for (resource_name, type_id) in resources {
-        let selected = match *selection {
-            InspectorSelection::Resource(selected, _) => selected == type_id,
-            _ => false,
-        };
-
-        if ui.selectable_label(selected, resource_name).clicked() {
-            *selection = InspectorSelection::Resource(type_id, resource_name.to_string());
-        }
-    }
-}
-
-fn select_asset(
-    ui: &mut egui::Ui,
-    type_registry: &TypeRegistry,
-    world: &World,
-    selection: &mut InspectorSelection,
-) {
-    let mut assets: Vec<_> = type_registry
-        .iter()
-        .filter_map(|registration| {
-            let reflect_asset = registration.data::<ReflectAsset>()?;
-            Some((
-                registration.type_info().type_path_table().short_path(),
-                registration.type_id(),
-                reflect_asset,
-            ))
-        })
-        .collect();
-    assets.sort_by(|(name_a, ..), (name_b, ..)| name_a.cmp(name_b));
-
-    for (asset_name, asset_type_id, reflect_asset) in assets {
-        let handles: Vec<_> = reflect_asset.ids(world).collect();
-
-        ui.collapsing(format!("{asset_name} ({})", handles.len()), |ui| {
-            for handle in handles {
-                let selected = match *selection {
-                    InspectorSelection::Asset(_, _, selected_id) => selected_id == handle,
-                    _ => false,
-                };
-
-                if ui
-                    .selectable_label(selected, format!("{:?}", handle))
-                    .clicked()
-                {
-                    *selection =
-                        InspectorSelection::Asset(asset_type_id, asset_name.to_string(), handle);
-                }
-            }
-        });
     }
 }
