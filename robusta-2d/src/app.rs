@@ -4,7 +4,7 @@ use bevy::prelude::*;
 //     egui::{self, ScrollArea},
 //     EguiContexts,
 // };
-use robusta_gui::uistate::{set_camera_viewport, show_ui_system, UiState};
+use robusta_gui::uistate::{set_camera_viewport, unfreeze_camera_viewport, show_ui_system, UiState};
 
 use crate::test::*;
 
@@ -18,11 +18,12 @@ pub fn bootstrap() {
         .add_plugins(bevy_pancam::PanCamPlugin::default())
         .insert_resource(UiState::new())
         .add_systems(Startup, pancam_setup)
-        .add_systems(Update, show_ui_system)
-        // .add_systems(Update, draw_cursor)
         .add_systems(First, draw_arc)
+        .add_systems(Update, show_ui_system.after(unfreeze_camera_viewport))
+        // .add_systems(Update, draw_cursor)
         // .add_systems(First, show_ui_system.after(draw_arc))
-        .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system)) // Don't like how may thing are happening every update tick.
+        // .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system)) // Don't like how may thing are happening every update tick.
+        .add_systems(PostUpdate, set_camera_viewport)
         // .add_systems(Update, keyboard_events)
         .run();
 }

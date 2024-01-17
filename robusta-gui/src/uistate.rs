@@ -1,7 +1,9 @@
+use egui_dock::SurfaceIndex;
+
 use crate::*;
 
-use crate::blocks::asset::select_asset;
-use crate::blocks::resource::select_resource;
+use crate::leaves::asset::select_asset;
+use crate::leaves::resource::select_resource;
 
 #[derive(Eq, PartialEq)]
 pub enum InspectorSelection {
@@ -19,6 +21,7 @@ pub enum EguiWindow {
     Inspector,
 }
 
+/// This is the `Bevy` resource containing all the custom GUI elements. 
 #[derive(Resource)]
 pub struct UiState {
     pub state: DockState<EguiWindow>,
@@ -58,6 +61,20 @@ impl UiState {
     }
 }
 
+pub fn show_ui_system(world: &mut World) {
+    let Ok(egui_context) = world
+        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+        .get_single(world)
+    else {
+        return;
+    };
+    let mut egui_context = egui_context.clone();
+
+    world.resource_scope::<UiState, _>(|world, mut ui_state| {
+        ui_state.ui(world, egui_context.get_mut())
+    });
+}
+
 // make camera only render to view not obstructed by UI
 pub fn set_camera_viewport(
     ui_state: Res<UiState>,
@@ -66,7 +83,6 @@ pub fn set_camera_viewport(
     mut cameras: Query<&mut Camera, With<bevy_pancam::PanCam>>,
 ) {
     let mut cam = cameras.single_mut();
-
     let Ok(window) = primary_window.get_single() else {
         return;
     };
@@ -83,25 +99,31 @@ pub fn set_camera_viewport(
     });
 }
 
+pub fn unfreeze_camera_viewport(
+    ui_state: Res<UiState>,
+    primary_window: Query<&mut Window, With<PrimaryWindow>>,
+    egui_settings: Res<bevy_egui::EguiSettings>,
+    mut cameras: Query<&mut Camera, With<bevy_pancam::PanCam>>,
+) {
+    let focused_leaf = ui_state.state.focused_leaf();
+
+    // toggle component PanCam on and off based on if any leaf is focused. 
+    // This currently dones't work as I don't know how to get the focused tab.
+    if let Some(leaf) = focused_leaf {
+        cameras.for_each_mut(|mut x| {
+            x.is_active = match leaf.1 {
+                NodeIndex(0) => true,
+                _ => false,
+            }
+        })  
+    }
+}
+
 struct TabViewer<'a> {
     world: &'a mut World,
     // selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
     viewport_rect: &'a mut egui::Rect,
-}
-
-pub fn show_ui_system(world: &mut World) {
-    let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world)
-    else {
-        return;
-    };
-    let mut egui_context = egui_context.clone();
-
-    world.resource_scope::<UiState, _>(|world, mut ui_state| {
-        ui_state.ui(world, egui_context.get_mut())
-    });
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -117,7 +139,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
                 // draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
             }
-            EguiWindow::Hierarchy => select_resource(ui, &type_registry, self.selection),
+            EguiWindow::Hierarchy => (),
             EguiWindow::Resources => select_resource(ui, &type_registry, self.selection),
             EguiWindow::Assets => select_asset(ui, &type_registry, self.world, self.selection),
             EguiWindow::Inspector => (),
