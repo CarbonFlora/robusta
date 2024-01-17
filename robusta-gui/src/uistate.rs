@@ -1,5 +1,3 @@
-use egui_dock::SurfaceIndex;
-
 use crate::*;
 
 use crate::leaves::asset::select_asset;
@@ -21,7 +19,7 @@ pub enum EguiWindow {
     Inspector,
 }
 
-/// This is the `Bevy` resource containing all the custom GUI elements. 
+/// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
     pub state: DockState<EguiWindow>,
@@ -100,22 +98,18 @@ pub fn set_camera_viewport(
 }
 
 pub fn unfreeze_camera_viewport(
-    ui_state: Res<UiState>,
-    primary_window: Query<&mut Window, With<PrimaryWindow>>,
-    egui_settings: Res<bevy_egui::EguiSettings>,
-    mut cameras: Query<&mut Camera, With<bevy_pancam::PanCam>>,
+    mut ui_state: ResMut<UiState>,
+    mut cameras: Query<&mut bevy_pancam::PanCam>,
 ) {
-    let focused_leaf = ui_state.state.focused_leaf();
-
-    // toggle component PanCam on and off based on if any leaf is focused. 
-    // This currently dones't work as I don't know how to get the focused tab.
-    if let Some(leaf) = focused_leaf {
-        cameras.for_each_mut(|mut x| {
-            x.is_active = match leaf.1 {
-                NodeIndex(0) => true,
+    let focused_tab = ui_state.state.find_active_focused();
+    match focused_tab {
+        None => (),
+        Some(tab) => cameras.for_each_mut(|mut x| {
+            x.enabled = match tab.1 {
+                EguiWindow::GameView => true,
                 _ => false,
             }
-        })  
+        }),
     }
 }
 

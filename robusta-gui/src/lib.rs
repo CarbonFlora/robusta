@@ -9,5 +9,5 @@ use bevy_reflect::TypeRegistry;
 use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 
-pub mod uistate;
 pub mod leaves;
+pub mod uistate;

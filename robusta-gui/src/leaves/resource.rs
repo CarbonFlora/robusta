@@ -1,5 +1,5 @@
-use crate::*;
 use crate::uistate::*;
+use crate::*;
 
 pub fn select_resource(
     ui: &mut egui::Ui,
