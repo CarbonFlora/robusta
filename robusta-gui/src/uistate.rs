@@ -39,7 +39,6 @@ struct TabViewer<'a> {
     // selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
     viewport_rect: &'a mut egui::Rect,
-    // gizmo_mode: GizmoMode,
 }
 
 pub fn show_ui_system(world: &mut World) {
@@ -96,7 +95,6 @@ impl UiState {
             // selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
             viewport_rect: egui::Rect::NOTHING,
-            // gizmo_mode: GizmoMode::Translate,
         }
     }
 
@@ -118,7 +116,6 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     type Tab = EguiWindow;
 
     fn ui(&mut self, ui: &mut egui_dock::egui::Ui, window: &mut Self::Tab) {
-        // fn ui(&mut self, ui: &mut egui::Ui, window: &mut Self::Tab) {
         let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
         let type_registry = type_registry.read();
 
@@ -131,7 +128,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Hierarchy => select_resource(ui, &type_registry, self.selection),
             EguiWindow::Resources => select_resource(ui, &type_registry, self.selection),
             EguiWindow::Assets => select_asset(ui, &type_registry, self.world, self.selection),
-            EguiWindow::Inspector => select_resource(ui, &type_registry, self.selection),
+            EguiWindow::Inspector => (),
         }
     }
 

@@ -3,6 +3,7 @@
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
 ## Todo!()
+- I want to rebuild the view system to be built on egui_dock. This is because I don't like how im using a clip mask for the primary viewport and generally don't like the update system rn. I want to use a schedule also. 
 - disable pancam when selecting the egui.
 - remove one instance of PostUpdate, add default viewport size. 
 - Reconstruct horizontal linework given a table

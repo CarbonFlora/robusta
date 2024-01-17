@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+// use bevy_mod_picking::PickableBundle;
 // use bevy_egui::{
 //     egui::{self, ScrollArea},
 //     EguiContexts,
@@ -17,12 +18,11 @@ pub fn bootstrap() {
         .add_plugins(bevy_pancam::PanCamPlugin::default())
         .insert_resource(UiState::new())
         .add_systems(Startup, pancam_setup)
-        .add_systems(PostUpdate, show_ui_system)
+        .add_systems(Update, show_ui_system)
         // .add_systems(Update, draw_cursor)
-        .add_systems(Update, draw_arc)
-        // .add_systems(PostUpdate, show_ui_system.after(set_camera_viewport))
-        .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system))
-        // .add_systems(PostUpdate, set_camera_viewport)
+        .add_systems(First, draw_arc)
+        // .add_systems(First, show_ui_system.after(draw_arc))
+        .add_systems(PostUpdate, set_camera_viewport.after(show_ui_system)) // Don't like how may thing are happening every update tick.
         // .add_systems(Update, keyboard_events)
         .run();
 }
