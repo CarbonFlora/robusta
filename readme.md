@@ -3,6 +3,7 @@
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
 ## Todo!()
+- disable pancam when selecting the egui.
 - remove one instance of PostUpdate, add default viewport size. 
 - Reconstruct horizontal linework given a table
 - linear algebra library thru nalgebra, faer, or cgmath. 
