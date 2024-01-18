@@ -1,14 +1,17 @@
 use crate::*;
 
-#[test]
-fn init_minimal_app() {
-    // let mut app = App::new();
-    // app.insert_resource(UiState::new())
-    //     .add_systems(First, draw_arc);
+#[cfg(test)]
+mod app2d {
+    #[test]
+    fn init_minimal_app() {
+        // let mut app = App::new();
+        // app.insert_resource(UiState::new())
+        //     .add_systems(First, draw_arc);
 
-    // app.update();
+        // app.update();
 
-    assert!(true);
+        assert!(true);
+    }
 }
 
 /// Gizmos are not designed to be used as design lines.
