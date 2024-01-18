@@ -3,6 +3,16 @@ use crate::*;
 use crate::leaves::asset::select_asset;
 use crate::leaves::resource::select_resource;
 
+pub fn pancam_setup(mut commands: Commands) {
+    // commands.spawn((Camera2dBundle::default(), bevy_pancam::PanCam::default()));
+    commands
+        .spawn(Camera2dBundle::default())
+        .insert(bevy_pancam::PanCam {
+            zoom_to_cursor: false,
+            ..default()
+        });
+}
+
 #[derive(Eq, PartialEq)]
 pub enum InspectorSelection {
     Entities,
@@ -12,7 +22,7 @@ pub enum InspectorSelection {
 
 #[derive(Debug)]
 pub enum EguiWindow {
-    GameView,
+    CADView,
     Hierarchy,
     Resources,
     Assets,
@@ -30,7 +40,7 @@ pub struct UiState {
 
 impl UiState {
     pub fn new() -> Self {
-        let mut state = DockState::new(vec![EguiWindow::GameView]);
+        let mut state = DockState::new(vec![EguiWindow::CADView]);
         let tree = state.main_surface_mut();
         let [game, _inspector] =
             tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
@@ -106,7 +116,7 @@ pub fn unfreeze_camera_viewport(
         None => (),
         Some(tab) => cameras.for_each_mut(|mut x| {
             x.enabled = match tab.1 {
-                EguiWindow::GameView => true,
+                EguiWindow::CADView => true,
                 _ => false,
             }
         }),
@@ -128,7 +138,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         let type_registry = type_registry.read();
 
         match window {
-            EguiWindow::GameView => {
+            EguiWindow::CADView => {
                 *self.viewport_rect = ui.clip_rect();
 
                 // draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
@@ -145,6 +155,6 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 
     fn clear_background(&self, window: &Self::Tab) -> bool {
-        !matches!(window, EguiWindow::GameView)
+        !matches!(window, EguiWindow::CADView)
     }
 }

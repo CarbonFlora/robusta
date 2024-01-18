@@ -1,5 +1,5 @@
 use crate::args::RobustaArgs;
-use robusta_2d::app::bootstrap;
+use robusta_2d::app::app2d;
 
 use anyhow::Result;
 use clap::Parser;
@@ -14,9 +14,9 @@ pub fn init() -> Result<()> {
 }
 
 fn using_dxf_init(_file_name: String) {
-    bootstrap();
+    app2d();
 }
 
 fn integrated_init() {
-    bootstrap();
+    app2d();
 }
