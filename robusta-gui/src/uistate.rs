@@ -4,7 +4,6 @@ use crate::leaves::asset::select_asset;
 use crate::leaves::resource::select_resource;
 
 pub fn pancam_setup(mut commands: Commands) {
-    // commands.spawn((Camera2dBundle::default(), bevy_pancam::PanCam::default()));
     commands
         .spawn(Camera2dBundle::default())
         .insert(bevy_pancam::PanCam {
@@ -20,6 +19,7 @@ pub enum InspectorSelection {
     Asset(TypeId, String, UntypedAssetId),
 }
 
+/// This is all available tabs to be accessed.
 #[derive(Debug)]
 pub enum EguiWindow {
     CADView,
@@ -56,6 +56,7 @@ impl UiState {
         }
     }
 
+    /// This currently creates a new DockArea on every `Update` cycle. This pulls data from `TabViewer` and transfers it over to `UiState`.
     pub fn ui(&mut self, world: &mut World, ctx: &mut egui::Context) {
         let mut tab_viewer = TabViewer {
             world,
@@ -107,6 +108,7 @@ pub fn set_camera_viewport(
     });
 }
 
+/// Turn off panning and zooming [`bevy_pancam`] when interacting with [`egui`].
 pub fn unfreeze_camera_viewport(
     mut ui_state: ResMut<UiState>,
     mut cameras: Query<&mut bevy_pancam::PanCam>,
@@ -123,6 +125,7 @@ pub fn unfreeze_camera_viewport(
     }
 }
 
+/// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     world: &'a mut World,
     // selected_entities: &'a mut SelectedEntities,
