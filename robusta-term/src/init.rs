@@ -13,10 +13,10 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-fn using_dxf_init(_file_name: String) {
-    app2d();
+fn using_dxf_init(file_name: String) {
+    app2d(Some(file_name));
 }
 
 fn integrated_init() {
-    app2d();
+    app2d(None);
 }

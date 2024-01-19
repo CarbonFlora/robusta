@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod open {
-    use robusta_dxf::open::open;
+    use robusta_dxf::open::open_from_path;
 
     use anyhow::Result;
     use std::fs::File;
@@ -9,9 +9,8 @@ mod open {
 
     #[test]
     fn minimal_open() {
-        //why no work :(
-        assert!(open("tests/resources/minimal-2013.dxf".into()).is_ok());
-        assert!(open("tests/resources/minimal-2018.dxf".into()).is_ok());
+        assert!(open_from_path("tests/resources/minimal-2013.dxf".into()).is_ok());
+        assert!(open_from_path("tests/resources/minimal-2018.dxf".into()).is_ok());
     }
 
     #[test]
