@@ -15,6 +15,7 @@ Given station, bearing, line data information on plan, if a program can reconstr
 - Use bevy in -gui to build the frontend. 
 - egui and `cargo add bevy_pancam --features bevy_egui`
 - multiple viewports
+- impliment and undo and redo system. The easiest way is to save the global resource (uistate) into a buffer with ~20 or so layers.
 
 ## Brainstorming
 - Meta-entities
