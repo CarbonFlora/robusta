@@ -16,6 +16,7 @@ Given station, bearing, line data information on plan, if a program can reconstr
 - egui and `cargo add bevy_pancam --features bevy_egui`
 - multiple viewports
 - impliment and undo and redo system. The easiest way is to save the global resource (uistate) into a buffer with ~20 or so layers.
+- instead of using bevy gizmos, upgrade to robusta entities when more control is required.
 
 ## Brainstorming
 - Meta-entities
