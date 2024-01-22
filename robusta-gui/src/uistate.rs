@@ -32,6 +32,7 @@ pub enum EguiWindow {
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
+    pub entities: 
     pub opened_file_path: Option<String>,
     pub state: DockState<EguiWindow>,
     pub viewport_rect: egui::Rect,

@@ -12,14 +12,3 @@ pub fn open_from_path(path: PathBuf) -> Result<Drawing> {
     // }
     return Ok(drawing);
 }
-
-pub fn parse_drawing_into_points(drawing: Drawing) -> Vec<Point> {
-    let mut points = Vec::new();
-    for entity in drawing.entities() {
-        match &entity.specific {
-            EntityType::Arc(specific) => todo!(),
-            _ => core::panic!("Uncaptured entity: {entity:#?} "),
-        };
-    }
-    points
-}

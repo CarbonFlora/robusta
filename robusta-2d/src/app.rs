@@ -13,7 +13,7 @@ pub fn app2d(path: Option<String>) {
         .insert_resource(UiState::new(path))
         .add_systems(Startup, pancam_setup)
         .add_systems(First, draw_arc)
-        .add_systems(First, draw_dxf)
+        // .add_systems(First, draw_dxf)
         .add_systems(Update, show_ui_system)
         .add_systems(Update, unfreeze_camera_viewport)
         .add_systems(PostUpdate, set_camera_viewport)
