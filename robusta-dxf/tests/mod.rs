@@ -3,6 +3,7 @@ mod open {
     use robusta_dxf::open::open_from_path;
 
     use anyhow::Result;
+    use robusta_dxf::wrapper::DXFWrapper;
     use std::fs::File;
     use std::io::prelude::*;
     use std::io::BufReader;
@@ -22,5 +23,11 @@ mod open {
         let len = reader.read_line(&mut line)?;
         println!("First line is {len} bytes long");
         return Ok(());
+    }
+
+    #[test]
+    fn parse1() {
+        let d = open_from_path("tests/resources/minimal-2018.dxf".into()).unwrap();
+        DXFWrapper::from(&d);
     }
 }
