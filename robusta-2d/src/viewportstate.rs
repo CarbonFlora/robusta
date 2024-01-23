@@ -10,6 +10,7 @@ pub struct ViewportState {
 impl ViewportState {
     pub fn new(path: Option<String>) -> Self {
         let a = parse_dxf(&path);
+        // println!("point stored: {:?}", a.points);
         ViewportState {
             opened_file_path: path,
             points: a.points,
@@ -18,6 +19,7 @@ impl ViewportState {
 }
 
 fn parse_dxf(path: &Option<String>) -> DXFWrapper {
+    println!("path raw: {:?}", path);
     let d = open_from_path(path.clone().unwrap_or_default().into());
-    DXFWrapper::from(&d)
+    return DXFWrapper::from(&d);
 }
