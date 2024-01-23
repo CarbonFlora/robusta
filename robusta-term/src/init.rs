@@ -4,6 +4,7 @@ use robusta_2d::app::app2d;
 use anyhow::Result;
 use clap::Parser;
 
+// This is currently setup to only handle dxf files.
 pub fn init() -> Result<()> {
     let args = RobustaArgs::parse();
     match args.input_file {
@@ -13,7 +14,7 @@ pub fn init() -> Result<()> {
     Ok(())
 }
 
-fn using_dxf_init(file_name: String) {
+pub fn using_dxf_init(file_name: String) {
     app2d(Some(file_name));
 }
 

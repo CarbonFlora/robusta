@@ -1,6 +1,6 @@
 use crate::*;
 
-use crate::test::draw_arc; //this is for testing only
+// use crate::test::draw_arc; //this is for testing only
 
 pub fn app2d(path: Option<String>) {
     App::new()
@@ -10,10 +10,11 @@ pub fn app2d(path: Option<String>) {
         .add_plugins(bevy_pancam::PanCamPlugin::default())
         // .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin)
         // .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
-        .insert_resource(UiState::new(path))
+        .insert_resource(UiState::new())
+        .insert_resource(ViewportState::new(path))
         .add_systems(Startup, pancam_setup)
-        .add_systems(First, draw_arc)
-        // .add_systems(First, draw_dxf)
+        // .add_systems(First, draw_arc)
+        .add_systems(First, draw_dxf)
         .add_systems(Update, show_ui_system)
         .add_systems(Update, unfreeze_camera_viewport)
         .add_systems(PostUpdate, set_camera_viewport)
