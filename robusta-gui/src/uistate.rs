@@ -3,15 +3,6 @@ use crate::*;
 use crate::leaves::asset::select_asset;
 use crate::leaves::resource::select_resource;
 
-pub fn pancam_setup(mut commands: Commands) {
-    commands
-        .spawn(Camera2dBundle::default())
-        .insert(bevy_pancam::PanCam {
-            zoom_to_cursor: false,
-            ..default()
-        });
-}
-
 #[derive(Eq, PartialEq)]
 pub enum InspectorSelection {
     Entities,

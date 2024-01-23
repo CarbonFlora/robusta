@@ -8,8 +8,8 @@ pub fn app2d(path: Option<String>) {
         .add_plugins(bevy_framepace::FramepacePlugin)
         .add_plugins(bevy_egui::EguiPlugin)
         .add_plugins(bevy_pancam::PanCamPlugin::default())
-        // .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin)
         // .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
+        // .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin)
         .insert_resource(UiState::new())
         .insert_resource(ViewportState::new(path))
         .add_systems(Startup, pancam_setup)
@@ -25,4 +25,14 @@ pub fn app2d(path: Option<String>) {
 pub fn _ecs_schedule() -> crate::Schedule {
     let schedule = crate::Schedule::default();
     schedule
+}
+
+fn pancam_setup(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default()).insert((
+        bevy_pancam::PanCam {
+            zoom_to_cursor: false,
+            ..default()
+        },
+        // RaycastPickCamera::default(), This is set automatically.
+    ));
 }

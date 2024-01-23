@@ -15,5 +15,4 @@ rust-version.workspace = true
 robusta-core = { path = "../robusta-core" }
 
 dxf = { git = "https://github.com/ixmilia/dxf-rs.git" }
-# dxf = { version = "0.5.0", features = ["serialize"] }
 anyhow = "1.0.79"
