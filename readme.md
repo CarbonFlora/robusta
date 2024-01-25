@@ -37,3 +37,6 @@ Points that assume multiple tags are visualized with dynamic features like color
 
 - Constraint System
 This is important, but for another day. 
+
+- Fence System
+In addition to the constraint system, have it so arcs and lines must be between two points. This is called the fence system as of now.
