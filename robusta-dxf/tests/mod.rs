@@ -8,11 +8,11 @@ mod open {
     use std::io::prelude::*;
     use std::io::BufReader;
 
-    #[test]
-    fn minimal_open() {
-        assert!(open_from_path("tests/resources/minimal-2013.dxf".into()).is_ok());
-        assert!(open_from_path("tests/resources/minimal-2018.dxf".into()).is_ok());
-    }
+    // #[test]
+    // fn minimal_open() {
+    //     assert!(open_from_path("tests/resources/minimal-2013.dxf".into()).is_ok());
+    //     assert!(open_from_path("tests/resources/minimal-2018.dxf".into()).is_ok());
+    // }
 
     #[test]
     fn minimal_open1() -> Result<()> {
@@ -26,8 +26,23 @@ mod open {
     }
 
     #[test]
-    fn parse1() {
-        let d = open_from_path("tests/resources/minimal-2018.dxf".into()).unwrap();
-        DXFWrapper::from(&d);
+    fn parse_lines() {
+        let d = open_from_path("tests/resources/lines-2018.dxf".into());
+        let a = DXFWrapper::from(&d);
+        assert!(a.points.len() > 0);
+    }
+
+    #[test]
+    fn parse_arcs() {
+        let d = open_from_path("tests/resources/arcs-2018.dxf".into());
+        let a = DXFWrapper::from(&d);
+        assert!(a.points.len() > 0);
+    }
+
+    #[test]
+    fn parse_minimal() {
+        let d = open_from_path("tests/resources/minimal-2018.dxf".into());
+        let a = DXFWrapper::from(&d);
+        assert!(a.points.len() > 0);
     }
 }

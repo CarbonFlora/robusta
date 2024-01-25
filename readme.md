@@ -3,7 +3,8 @@
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
 ## Todo!()
-- Reconstruct horizontal linework given a table (what)
+- clone https://github.com/johanhelsing/bevy_pancam and change world_units_per_device_pixel so horizontal and vertical scrolling is the same. Can also fix some other Issues if it's easy. 
+- add a 'fit to view' function
 - linear algebra library thru nalgebra, faer, or cgmath. 
     nalgebra - general purpose 
     faer - large matrix operation
@@ -11,9 +12,6 @@ Given station, bearing, line data information on plan, if a program can reconstr
         https://github.com/rustgd/cgmath
         what is swizzling lol 
         --features mint for matrix interpo between libraries.
-- Move dependencies from term to other parts of the codebase. 
-- Use bevy in -gui to build the frontend. 
-- egui and `cargo add bevy_pancam --features bevy_egui`
 - multiple viewports
 - impliment and undo and redo system. The easiest way is to save the global resource (uistate) into a buffer with ~20 or so layers.
 - instead of using bevy gizmos, upgrade to robusta entities when more control is required.

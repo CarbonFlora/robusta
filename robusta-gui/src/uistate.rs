@@ -3,15 +3,6 @@ use crate::*;
 use crate::leaves::asset::select_asset;
 use crate::leaves::resource::select_resource;
 
-pub fn pancam_setup(mut commands: Commands) {
-    commands
-        .spawn(Camera2dBundle::default())
-        .insert(bevy_pancam::PanCam {
-            zoom_to_cursor: false,
-            ..default()
-        });
-}
-
 #[derive(Eq, PartialEq)]
 pub enum InspectorSelection {
     Entities,
@@ -32,7 +23,6 @@ pub enum EguiWindow {
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
-    pub opened_file_path: Option<String>,
     pub state: DockState<EguiWindow>,
     pub viewport_rect: egui::Rect,
     // selected_entities: SelectedEntities,
@@ -40,7 +30,7 @@ pub struct UiState {
 }
 
 impl UiState {
-    pub fn new(path: Option<String>) -> Self {
+    pub fn new() -> Self {
         let mut state = DockState::new(vec![EguiWindow::CADView]);
         let tree = state.main_surface_mut();
         let [game, _inspector] =
@@ -50,7 +40,7 @@ impl UiState {
             tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
 
         Self {
-            opened_file_path: path,
+            // opened_file_path: path,
             state,
             // selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,

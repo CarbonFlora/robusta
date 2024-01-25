@@ -3721,6 +3721,8 @@ dependencies = [
  "bevy_egui 0.24.0",
  "bevy_framepace",
  "bevy_pancam",
+ "robusta-core",
+ "robusta-dxf",
  "robusta-gui",
 ]
 

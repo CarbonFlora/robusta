@@ -5,6 +5,9 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[example]]
+name = "lines"
+
 [dependencies]
 robusta-core = { path = "../robusta-core" }
 robusta-gui = { path = "../robusta-gui" }
@@ -14,4 +17,3 @@ anyhow = "1.0.79"
 clap = { version = "4.4.14", features = ["derive"] }
 clap_complete = "4.4.6"
 # serde = "1.0.195"
-# bevy_egui = { version = "0.24.0", path = "../robusta_bevy_egui", features = ["immutable_ctx"] }

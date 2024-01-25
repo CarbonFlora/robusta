@@ -12,11 +12,13 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+robusta-core = { path = "../robusta-core" }
 robusta-gui = { path = "../robusta-gui" }
+robusta-dxf = { path = "../robusta-dxf" }
 bevy_egui = { path = "../robusta_bevy_egui", features = ["immutable_ctx"] }
 
 bevy = { version = "0.12.1", features = ["dynamic_linking"] } #todo!() when releasing officially, remove dynamic linking.
 bevy_pancam = { version = "0.10.0" }
 bevy-inspector-egui = "0.22.1"
-# bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection"] }
+# bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
 bevy_framepace = "0.14.1"

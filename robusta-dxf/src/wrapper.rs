@@ -24,6 +24,8 @@ fn get_points(drawing: &Drawing) -> Vec<Point> {
         match &entity.specific {
             EntityType::Line(specific) => points.extend(line::to_points(specific)),
             EntityType::Arc(specific) => points.extend(arc::to_points(specific)),
+            EntityType::LwPolyline(specific) => points.extend(lwpolyline::to_points(specific)),
+            EntityType::Circle(specific) => points.extend(circle::to_points(specific)),
             _ => core::panic!("Uncaptured entity: {entity:#?} "),
         };
     }

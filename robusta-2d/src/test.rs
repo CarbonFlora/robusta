@@ -1,19 +1,5 @@
 use crate::*;
 
-#[cfg(test)]
-mod app2d {
-    #[test]
-    fn init_minimal_app() {
-        // let mut app = App::new();
-        // app.insert_resource(UiState::new())
-        //     .add_systems(First, draw_arc);
-
-        // app.update();
-
-        assert!(true);
-    }
-}
-
 /// Gizmos are not designed to be used as design lines.
 /// "Immediate mode drawing api for visual debugging."-Bevy
 pub fn draw_arc(mut gizmos: Gizmos) {

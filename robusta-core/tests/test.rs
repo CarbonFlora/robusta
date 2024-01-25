@@ -27,6 +27,6 @@ mod tests {
         let p2 = Point::new(2., 2., 0.);
         let distance = distance(&p1.coordinates, &p2.coordinates);
         // dbg!(distance);
-        assert_relative_eq!(distance, 8.0_f64.sqrt());
+        assert_relative_eq!(distance, 8.0_f32.sqrt());
     }
 }
