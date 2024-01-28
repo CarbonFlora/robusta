@@ -1,3 +1,8 @@
+use std::any::Any;
+
+use bevy::utils::{HashMap, Uuid};
+use robusta_dxf::wrapper::DXFWrapper;
+
 use crate::*;
 
 use crate::leaves::asset::select_asset;
@@ -11,9 +16,9 @@ pub enum InspectorSelection {
 }
 
 /// This is all available tabs to be accessed.
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum EguiWindow {
-    CADView,
+    CADView(ViewportState),
     Hierarchy,
     Resources,
     Assets,
@@ -21,38 +26,73 @@ pub enum EguiWindow {
 }
 
 /// This is the `Bevy` resource containing all the custom GUI elements.
+#[derive(Resource, Debug, PartialEq, Eq)]
+pub struct ViewportState {
+    pub viewport_id: Uuid,
+    pub opened_file_path: Option<String>,
+    // pub points: Vec<robusta_core::point::Point>,
+}
+
+impl ViewportState {
+    pub fn new(path: &Option<String>) -> Self {
+        ViewportState {
+            viewport_id: Uuid::new_v4(),
+            opened_file_path: path.clone(),
+            // points: loaded_file.points,
+        }
+    }
+}
+
+/// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
+    pub loaded_files: HashMap<Option<String>, DXFWrapper>,
     pub state: DockState<EguiWindow>,
-    pub viewport_rect: egui::Rect,
+    // pub viewport_rectangles: Vec<egui::Rect>,
+    pub viewport_rectangles: HashMap<Uuid, Viewport>,
     // selected_entities: SelectedEntities,
     pub selection: InspectorSelection,
 }
 
 impl UiState {
-    pub fn new() -> Self {
-        let mut state = DockState::new(vec![EguiWindow::CADView]);
+    /// This is currently the default gui layout.
+    /// Future Features:
+    /// - custom default layout in config.toml
+    // pub fn new(cameras: Query<&mut Camera, With<ViewportCamera>>) -> Self {
+    pub fn new(path: &Option<String>) -> Self {
+        let loaded_file = robusta_dxf::open::parse_dxf(path);
+        let mut state = DockState::new(vec![EguiWindow::CADView(ViewportState::new(path))]);
         let tree = state.main_surface_mut();
         let [game, _inspector] =
             tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
-        let [game, _hierarchy] = tree.split_left(game, 0.2, vec![EguiWindow::Hierarchy]);
+        let [game, _hierarchy] = tree.split_left(
+            game,
+            0.2,
+            vec![
+                EguiWindow::Hierarchy,
+                EguiWindow::CADView(ViewportState::new(path)),
+            ],
+        );
         let [_game, _bottom] =
             tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
 
+        let mut loaded_files = HashMap::new();
+        loaded_files.insert(path.clone(), loaded_file);
+
         Self {
-            // opened_file_path: path,
+            loaded_files,
             state,
-            // selected_entities: SelectedEntities::default(),
             selection: InspectorSelection::Entities,
-            viewport_rect: egui::Rect::NOTHING,
+            viewport_rectangles: HashMap::new(),
         }
     }
 
-    /// This currently creates a new DockArea on every `Update` cycle. This pulls data from `TabViewer` and transfers it over to `UiState`.
+    /// This currently creates a new DockArea on every `Update` cycle.
+    /// Ideally, this would only run on startup and when required.
     pub fn ui(&mut self, world: &mut World, ctx: &mut egui::Context) {
         let mut tab_viewer = TabViewer {
             world,
-            viewport_rect: &mut self.viewport_rect,
+            // viewport_rect: &mut self.viewport_rectangles,
             // selected_entities: &mut self.selected_entities,
             selection: &mut self.selection,
         };
@@ -62,7 +102,7 @@ impl UiState {
     }
 }
 
-pub fn show_ui_system(world: &mut World) {
+pub fn ui_system_update(world: &mut World) {
     let Ok(egui_context) = world
         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
         .get_single(world)
@@ -76,28 +116,16 @@ pub fn show_ui_system(world: &mut World) {
     });
 }
 
-// make camera only render to view not obstructed by UI
-pub fn set_camera_viewport(
-    ui_state: Res<UiState>,
-    primary_window: Query<&mut Window, With<PrimaryWindow>>,
-    egui_settings: Res<bevy_egui::EguiSettings>,
-    mut cameras: Query<&mut Camera, With<bevy_pancam::PanCam>>,
-) {
-    let mut cam = cameras.single_mut();
-    let Ok(window) = primary_window.get_single() else {
-        return;
-    };
+/// Each viewport should have their own respective camera.
+#[derive(Component)]
+pub struct ViewportCamera {
+    pub id: bevy::utils::Uuid,
+}
 
-    let scale_factor = window.scale_factor() * egui_settings.scale_factor;
-
-    let viewport_pos = ui_state.viewport_rect.left_top().to_vec2() * scale_factor as f32;
-    let viewport_size = ui_state.viewport_rect.size() * scale_factor as f32;
-
-    cam.viewport = Some(Viewport {
-        physical_position: UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32),
-        physical_size: UVec2::new(viewport_size.x as u32, viewport_size.y as u32),
-        depth: 0.0..1.0,
-    });
+impl ViewportCamera {
+    pub fn new(viewport_id: Uuid) -> Self {
+        ViewportCamera { id: viewport_id }
+    }
 }
 
 /// Turn off panning and zooming [`bevy_pancam`] when interacting with [`egui`].
@@ -110,7 +138,7 @@ pub fn unfreeze_camera_viewport(
         None => (),
         Some(tab) => cameras.for_each_mut(|mut x| {
             x.enabled = match tab.1 {
-                EguiWindow::CADView => true,
+                EguiWindow::CADView(_) => true,
                 _ => false,
             }
         }),
@@ -122,7 +150,7 @@ struct TabViewer<'a> {
     world: &'a mut World,
     // selected_entities: &'a mut SelectedEntities,
     selection: &'a mut InspectorSelection,
-    viewport_rect: &'a mut egui::Rect,
+    // viewport_rect: &'a mut egui::Rect,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -133,11 +161,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         let type_registry = type_registry.read();
 
         match window {
-            EguiWindow::CADView => {
-                *self.viewport_rect = ui.clip_rect();
-
-                // draw_gizmo(ui, self.world, self.selected_entities, self.gizmo_mode);
-            }
+            EguiWindow::CADView(_) => (),
             EguiWindow::Hierarchy => (),
             EguiWindow::Resources => select_resource(ui, &type_registry, self.selection),
             EguiWindow::Assets => select_asset(ui, &type_registry, self.world, self.selection),
@@ -150,6 +174,6 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 
     fn clear_background(&self, window: &Self::Tab) -> bool {
-        !matches!(window, EguiWindow::CADView)
+        !matches!(window, EguiWindow::CADView(_))
     }
 }

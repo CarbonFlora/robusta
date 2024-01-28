@@ -2,16 +2,15 @@
 resolver = "2"
 members = [
   "robusta-term",
-  "robusta-core", 
-  "robusta-gui", 
+  "robusta-core",
+  "robusta-gui",
   "robusta-2d",
-  "robusta_bevy_egui", 
+  "robusta_bevy_egui",
   "robusta-dxf",
+  "robusta-exp",
 ]
 
-default-members = [
-  "robusta-term"
-]
+default-members = ["robusta-term"]
 
 [profile.release]
 lto = "thin"

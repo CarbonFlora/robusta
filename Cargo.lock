@@ -3723,6 +3723,7 @@ dependencies = [
  "bevy_pancam",
  "robusta-core",
  "robusta-dxf",
+ "robusta-exp",
  "robusta-gui",
 ]
 
@@ -3744,6 +3745,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "robusta-exp"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "approx",
+ "bevy",
+ "bevy-inspector-egui",
+ "bevy_asset",
+ "bevy_egui 0.24.0",
+ "bevy_framepace",
+ "bevy_pancam",
+ "bevy_reflect",
+ "bevy_window",
+ "dxf",
+ "egui 0.25.0",
+ "egui_dock",
+ "nalgebra",
+ "robusta-core",
+ "robusta-dxf",
+ "robusta-gui",
+]
+
+[[package]]
 name = "robusta-gui"
 version = "0.0.1"
 dependencies = [
@@ -3755,6 +3779,8 @@ dependencies = [
  "bevy_window",
  "egui 0.25.0",
  "egui_dock",
+ "robusta-core",
+ "robusta-dxf",
 ]
 
 [[package]]

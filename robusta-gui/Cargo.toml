@@ -13,12 +13,15 @@ rust-version.workspace = true
 
 [dependencies]
 bevy_egui = { path = "../robusta_bevy_egui", features = ["immutable_ctx"] }
+robusta-core = { path = "../robusta-core" }
+robusta-dxf = { path = "../robusta-dxf" }
 
-bevy = { version = "0.12.1", features = ["dynamic_linking"] } #todo!() when releasing officially, remove dynamic linking.
+bevy = { version = "0.12.1", features = [
+    "dynamic_linking",
+] } #todo!() when releasing officially, remove dynamic linking.
 bevy_window = { version = "0.12.1", features = ["serialize"] }
 egui = { version = "0.25.0", features = ["serde"] }
 egui_dock = { version = "0.10.0", features = ["serde"] }
 bevy_asset = { version = "0.12.1", features = ["multi-threaded"] }
 bevy_reflect = "0.12.1"
 bevy_pancam = { version = "0.10.0", features = ["bevy_egui"] }
-
