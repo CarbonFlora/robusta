@@ -1,4 +1,7 @@
-use bevy::utils::{hashbrown::Equivalent, HashMap};
+use bevy::{
+    utils::{hashbrown::Equivalent, HashMap},
+    window,
+};
 use std::any::TypeId;
 
 use bevy::{prelude::*, render::camera::Viewport};
@@ -10,6 +13,10 @@ use bevy_reflect::{TypeRegistry, Uuid};
 use bevy_window::PrimaryWindow;
 use egui_dock::{dock_state, DockArea, DockState, Node, NodeIndex, Style};
 use robusta_gui::uistate::{EguiWindow, UiState, ViewportCamera};
+
+pub fn egui_window(mut commands: Commands) {
+    commands.spawn(window::Window::default());
+}
 
 // Spawn a camera. Two cameras should not be assigned to the same viewport.
 pub fn camera_startup(
@@ -52,31 +59,6 @@ fn assign_camera(commands: &mut Commands, viewport_id: Uuid) {
     ));
 }
 
-// Assign the UUID to UiState viewport, which will keep track of the viewport.
-fn assign_viewport_rectangles(
-    ui_state: &mut ResMut<UiState>,
-    viewport_id: Uuid,
-    rect: Option<egui::emath::Rect>,
-    primary_window: Query<&mut Window, With<PrimaryWindow>>,
-    egui_settings: Res<bevy_egui::EguiSettings>,
-) {
-    let scale_factor = scale_factor(primary_window, egui_settings);
-    let rect = rect.expect("CADView tab exists but does not have a display.");
-    let viewport_position = rect.left_top().to_vec2() * scale_factor as f32;
-    let viewport_size = rect.size() * scale_factor as f32;
-
-    ui_state.viewport_rectangles.insert(
-        viewport_id,
-        Viewport {
-            physical_position: UVec2::new(viewport_position.x as u32, viewport_position.y as u32),
-            physical_size: UVec2::new(viewport_size.x as u32, viewport_size.y as u32),
-            depth: 0.0..1.0,
-        },
-    );
-}
-
-// make camera only render to view not obstructed by UI
-// todo!() This function should only run after viewport
 pub fn update_camera_viewport(
     ui_state: Res<UiState>,
     primary_window: Query<&mut Window, With<PrimaryWindow>>,
@@ -84,9 +66,6 @@ pub fn update_camera_viewport(
     mut cameras: Query<&mut Camera, With<ViewportCamera>>,
 ) {
     let scale_factor = scale_factor(primary_window, egui_settings);
-    // ui_state
-    //I need to assign viewports to the cameras.
-
     // cam.viewport = match ui_state.get_viewport_rectangles() {
     //     None => None,
     //     Some(l) => {
@@ -103,6 +82,29 @@ pub fn update_camera_viewport(
     //     depth: 0.0..1.0,
     // });
 }
+
+// Assign the UUID to UiState viewport, which will keep track of the viewport.
+// fn assign_viewport_rectangles(
+//     ui_state: &mut ResMut<UiState>,
+//     viewport_id: Uuid,
+//     rect: Option<egui::emath::Rect>,
+//     primary_window: Query<&mut Window, With<PrimaryWindow>>,
+//     egui_settings: Res<bevy_egui::EguiSettings>,
+// ) {
+//     let scale_factor = scale_factor(primary_window, egui_settings);
+//     let rect = rect.expect("CADView tab exists but does not have a display.");
+//     let viewport_position = rect.left_top().to_vec2() * scale_factor as f32;
+//     let viewport_size = rect.size() * scale_factor as f32;
+
+//     ui_state.viewport_rectangles.insert(
+//         viewport_id,
+//         Viewport {
+//             physical_position: UVec2::new(viewport_position.x as u32, viewport_position.y as u32),
+//             physical_size: UVec2::new(viewport_size.x as u32, viewport_size.y as u32),
+//             depth: 0.0..1.0,
+//         },
+//     );
+// }
 
 fn scale_factor(
     primary_window: Query<&mut Window, With<PrimaryWindow>>,

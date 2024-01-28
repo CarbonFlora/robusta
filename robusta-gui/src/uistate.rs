@@ -49,7 +49,7 @@ pub struct UiState {
     pub loaded_files: HashMap<Option<String>, DXFWrapper>,
     pub state: DockState<EguiWindow>,
     // pub viewport_rectangles: Vec<egui::Rect>,
-    pub viewport_rectangles: HashMap<Uuid, Viewport>,
+    // pub viewport_rectangles: HashMap<Uuid, Viewport>,
     // selected_entities: SelectedEntities,
     pub selection: InspectorSelection,
 }
@@ -83,7 +83,7 @@ impl UiState {
             loaded_files,
             state,
             selection: InspectorSelection::Entities,
-            viewport_rectangles: HashMap::new(),
+            // viewport_rectangles: HashMap::new(),
         }
     }
 
