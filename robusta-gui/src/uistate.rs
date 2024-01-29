@@ -6,6 +6,7 @@ use robusta_dxf::wrapper::DXFWrapper;
 use crate::*;
 
 use crate::leaves::asset::select_asset;
+use crate::leaves::points::view_points;
 use crate::leaves::resource::select_resource;
 
 #[derive(Eq, PartialEq)]
@@ -21,7 +22,7 @@ pub enum EguiWindow {
     CADView(ViewportState),
     Hierarchy,
     Resources,
-    Assets,
+    Points,
     Inspector,
 }
 
@@ -74,7 +75,7 @@ impl UiState {
             ],
         );
         let [_game, _bottom] =
-            tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Assets]);
+            tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Points]);
 
         let mut loaded_files = HashMap::new();
         loaded_files.insert(path.clone(), loaded_file);
@@ -87,14 +88,13 @@ impl UiState {
         }
     }
 
-    /// This currently creates a new DockArea on every `Update` cycle.
-    /// Ideally, this would only run on startup and when required.
     pub fn ui(&mut self, world: &mut World, ctx: &mut egui::Context) {
         let mut tab_viewer = TabViewer {
             world,
+            loaded_files: &mut self.loaded_files,
             // viewport_rect: &mut self.viewport_rectangles,
             // selected_entities: &mut self.selected_entities,
-            selection: &mut self.selection,
+            // selection: &mut self.selection,
         };
         DockArea::new(&mut self.state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -165,8 +165,9 @@ pub fn unfreeze_camera_viewport(
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     world: &'a mut World,
+    loaded_files: &'a HashMap<Option<String>, DXFWrapper>,
     // selected_entities: &'a mut SelectedEntities,
-    selection: &'a mut InspectorSelection,
+    // selection: &'a mut InspectorSelection,
     // viewport_rect: &'a mut egui::Rect,
 }
 
@@ -180,8 +181,8 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         match window {
             EguiWindow::CADView(_) => (),
             EguiWindow::Hierarchy => (),
-            EguiWindow::Resources => select_resource(ui, &type_registry, self.selection),
-            EguiWindow::Assets => select_asset(ui, &type_registry, self.world, self.selection),
+            EguiWindow::Resources => (),
+            EguiWindow::Points => view_points(ui, self.loaded_files),
             EguiWindow::Inspector => (),
         }
     }

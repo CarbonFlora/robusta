@@ -14,3 +14,12 @@ impl Point {
         return Point::new(0., 0., 0.);
     }
 }
+
+impl std::fmt::Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "Point at: ({}, {}, {})",
+            self.coordinates.x, self.coordinates.y, self.coordinates.z
+        ))
+    }
+}

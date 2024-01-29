@@ -1,33 +1,29 @@
+use bevy::sprite::MaterialMesh2dBundle;
+use bevy_mod_picking::PickableBundle;
+
 use crate::*;
 
-/// This actually draws from ViewportState. Gizmos are inherently not pickable.
-/// For bundle: 'PickableBundle::default(),' to be implimented, commands.spawn must be used.
 pub fn draw_first(
-    // mut commands: Commands,
-    // mut meshes: ResMut<Assets<Mesh>>,
-    // mut materials: ResMut<Assets<StandardMaterial>>,
-    // viewport_state: Res<ViewportState>,
     ui_state: Res<UiState>,
-    mut gizmos: Gizmos,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for file in &ui_state.loaded_files {
         for point in &file.1.points {
-            // println!("point drawn: {:?}", point);
-            gizmos.circle_2d(
-                Vec2::new(point.coordinates.x, point.coordinates.y),
-                1.,
-                Color::ALICE_BLUE,
-            );
+            commands.spawn((
+                MaterialMesh2dBundle {
+                    mesh: meshes.add(shape::Circle::new(1.).into()).into(),
+                    material: materials.add(ColorMaterial::from(Color::WHITE)),
+                    transform: Transform::from_translation(Vec3::new(
+                        point.coordinates.x,
+                        point.coordinates.y,
+                        0.,
+                    )),
+                    ..default()
+                },
+                PickableBundle::default(),
+            ));
         }
     }
-    //     // commands.spawn((
-    //     //     PbrBundle {
-    //     //         mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
-    //     //         material: materials.add(Color::WHITE.into()),
-    //     //         transform: Transform::from_xyz(point.coordinates.x, point.coordinates.y, 0.0),
-    //     //         ..default()
-    //     //     },
-    //     // PickableBundle::default(),
-    //     // ));
-    // }
 }
