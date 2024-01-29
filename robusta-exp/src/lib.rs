@@ -1,12 +1,13 @@
 use bevy::window;
 
 use bevy::prelude::*;
+use robusta_gui::uistate::CADPanel;
 // use bevy_mod_picking::backends::egui::EguiPointer;
 // use bevy_mod_picking::prelude::*;
 
 /// Spawn a new window with reasonable defaults.
-pub fn egui_window(mut commands: Commands) {
-    commands.spawn(window::Window::default());
+pub fn spawn_window(mut commands: Commands) {
+    commands.spawn((window::Window::default(), CADPanel::default()));
 }
 
 // Spawn a camera. Two cameras should not be assigned to the same viewport.
