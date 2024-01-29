@@ -23,5 +23,5 @@ bevy = { version = "0.12.1", features = [
 ] } #todo!() when releasing officially, remove dynamic linking.
 bevy_pancam = { version = "0.10.0" }
 bevy-inspector-egui = "0.22.1"
-# bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
+bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
 bevy_framepace = "0.14.1"
