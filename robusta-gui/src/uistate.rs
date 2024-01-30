@@ -1,13 +1,9 @@
-use std::any::Any;
-
 use bevy::utils::{HashMap, Uuid};
 use robusta_dxf::wrapper::DXFWrapper;
 
 use crate::*;
 
-use crate::leaves::asset::select_asset;
 use crate::leaves::points::view_points;
-use crate::leaves::resource::select_resource;
 
 #[derive(Eq, PartialEq)]
 pub enum InspectorSelection {
@@ -44,10 +40,11 @@ impl ViewportState {
     }
 }
 
+type LoadedFiles = HashMap<Option<String>, DXFWrapper>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
-    pub loaded_files: HashMap<Option<String>, DXFWrapper>,
+    pub loaded_files: LoadedFiles,
     pub state: DockState<EguiWindow>,
     // pub viewport_rectangles: Vec<egui::Rect>,
     // pub viewport_rectangles: HashMap<Uuid, Viewport>,
@@ -61,28 +58,9 @@ impl UiState {
     /// - custom default layout in config.toml
     // pub fn new(cameras: Query<&mut Camera, With<ViewportCamera>>) -> Self {
     pub fn new(path: &Option<String>) -> Self {
-        let loaded_file = robusta_dxf::open::parse_dxf(path);
-        let mut state = DockState::new(vec![EguiWindow::CADView(ViewportState::new(path))]);
-        let tree = state.main_surface_mut();
-        let [game, _inspector] =
-            tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
-        let [game, _hierarchy] = tree.split_left(
-            game,
-            0.2,
-            vec![
-                EguiWindow::Hierarchy,
-                EguiWindow::CADView(ViewportState::new(path)),
-            ],
-        );
-        let [_game, _bottom] =
-            tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Points]);
-
-        let mut loaded_files = HashMap::new();
-        loaded_files.insert(path.clone(), loaded_file);
-
         Self {
-            loaded_files,
-            state,
+            loaded_files: load_files(path),
+            state: default_dockstate(path),
             selection: InspectorSelection::Entities,
             // viewport_rectangles: HashMap::new(),
         }
@@ -100,6 +78,30 @@ impl UiState {
             .style(Style::from_egui(ctx.style().as_ref()))
             .show(ctx, &mut tab_viewer);
     }
+}
+
+fn default_dockstate(path: &Option<String>) -> DockState<EguiWindow> {
+    let mut state = DockState::new(vec![EguiWindow::CADView(ViewportState::new(path))]);
+    let tree = state.main_surface_mut();
+    let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
+    let [game, _hierarchy] = tree.split_left(
+        game,
+        0.2,
+        vec![
+            EguiWindow::Hierarchy,
+            EguiWindow::CADView(ViewportState::new(path)),
+        ],
+    );
+    let [_game, _bottom] =
+        tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Points]);
+    return state;
+}
+
+fn load_files(path: &Option<String>) -> LoadedFiles {
+    let loaded_file = robusta_dxf::open::parse_dxf(path);
+    let mut loaded_files = HashMap::new();
+    loaded_files.insert(path.clone(), loaded_file);
+    return loaded_files;
 }
 
 #[derive(Component, Default)]
@@ -165,7 +167,7 @@ pub fn unfreeze_camera_viewport(
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     world: &'a mut World,
-    loaded_files: &'a HashMap<Option<String>, DXFWrapper>,
+    loaded_files: &'a LoadedFiles,
     // selected_entities: &'a mut SelectedEntities,
     // selection: &'a mut InspectorSelection,
     // viewport_rect: &'a mut egui::Rect,
@@ -175,8 +177,8 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     type Tab = EguiWindow;
 
     fn ui(&mut self, ui: &mut egui_dock::egui::Ui, window: &mut Self::Tab) {
-        let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
-        let type_registry = type_registry.read();
+        // let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
+        // let type_registry = type_registry.read();
 
         match window {
             EguiWindow::CADView(_) => (),

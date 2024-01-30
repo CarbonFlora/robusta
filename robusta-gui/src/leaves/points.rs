@@ -1,9 +1,8 @@
 use bevy::utils::HashMap;
-use egui::RichText;
 use robusta_dxf::wrapper::DXFWrapper;
 
-use crate::uistate::*;
-use crate::*;
+// use crate::uistate::*;
+// use crate::*;
 
 pub fn view_points(
     ui: &mut egui::Ui,
