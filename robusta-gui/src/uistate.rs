@@ -44,6 +44,7 @@ type LoadedFiles = HashMap<Option<String>, DXFWrapper>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
+    pub pressed_keys: [Option<KeyCode>; 2],
     pub loaded_files: LoadedFiles,
     pub state: DockState<EguiWindow>,
     // pub viewport_rectangles: Vec<egui::Rect>,
@@ -59,8 +60,9 @@ impl UiState {
     // pub fn new(cameras: Query<&mut Camera, With<ViewportCamera>>) -> Self {
     pub fn new(path: &Option<String>) -> Self {
         Self {
+            pressed_keys: [None; 2],
             loaded_files: load_files(path),
-            state: default_dockstate(path),
+            state: default_cadpanel(path),
             selection: InspectorSelection::Entities,
             // viewport_rectangles: HashMap::new(),
         }
@@ -80,20 +82,13 @@ impl UiState {
     }
 }
 
-fn default_dockstate(path: &Option<String>) -> DockState<EguiWindow> {
+fn default_cadpanel(path: &Option<String>) -> DockState<EguiWindow> {
     let mut state = DockState::new(vec![EguiWindow::CADView(ViewportState::new(path))]);
     let tree = state.main_surface_mut();
     let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
-    let [game, _hierarchy] = tree.split_left(
-        game,
-        0.2,
-        vec![
-            EguiWindow::Hierarchy,
-            EguiWindow::CADView(ViewportState::new(path)),
-        ],
-    );
-    let [_game, _bottom] =
-        tree.split_below(game, 0.8, vec![EguiWindow::Resources, EguiWindow::Points]);
+    let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
+    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Hierarchy]);
+
     return state;
 }
 
@@ -193,7 +188,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         format!("{window:?}").into()
     }
 
-    fn clear_background(&self, window: &Self::Tab) -> bool {
-        !matches!(window, EguiWindow::CADView(_))
+    fn clear_background(&self, _window: &Self::Tab) -> bool {
+        true
     }
 }
