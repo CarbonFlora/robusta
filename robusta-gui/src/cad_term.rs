@@ -1,38 +1,34 @@
 use bevy::{
     input::keyboard::KeyboardInput,
-    prelude::{EventReader, KeyCode, ResMut},
+    prelude::{EventReader, KeyCode, Query, ResMut, With, World},
+};
+use bevy_egui::EguiContext;
+use bevy_window::PrimaryWindow;
+
+use crate::{
+    leaves::term::{open_term, open_term_egui},
+    uistate::UiState,
 };
 
-use crate::uistate::UiState;
+pub fn pressed_keys(
+    context: Query<&mut EguiContext, With<PrimaryWindow>>,
+    mut ui_state: ResMut<UiState>,
+    mut key_evr: EventReader<KeyboardInput>,
+) {
+    // let mut buffer = [None; 2];
+    let mut buffer = ui_state.pressed_keys;
+    for (i, key_input) in key_evr.read().take(2).enumerate() {
+        buffer[i] = key_input.key_code;
+    }
 
-pub fn key_bindings(mut _ui_state: ResMut<UiState>, mut key_evr: EventReader<KeyboardInput>) {
-    if let Some(a) = key_evr.read().next() {
-        match a.key_code.unwrap_or_else(|| KeyCode::Numpad0) {
-            KeyCode::ControlLeft | KeyCode::ControlRight => ctrl_functions(key_evr.read().next()),
+    ui_state.pressed_keys = buffer;
+}
+
+fn ctrl_functions(key: Option<&KeyboardInput>) {
+    if let Some(w) = key {
+        match w.key_code.unwrap_or_else(|| KeyCode::Numpad0) {
             KeyCode::Colon => (),
             _ => (),
         }
     }
-    // let keys = [None; 2];
-    // if let Some(a) = key_evr.read().next() {
-    //     if let Some(b) = a.key_code {
-    //         keys[0] = Some(b);
-    //     }
-    // }
-    // if let Some(a) = key_evr.read().next() {
-    //     if let Some(b) = a.key_code {
-    //         keys[1] = Some(b);
-    //     }
-    // }
-
-    // if let Some(a) = keys[0] {
-
-    //     match keys {
-    //         KeyCode::ControlLeft | KeyCode::ControlRight => (),
-    //         KeyCode::Colon => (),
-    //         _ => (),
-    //     }
-    // }
 }
-
-fn ctrl_functions(key: Option<&KeyboardInput>) {}

@@ -1349,6 +1349,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_text_popup"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18ce6d0cfb7c51bace9652904cf0313d63dff108f62f98d899787a6c43902b5a"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_time"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3939,6 +3948,7 @@ dependencies = [
  "bevy_framepace",
  "bevy_mod_picking",
  "bevy_pancam",
+ "bevy_text_popup",
  "robusta-core",
  "robusta-dxf",
  "robusta-exp",
@@ -3994,6 +4004,7 @@ dependencies = [
  "bevy_egui 0.24.0",
  "bevy_pancam",
  "bevy_reflect",
+ "bevy_text_popup",
  "bevy_window",
  "egui 0.25.0",
  "egui_dock",

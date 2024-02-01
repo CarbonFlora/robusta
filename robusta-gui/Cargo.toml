@@ -25,3 +25,4 @@ egui_dock = { version = "0.10.0", features = ["serde"] }
 bevy_asset = { version = "0.12.1", features = ["multi-threaded"] }
 bevy_reflect = "0.12.1"
 bevy_pancam = { version = "0.10.0", features = ["bevy_egui"] }
+bevy_text_popup = "0.2.0"

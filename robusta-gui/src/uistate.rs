@@ -3,6 +3,7 @@ use robusta_dxf::wrapper::DXFWrapper;
 
 use crate::*;
 
+use crate::leaves::key_presses::view_pressed_keys;
 use crate::leaves::points::view_points;
 
 #[derive(Eq, PartialEq)]
@@ -72,6 +73,7 @@ impl UiState {
         let mut tab_viewer = TabViewer {
             world,
             loaded_files: &mut self.loaded_files,
+            pressed_keys: &self.pressed_keys,
             // viewport_rect: &mut self.viewport_rectangles,
             // selected_entities: &mut self.selected_entities,
             // selection: &mut self.selection,
@@ -87,7 +89,7 @@ fn default_cadpanel(path: &Option<String>) -> DockState<EguiWindow> {
     let tree = state.main_surface_mut();
     let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
     let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
-    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Hierarchy]);
+    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Resources]);
 
     return state;
 }
@@ -163,6 +165,7 @@ pub fn unfreeze_camera_viewport(
 struct TabViewer<'a> {
     world: &'a mut World,
     loaded_files: &'a LoadedFiles,
+    pressed_keys: &'a [Option<KeyCode>; 2],
     // selected_entities: &'a mut SelectedEntities,
     // selection: &'a mut InspectorSelection,
     // viewport_rect: &'a mut egui::Rect,
@@ -178,7 +181,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         match window {
             EguiWindow::CADView(_) => (),
             EguiWindow::Hierarchy => (),
-            EguiWindow::Resources => (),
+            EguiWindow::Resources => view_pressed_keys(ui, self.pressed_keys),
             EguiWindow::Points => view_points(ui, self.loaded_files),
             EguiWindow::Inspector => (),
         }
