@@ -32,3 +32,4 @@ nalgebra = { version = "0.32.3", features = ["serde"] }
 bevy-inspector-egui = "0.22.1"
 # bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
 bevy_framepace = "0.14.1"
+bevy_mod_picking = { version = "0.17.0", features = ["backend_egui"] }

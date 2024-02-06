@@ -1,5 +1,6 @@
 use bevy::sprite::MaterialMesh2dBundle;
-use bevy_mod_picking::PickableBundle;
+use bevy_mod_picking::{prelude::*, PickableBundle};
+use robusta_gui::uistate::DoSomethingComplex;
 
 use crate::*;
 
@@ -23,6 +24,8 @@ pub fn draw_first(
                     ..default()
                 },
                 PickableBundle::default(),
+                On::<Pointer<Select>>::send_event::<DoSomethingComplex>(),
+                On::<Pointer<Deselect>>::send_event::<DoSomethingComplex>(),
             ));
         }
     }

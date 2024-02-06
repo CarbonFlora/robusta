@@ -1,24 +1,27 @@
 use bevy::utils::{HashMap, Uuid};
+use bevy_mod_picking::prelude::*;
 use robusta_dxf::wrapper::DXFWrapper;
 
 use crate::*;
 
+use crate::cad_term::Actions;
+use crate::leaves::inspection::view_inspection;
 use crate::leaves::key_presses::view_pressed_keys;
 use crate::leaves::points::view_points;
 
-#[derive(Eq, PartialEq)]
-pub enum InspectorSelection {
-    Entities,
-    Resource(TypeId, String),
-    Asset(TypeId, String, UntypedAssetId),
-}
+// #[derive(Eq, PartialEq)]
+// pub enum InspectorSelection {
+//     Entities,
+//     Resource(TypeId, String),
+//     Asset(TypeId, String, UntypedAssetId),
+// }
 
 /// This is all available tabs to be accessed.
 #[derive(Debug, PartialEq, Eq)]
 pub enum EguiWindow {
     CADView(ViewportState),
     Hierarchy,
-    Resources,
+    Debug,
     Points,
     Inspector,
 }
@@ -41,17 +44,55 @@ impl ViewportState {
     }
 }
 
+#[derive(Event, Clone, Debug, PartialEq, Eq, Hash)]
+pub struct DoSomethingComplex(Entity, ActionType);
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub enum ActionType {
+    Add,
+    Remove,
+}
+
+impl From<ListenerInput<Pointer<Select>>> for DoSomethingComplex {
+    fn from(event: ListenerInput<Pointer<Select>>) -> Self {
+        DoSomethingComplex(event.target, ActionType::Add)
+    }
+}
+
+impl From<ListenerInput<Pointer<Deselect>>> for DoSomethingComplex {
+    fn from(event: ListenerInput<Pointer<Deselect>>) -> Self {
+        DoSomethingComplex(event.target, ActionType::Remove)
+    }
+}
+
+// impl DoSomethingComplex {
+//     fn new() -> Self {
+//         return DoSomethingComplex(Entity::PLACEHOLDER, 0.0);
+//     }
+// }
+
+/// Unlike callback systems, this is a normal system that can be run in parallel with other systems.
+// fn receive_greetings(mut greetings: EventReader<DoSomethingComplex>) {
+//     for event in greetings.read() {
+//         info!(
+//             "Hello {:?}, you are {:?} depth units away from the pointer",
+//             event.0, event.1
+//         );
+//     }
+// }
+
 type LoadedFiles = HashMap<Option<String>, DXFWrapper>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
-    pub pressed_keys: [Option<KeyCode>; 2],
+    pub pressed_keys: [Option<KeyCode>; 2], //this is mainly for debug.
+    pub actions: Actions,
     pub loaded_files: LoadedFiles,
     pub state: DockState<EguiWindow>,
     // pub viewport_rectangles: Vec<egui::Rect>,
     // pub viewport_rectangles: HashMap<Uuid, Viewport>,
-    // selected_entities: SelectedEntities,
-    pub selection: InspectorSelection,
+    pub selected_entities: Vec<DoSomethingComplex>,
+    // pub selection: InspectorSelection,
 }
 
 impl UiState {
@@ -62,21 +103,19 @@ impl UiState {
     pub fn new(path: &Option<String>) -> Self {
         Self {
             pressed_keys: [None; 2],
+            actions: Actions::None,
             loaded_files: load_files(path),
             state: default_cadpanel(path),
-            selection: InspectorSelection::Entities,
-            // viewport_rectangles: HashMap::new(),
+            selected_entities: Vec::new(),
         }
     }
 
-    pub fn ui(&mut self, world: &mut World, ctx: &mut egui::Context) {
+    pub fn ui(&mut self, ctx: &mut egui::Context) {
         let mut tab_viewer = TabViewer {
-            world,
             loaded_files: &mut self.loaded_files,
             pressed_keys: &self.pressed_keys,
-            // viewport_rect: &mut self.viewport_rectangles,
-            // selected_entities: &mut self.selected_entities,
-            // selection: &mut self.selection,
+            actions: &self.actions,
+            selected_entities: &mut self.selected_entities,
         };
         DockArea::new(&mut self.state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -89,7 +128,7 @@ fn default_cadpanel(path: &Option<String>) -> DockState<EguiWindow> {
     let tree = state.main_surface_mut();
     let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
     let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
-    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Resources]);
+    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Debug]);
 
     return state;
 }
@@ -104,45 +143,62 @@ fn load_files(path: &Option<String>) -> LoadedFiles {
 #[derive(Component, Default)]
 pub struct CADPanel {}
 
-pub fn cad_panel(world: &mut World) {
-    let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<CADPanel>>()
-        .get_single(world)
-    else {
-        return;
-    };
-    let mut egui_context = egui_context.clone();
+// pub fn cad_panel(world: &mut World) {
+//     let Ok(egui_context) = world
+//         .query_filtered::<&mut EguiContext, With<CADPanel>>()
+//         .get_single(world)
+//     else {
+//         return;
+//     };
+//     let mut egui_context = egui_context.clone();
 
-    world.resource_scope::<UiState, _>(|world, mut ui_state| {
-        ui_state.ui(world, egui_context.get_mut())
-    });
-}
+//     world.resource_scope::<UiState, _>(|_world, mut ui_state| ui_state.ui(egui_context.get_mut()));
+// }
 
-pub fn ui_system_update(world: &mut World) {
-    let Ok(egui_context) = world
-        .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-        .get_single(world)
-    else {
-        return;
-    };
-    let mut egui_context = egui_context.clone();
+pub fn cad_panel(
+    mut ui_state: ResMut<UiState>,
+    egui_context: Query<&mut EguiContext, With<CADPanel>>,
+    mut greetings: EventReader<DoSomethingComplex>,
+) {
+    let buf = greetings
+        .read()
+        .map(|x| x.clone())
+        .collect::<Vec<DoSomethingComplex>>();
 
-    world.resource_scope::<UiState, _>(|world, mut ui_state| {
-        ui_state.ui(world, egui_context.get_mut())
-    });
-}
+    for i in buf {
+        match i.1 {
+            ActionType::Add => ui_state.selected_entities.push(i),
+            ActionType::Remove => ui_state.selected_entities.retain(|x| x.0 != i.0),
+        };
+    }
 
-/// Each viewport should have their own respective camera.
-#[derive(Component)]
-pub struct ViewportCamera {
-    pub id: bevy::utils::Uuid,
-}
-
-impl ViewportCamera {
-    pub fn new(viewport_id: Uuid) -> Self {
-        ViewportCamera { id: viewport_id }
+    if let Ok(mut w) = egui_context.get_single().cloned() {
+        ui_state.ui(w.get_mut());
     }
 }
+// pub fn ui_system_update(world: &mut World) {
+//     let Ok(egui_context) = world
+//         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
+//         .get_single(world)
+//     else {
+//         return;
+//     };
+//     let mut egui_context = egui_context.clone();
+
+//     world.resource_scope::<UiState, _>(|world, mut ui_state| ui_state.ui(egui_context.get_mut()));
+// }
+
+/// Each viewport should have their own respective camera.
+// #[derive(Component)]
+// pub struct ViewportCamera {
+//     pub id: bevy::utils::Uuid,
+// }
+
+// impl ViewportCamera {
+//     pub fn new(viewport_id: Uuid) -> Self {
+//         ViewportCamera { id: viewport_id }
+//     }
+// }
 
 /// Turn off panning and zooming [`bevy_pancam`] when interacting with [`egui`].
 pub fn unfreeze_camera_viewport(
@@ -163,12 +219,10 @@ pub fn unfreeze_camera_viewport(
 
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
-    world: &'a mut World,
     loaded_files: &'a LoadedFiles,
     pressed_keys: &'a [Option<KeyCode>; 2],
-    // selected_entities: &'a mut SelectedEntities,
-    // selection: &'a mut InspectorSelection,
-    // viewport_rect: &'a mut egui::Rect,
+    actions: &'a Actions,
+    selected_entities: &'a mut Vec<DoSomethingComplex>,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -181,9 +235,9 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         match window {
             EguiWindow::CADView(_) => (),
             EguiWindow::Hierarchy => (),
-            EguiWindow::Resources => view_pressed_keys(ui, self.pressed_keys),
+            EguiWindow::Debug => view_pressed_keys(ui, self.pressed_keys, self.actions),
             EguiWindow::Points => view_points(ui, self.loaded_files),
-            EguiWindow::Inspector => (),
+            EguiWindow::Inspector => view_inspection(ui, self.selected_entities),
         }
     }
 

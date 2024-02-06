@@ -1,4 +1,3 @@
-use bevy_egui::EguiContexts;
 use bevy_text_popup::{TextPopupButton, TextPopupEvent, TextPopupLocation};
 
 use crate::*;
