@@ -12,22 +12,57 @@ pub fn draw_first(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for file in &ui_state.loaded_files {
-        for point in &file.1.points {
-            commands.spawn((
-                MaterialMesh2dBundle {
-                    mesh: meshes.add(shape::Circle::new(1.).into()).into(),
-                    material: materials.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(
-                        point.coordinates.x,
-                        point.coordinates.y,
-                        0.,
-                    )),
-                    ..default()
-                },
-                PickableBundle::default(),
-                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-            ));
-        }
+        draw_points(&mut commands, &mut meshes, &mut materials, file.1);
+        draw_lines(&mut commands, &mut meshes, &mut materials, file.1);
+    }
+}
+
+fn draw_points(
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    wrapper: &DXFWrapper,
+) {
+    for point in &wrapper.points {
+        commands.spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Circle::new(1.).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::WHITE)),
+                transform: Transform::from_translation(Vec3::new(
+                    point.coordinates.x,
+                    point.coordinates.y,
+                    0.,
+                )),
+                ..default()
+            },
+            PickableBundle::default(),
+            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        ));
+    }
+}
+
+fn draw_lines(
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    wrapper: &DXFWrapper,
+) {
+    for line in &wrapper.lines {
+        // commands.spawn((
+        //     MaterialMesh2dBundle {
+        //         mesh: meshes.add(shape::Circle::new(1.).into()).into(),
+        //         material: materials.add(ColorMaterial::from(Color::WHITE)),
+        //         transform: Transform::from_translation(Vec3::new(
+        //             point.coordinates.x,
+        //             point.coordinates.y,
+        //             0.,
+        //         )),
+        //         ..default()
+        //     },
+        //     PickableBundle::default(),
+        //     On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+        //     On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        // ));
     }
 }

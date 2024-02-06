@@ -23,7 +23,7 @@ pub fn spawn_window(mut commands: Commands) {
     commands.spawn((window::Window::default(), CADPanel::default()));
 }
 
-// Spawn a camera. Two cameras should not be assigned to the same viewport.
+// Spawn a camera.
 pub fn camera_startup(mut commands: Commands) {
     commands
         .spawn(Camera2dBundle::default())
