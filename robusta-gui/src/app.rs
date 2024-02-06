@@ -1,12 +1,4 @@
-use bevy::window;
-
-use crate::*;
-
-use self::{
-    draw::draw_first,
-    keystrokes::capture_keystrokes,
-    uistate::{update_cad_ui, update_dock, CADPanel, SelectionInstance, UiState},
-};
+use super::*;
 
 pub fn app2d(path: Option<String>) {
     App::new()
@@ -21,8 +13,8 @@ pub fn app2d(path: Option<String>) {
         .add_systems(Startup, spawn_window)
         .add_systems(PostStartup, draw_first)
         .add_systems(PreUpdate, capture_keystrokes)
-        .add_systems(Update, update_cad_ui)
-        .add_systems(Update, update_dock.after(update_cad_ui))
+        .add_systems(Update, update_viewport_ui)
+        .add_systems(Update, update_dock.after(update_viewport_ui))
         .run();
 }
 
