@@ -1,8 +1,8 @@
 use crate::args::RobustaArgs;
-use robusta_2d::app::app2d;
 
 use anyhow::Result;
 use clap::Parser;
+use robusta_gui::app::app2d;
 
 // This is currently setup to only handle dxf files.
 pub fn init() -> Result<()> {

@@ -4,10 +4,12 @@ use robusta_dxf::wrapper::DXFWrapper;
 
 use crate::*;
 
-use crate::cad_term::Actions;
+use crate::keystrokes::Actions;
 use crate::leaves::inspection::view_inspection;
-use crate::leaves::key_presses::view_pressed_keys;
+use crate::leaves::keystrokes::view_pressed_keys;
 use crate::leaves::points::view_points;
+
+use self::leaves::term::open_term_egui;
 
 // #[derive(Eq, PartialEq)]
 // pub enum InspectorSelection {
@@ -45,23 +47,23 @@ impl ViewportState {
 }
 
 #[derive(Event, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct DoSomethingComplex(Entity, ActionType);
+pub struct SelectionInstance(Entity, SelectionAddRemove);
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum ActionType {
+pub enum SelectionAddRemove {
     Add,
     Remove,
 }
 
-impl From<ListenerInput<Pointer<Select>>> for DoSomethingComplex {
+impl From<ListenerInput<Pointer<Select>>> for SelectionInstance {
     fn from(event: ListenerInput<Pointer<Select>>) -> Self {
-        DoSomethingComplex(event.target, ActionType::Add)
+        SelectionInstance(event.target, SelectionAddRemove::Add)
     }
 }
 
-impl From<ListenerInput<Pointer<Deselect>>> for DoSomethingComplex {
+impl From<ListenerInput<Pointer<Deselect>>> for SelectionInstance {
     fn from(event: ListenerInput<Pointer<Deselect>>) -> Self {
-        DoSomethingComplex(event.target, ActionType::Remove)
+        SelectionInstance(event.target, SelectionAddRemove::Remove)
     }
 }
 
@@ -87,12 +89,28 @@ type LoadedFiles = HashMap<Option<String>, DXFWrapper>;
 pub struct UiState {
     pub pressed_keys: [Option<KeyCode>; 2], //this is mainly for debug.
     pub actions: Actions,
+    pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
-    pub state: DockState<EguiWindow>,
+    pub dock_state: DockState<EguiWindow>,
     // pub viewport_rectangles: Vec<egui::Rect>,
     // pub viewport_rectangles: HashMap<Uuid, Viewport>,
-    pub selected_entities: Vec<DoSomethingComplex>,
+    pub selected_entities: Vec<SelectionInstance>,
     // pub selection: InspectorSelection,
+}
+
+#[derive(Debug, Default)]
+pub struct CADState {
+    pub cad_term: (bool, String),
+}
+
+impl CADState {
+    fn new() -> Self {
+        return CADState::default();
+    }
+
+    fn close_all(&mut self) {
+        self.cad_term = (false, String::new());
+    }
 }
 
 impl UiState {
@@ -104,8 +122,9 @@ impl UiState {
         Self {
             pressed_keys: [None; 2],
             actions: Actions::None,
+            cad_state: CADState::new(),
             loaded_files: load_files(path),
-            state: default_cadpanel(path),
+            dock_state: default_cadpanel(path),
             selected_entities: Vec::new(),
         }
     }
@@ -117,7 +136,7 @@ impl UiState {
             actions: &self.actions,
             selected_entities: &mut self.selected_entities,
         };
-        DockArea::new(&mut self.state)
+        DockArea::new(&mut self.dock_state)
             .style(Style::from_egui(ctx.style().as_ref()))
             .show(ctx, &mut tab_viewer);
     }
@@ -155,38 +174,42 @@ pub struct CADPanel {}
 //     world.resource_scope::<UiState, _>(|_world, mut ui_state| ui_state.ui(egui_context.get_mut()));
 // }
 
-pub fn cad_panel(
+pub fn update_dock(
     mut ui_state: ResMut<UiState>,
-    egui_context: Query<&mut EguiContext, With<CADPanel>>,
-    mut greetings: EventReader<DoSomethingComplex>,
+    egui_context_cadpanel: Query<&mut EguiContext, With<CADPanel>>,
+    // egui_context_primary: Query<&mut EguiContext, With<PrimaryWindow>>,
+    mut greetings: EventReader<SelectionInstance>,
 ) {
     let buf = greetings
         .read()
         .map(|x| x.clone())
-        .collect::<Vec<DoSomethingComplex>>();
+        .collect::<Vec<SelectionInstance>>();
 
     for i in buf {
         match i.1 {
-            ActionType::Add => ui_state.selected_entities.push(i),
-            ActionType::Remove => ui_state.selected_entities.retain(|x| x.0 != i.0),
+            SelectionAddRemove::Add => ui_state.selected_entities.push(i),
+            SelectionAddRemove::Remove => ui_state.selected_entities.retain(|x| x.0 != i.0),
         };
     }
-
-    if let Ok(mut w) = egui_context.get_single().cloned() {
+    if let Ok(mut w) = egui_context_cadpanel.get_single().cloned() {
         ui_state.ui(w.get_mut());
     }
 }
-// pub fn ui_system_update(world: &mut World) {
-//     let Ok(egui_context) = world
-//         .query_filtered::<&mut EguiContext, With<PrimaryWindow>>()
-//         .get_single(world)
-//     else {
-//         return;
-//     };
-//     let mut egui_context = egui_context.clone();
 
-//     world.resource_scope::<UiState, _>(|world, mut ui_state| ui_state.ui(egui_context.get_mut()));
-// }
+pub fn update_cad_ui(
+    mut ui_state: ResMut<UiState>,
+    egui_context_primary: Query<&mut EguiContext, With<PrimaryWindow>>,
+) {
+    match ui_state.actions {
+        Actions::OpenCADTerm => ui_state.cad_state.cad_term = (true, String::new()),
+        Actions::Exit => ui_state.cad_state.close_all(),
+        _ => (),
+    }
+
+    if ui_state.cad_state.cad_term.0 {
+        open_term_egui(&mut ui_state, egui_context_primary);
+    }
+}
 
 /// Each viewport should have their own respective camera.
 // #[derive(Component)]
@@ -205,7 +228,7 @@ pub fn unfreeze_camera_viewport(
     mut ui_state: ResMut<UiState>,
     mut cameras: Query<&mut bevy_pancam::PanCam>,
 ) {
-    let focused_tab = ui_state.state.find_active_focused();
+    let focused_tab = ui_state.dock_state.find_active_focused();
     match focused_tab {
         None => (),
         Some(tab) => cameras.for_each_mut(|mut x| {
@@ -222,7 +245,7 @@ struct TabViewer<'a> {
     loaded_files: &'a LoadedFiles,
     pressed_keys: &'a [Option<KeyCode>; 2],
     actions: &'a Actions,
-    selected_entities: &'a mut Vec<DoSomethingComplex>,
+    selected_entities: &'a mut Vec<SelectionInstance>,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {

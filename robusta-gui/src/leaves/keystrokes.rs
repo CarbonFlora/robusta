@@ -1,6 +1,6 @@
 use bevy::prelude::KeyCode;
 
-use crate::cad_term::Actions;
+use crate::keystrokes::Actions;
 
 pub fn view_pressed_keys(
     ui: &mut egui::Ui,

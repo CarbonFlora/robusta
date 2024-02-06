@@ -1349,15 +1349,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bevy_text_popup"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18ce6d0cfb7c51bace9652904cf0313d63dff108f62f98d899787a6c43902b5a"
-dependencies = [
- "bevy",
-]
-
-[[package]]
 name = "bevy_time"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3943,23 +3934,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "216080ab382b992234dda86873c18d4c48358f5cfcb70fd693d7f6f2131b628b"
 
 [[package]]
-name = "robusta-2d"
-version = "0.0.1"
-dependencies = [
- "bevy",
- "bevy-inspector-egui",
- "bevy_egui 0.24.0",
- "bevy_framepace",
- "bevy_mod_picking",
- "bevy_pancam",
- "bevy_text_popup",
- "robusta-core",
- "robusta-dxf",
- "robusta-exp",
- "robusta-gui",
-]
-
-[[package]]
 name = "robusta-core"
 version = "0.1.0"
 dependencies = [
@@ -3977,11 +3951,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "robusta-exp"
+name = "robusta-gui"
 version = "0.0.1"
 dependencies = [
- "anyhow",
- "approx",
  "bevy",
  "bevy-inspector-egui",
  "bevy_asset",
@@ -3990,27 +3962,6 @@ dependencies = [
  "bevy_mod_picking",
  "bevy_pancam",
  "bevy_reflect",
- "bevy_window",
- "dxf",
- "egui 0.25.0",
- "egui_dock",
- "nalgebra",
- "robusta-core",
- "robusta-dxf",
- "robusta-gui",
-]
-
-[[package]]
-name = "robusta-gui"
-version = "0.0.1"
-dependencies = [
- "bevy",
- "bevy_asset",
- "bevy_egui 0.24.0",
- "bevy_mod_picking",
- "bevy_pancam",
- "bevy_reflect",
- "bevy_text_popup",
  "bevy_window",
  "egui 0.25.0",
  "egui_dock",
@@ -4025,7 +3976,6 @@ dependencies = [
  "anyhow",
  "clap",
  "clap_complete",
- "robusta-2d",
  "robusta-core",
  "robusta-gui",
 ]

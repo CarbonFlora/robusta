@@ -1,6 +1,6 @@
-use crate::uistate::DoSomethingComplex;
+use crate::uistate::SelectionInstance;
 
-pub fn view_inspection(ui: &mut egui::Ui, selected_entities: &mut Vec<DoSomethingComplex>) {
+pub fn view_inspection(ui: &mut egui::Ui, selected_entities: &mut Vec<SelectionInstance>) {
     let mut text = String::new();
 
     for entity in selected_entities {

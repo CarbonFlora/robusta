@@ -1,28 +1,28 @@
 use bevy::window;
-use robusta_gui::cad_term::pressed_keys;
-use robusta_gui::uistate::{cad_panel, CADPanel, DoSomethingComplex};
 
 use crate::*;
+
+use self::{
+    draw::draw_first,
+    keystrokes::capture_keystrokes,
+    uistate::{update_cad_ui, update_dock, CADPanel, SelectionInstance, UiState},
+};
 
 pub fn app2d(path: Option<String>) {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_plugins(bevy_framepace::FramepacePlugin)
         .add_plugins(bevy_egui::EguiPlugin)
-        .add_plugins(bevy_text_popup::TextPopupPlugin)
         .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
-        // .add_plugins(bevy_inspector_egui::DefaultInspectorConfigPlugin)
         .add_plugins(bevy_pancam::PanCamPlugin::default())
         .insert_resource(UiState::new(&path))
-        .add_event::<DoSomethingComplex>()
+        .add_event::<SelectionInstance>()
         .add_systems(Startup, camera_startup)
         .add_systems(Startup, spawn_window)
         .add_systems(PostStartup, draw_first)
-        .add_systems(PreUpdate, pressed_keys)
-        .add_systems(Update, cad_panel)
-        // .add_systems(Update, unfreeze_camera_viewport)
-        // .add_systems(PostUpdate, update_camera_viewport)
-        // .add_systems(Update, keyboard_events)
+        .add_systems(PreUpdate, capture_keystrokes)
+        .add_systems(Update, update_cad_ui)
+        .add_systems(Update, update_dock.after(update_cad_ui))
         .run();
 }
 

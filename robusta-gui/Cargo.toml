@@ -16,7 +16,7 @@ bevy_egui = { path = "../robusta_bevy_egui", features = ["immutable_ctx"] }
 robusta-core = { path = "../robusta-core" }
 robusta-dxf = { path = "../robusta-dxf" }
 
-# bevy-inspector-egui = "0.22.1"
+bevy-inspector-egui = "0.22.1"
 bevy = { version = "0.12.1", features = [
     "dynamic_linking",
 ] } #todo!() when releasing officially, remove dynamic linking.
@@ -26,5 +26,6 @@ egui_dock = { version = "0.10.0", features = ["serde"] }
 bevy_asset = { version = "0.12.1", features = ["multi-threaded"] }
 bevy_reflect = "0.12.1"
 bevy_pancam = { version = "0.10.0", features = ["bevy_egui"] }
-bevy_text_popup = "0.2.0"
-bevy_mod_picking = { version = "0.17.0", features = ["backend_egui"] }
+# bevy_text_popup = "0.2.0"
+bevy_framepace = "0.14.1"
+bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
