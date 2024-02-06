@@ -1,4 +1,5 @@
 // use std::io::Write;
+use crate::wrapper::DXFWrapper;
 
 use crate::*;
 
@@ -15,4 +16,9 @@ pub fn open_from_path(path: PathBuf) -> Drawing {
     //     writeln!(&mut w, "Found: {entity:?}")?;
     // }
     // return Ok(drawing);
+}
+
+pub fn parse_dxf(path: &Option<String>) -> DXFWrapper {
+    let d = open_from_path(path.clone().unwrap_or_default().into());
+    return DXFWrapper::from(&d);
 }

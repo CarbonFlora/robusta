@@ -2,6 +2,11 @@
 ## Brief
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
+## Re-write 1
+- The primary window will host all the viewports and cameras.
+- The 2nd window will host the egui docking controlboard. 
+
+
 ## Todo!()
 - clone https://github.com/johanhelsing/bevy_pancam and change world_units_per_device_pixel so horizontal and vertical scrolling is the same. Can also fix some other Issues if it's easy. 
 - add a 'fit to view' function
