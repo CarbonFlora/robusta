@@ -49,13 +49,16 @@ fn draw_lines(
     wrapper: &DXFWrapper,
 ) {
     for line in &wrapper.lines {
+        // Create my own mesh for lines.
         // commands.spawn((
         //     MaterialMesh2dBundle {
-        //         mesh: meshes.add(shape::Circle::new(1.).into()).into(),
+        //         mesh: meshes
+        //             .add(shape::Quad::new(Vec2 { x: 5., y: 15. }).into())
+        //             .into(),
         //         material: materials.add(ColorMaterial::from(Color::WHITE)),
         //         transform: Transform::from_translation(Vec3::new(
-        //             point.coordinates.x,
-        //             point.coordinates.y,
+        //             line.definition[0].coordinates.x,
+        //             line.definition[0].coordinates.y,
         //             0.,
         //         )),
         //         ..default()

@@ -15,7 +15,7 @@ impl DXFWrapper {
 
     pub fn from(drawing: &Drawing) -> Self {
         let points = get_points(drawing);
-        let (lines, arcs) = get_segments(drawing, &points);
+        let (lines, arcs) = get_segments(drawing); //this is garbage way rn
 
         DXFWrapper {
             points,
@@ -39,19 +39,17 @@ fn get_points(drawing: &Drawing) -> Vec<robusta_core::point::Point> {
     return points;
 }
 
-fn get_segments(
-    drawing: &Drawing,
-    points: &Vec<Point>,
-) -> (Vec<robusta_core::line::Line>, Vec<robusta_core::arc::Arc>) {
+fn get_segments(drawing: &Drawing) -> (Vec<robusta_core::line::Line>, Vec<robusta_core::arc::Arc>) {
     let (mut lines, mut arcs) = (Vec::new(), Vec::new());
     for entity in drawing.entities() {
-        // match &entity.specific {
-        //     EntityType::Line(specific) => lines.extend(line::to_points(specific)),
-        //     EntityType::Arc(specific) => lines.extend(arc::to_points(specific)),
-        //     EntityType::LwPolyline(specific) => lines.extend(lwpolyline::to_points(specific)),
-        //     EntityType::Circle(specific) => lines.extend(circle::to_points(specific)),
-        //     _ => core::panic!("Uncaptured entity: {entity:#?} "),
-        // };
+        match &entity.specific {
+            EntityType::Line(specific) => lines.push(line::to_segment(specific)),
+            // EntityType::Arc(specific) => lines.extend(arc::to_points(specific)),
+            EntityType::LwPolyline(specific) => lines.extend(lwpolyline::to_segments(specific)),
+            // EntityType::Circle(specific) => lines.extend(circle::to_points(specific)),
+            // _ => core::panic!("Uncaptured entity: {entity:#?} "),
+            _ => (), //todo!() remove this
+        };
     }
     return (lines, arcs);
 }
