@@ -8,6 +8,9 @@ edition = "2021"
 [[example]]
 name = "lines"
 
+[[example]]
+name = "lines2"
+
 [dependencies]
 robusta-core = { path = "../robusta-core" }
 robusta-gui = { path = "../robusta-gui" }
