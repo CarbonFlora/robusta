@@ -14,7 +14,8 @@ pub fn app2d(path: Option<String>) {
         .add_systems(PostStartup, draw_first)
         .add_systems(PreUpdate, capture_keystrokes)
         .add_systems(Update, update_viewport_ui)
-        .add_systems(Update, update_dock.after(update_viewport_ui))
+        // .add_systems(Update, update_dock.after(update_viewport_ui))
+        .add_systems(Update, update_dock)
         .run();
 }
 
