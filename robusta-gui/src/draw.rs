@@ -5,6 +5,7 @@ use bevy::{
     sprite::MaterialMesh2dBundle,
 };
 use bevy_mod_picking::{prelude::*, PickableBundle};
+use robusta_core::point::Point;
 
 use crate::*;
 
@@ -96,9 +97,10 @@ fn draw_arcs(
 
         commands.spawn((
             MaterialMesh2dBundle {
-                // mesh: meshes.add(arc_mesh(line_width).into()).into(),
-                mesh: meshes.add(shape::Circle::new(1.).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::RED)),
+                mesh: meshes
+                    .add(arc_mesh(line_width, arc.definition).into())
+                    .into(),
+                material: materials.add(ColorMaterial::from(Color::WHITE)),
                 transform: Transform::from_translation(Vec3::new(
                     arc.definition[0].coordinates.x,
                     arc.definition[0].coordinates.y,
@@ -135,10 +137,7 @@ fn angle_full_circle(delta_x: f32, delta_y: f32) -> f32 {
 
 fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
     let lw_half = line_width / 2.0f32;
-    // Create a new mesh using a triangle list topology, where each set of 3 vertices composes a triangle.
     Mesh::new(PrimitiveTopology::TriangleList)
-        // Add 4 vertices, each with its own position attribute (coordinate in
-        // 3D space), for each of the corners of the parallelogram.
         .with_inserted_attribute(
             Mesh::ATTRIBUTE_POSITION,
             vec![
@@ -156,12 +155,6 @@ fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
                 ],
             ],
         )
-        // Assign a UV coordinate to each vertex.
-        // .with_inserted_attribute(
-        //     Mesh::ATTRIBUTE_UV_0,
-        //     vec![[0.0, 1.0], [0.5, 0.0], [1.0, 0.0], [0.5, 1.0]],
-        // )
-        // Assign normals (everything points outwards)
         .with_inserted_attribute(
             Mesh::ATTRIBUTE_NORMAL,
             vec![
@@ -171,18 +164,37 @@ fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
                 [0.0, 0.0, 1.0],
             ],
         )
-        // After defining all the vertices and their attributes, build each triangle using the
-        // indices of the vertices that make it up in a counter-clockwise order.
-        .with_indices(Some(Indices::U32(vec![
-            // First triangle
-            0, 3, 1, // Second triangle
-            1, 3, 2,
-        ])))
+        .with_indices(Some(Indices::U32(vec![0, 3, 1, 1, 3, 2])))
 }
 
-fn arc_mesh(line_width: f32) -> Mesh {
-    todo!()
+fn arc_mesh(line_width: f32, definition: [Point; 3]) -> Mesh {
+    let lw_half = line_width / 2.0f32;
+    let number_of_segments = 30u32;
+    let mut vertexes: Vec<[f32; 3]> = arc_vertexes(line_width, definition);
+    let mut triangle_indexes: Vec<u32> = Vec::new();
+
+    Mesh::new(PrimitiveTopology::TriangleList)
+        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
+        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
+        .with_indices(Some(Indices::U32(triangle_indexes)))
 }
+
+fn arc_vertexes(line_width: f32, definition: [Point; 3]) -> Vec<[f32; 3]> {
+    let vertexes = Vec::new();
+    let radius = arc_radius(definition);
+
+    return vertexes;
+}
+// https://math.stackexchange.com/questions/2836274/3-point-to-circle-and-get-radius
+fn arc_radius(def: [Point; 3]) -> f32 {
+    let delta_x2 = def[2].coordinates.x - def[1].coordinates.x;
+    let delta_x3 = def[3].coordinates.x - def[1].coordinates.x;
+    let delta_y2 = def[2].coordinates.y - def[1].coordinates.y;
+    let delta_y3 = def[3].coordinates.y - def[1].coordinates.y;
+
+    return ((1.0f32).powi(2) + (1.0f32).powi(2)).sqrt();
+}
+
 fn _create_simple_parallelogram() -> Mesh {
     // Create a new mesh using a triangle list topology, where each set of 3 vertices composes a triangle.
     // https://github.com/bevyengine/bevy/blob/main/assets/docs/Mesh.png
