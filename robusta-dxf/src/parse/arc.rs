@@ -11,7 +11,20 @@ pub fn to_points(specific: &Arc) -> [Point; 3] {
     let y2 = specific.center.y + specific.end_angle.to_radians().sin() * specific.radius;
     let point2 = Point::new(x2 as f32, y2 as f32, 0.);
 
-    let point3 = Point::new(specific.center.x as f32, specific.center.y as f32, 0.);
+    let p3_angle_rad =
+        ((specific.end_angle - specific.start_angle) / 2. + specific.start_angle).to_radians();
+    let (p3_x, p3_y) = (
+        specific.center.x + specific.radius * p3_angle_rad.cos(),
+        specific.center.x + specific.radius * p3_angle_rad.sin(),
+    );
+    let lazy_point = Point::new(p3_x as f32, p3_y as f32, 0.);
 
-    return [point1, point2, point3];
+    return [point1, point2, lazy_point];
+}
+
+/// Returns a arc segment.
+pub fn to_segment(specific: &Arc) -> robusta_core::arc::Arc {
+    return robusta_core::arc::Arc {
+        definition: to_points(specific),
+    };
 }

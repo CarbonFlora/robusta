@@ -6,6 +6,7 @@ pub struct DXFWrapper {
     pub points: Vec<robusta_core::point::Point>,
     pub lines: Vec<robusta_core::line::Line>,
     pub arcs: Vec<robusta_core::arc::Arc>,
+    pub circles: Vec<robusta_core::circle::Circle>,
 }
 
 impl DXFWrapper {
@@ -15,12 +16,13 @@ impl DXFWrapper {
 
     pub fn from(drawing: &Drawing) -> Self {
         let points = get_points(drawing);
-        let (lines, arcs) = get_segments(drawing); //this is garbage way rn
+        let (lines, arcs, circles) = get_segments(drawing); //this is garbage way rn
 
         DXFWrapper {
             points,
             lines,
             arcs,
+            circles,
         }
     }
 }
@@ -39,17 +41,22 @@ fn get_points(drawing: &Drawing) -> Vec<robusta_core::point::Point> {
     return points;
 }
 
-fn get_segments(drawing: &Drawing) -> (Vec<robusta_core::line::Line>, Vec<robusta_core::arc::Arc>) {
-    let (mut lines, mut arcs) = (Vec::new(), Vec::new());
+fn get_segments(
+    drawing: &Drawing,
+) -> (
+    Vec<robusta_core::line::Line>,
+    Vec<robusta_core::arc::Arc>,
+    Vec<robusta_core::circle::Circle>,
+) {
+    let (mut lines, mut arcs, mut circles) = (Vec::new(), Vec::new(), Vec::new());
     for entity in drawing.entities() {
         match &entity.specific {
             EntityType::Line(specific) => lines.push(line::to_segment(specific)),
-            // EntityType::Arc(specific) => lines.extend(arc::to_points(specific)),
+            EntityType::Arc(specific) => arcs.push(arc::to_segment(specific)),
             EntityType::LwPolyline(specific) => lines.extend(lwpolyline::to_segments(specific)),
-            // EntityType::Circle(specific) => lines.extend(circle::to_points(specific)),
-            // _ => core::panic!("Uncaptured entity: {entity:#?} "),
-            _ => (), //todo!() remove this
+            EntityType::Circle(specific) => circles.push(circle::to_segment(specific)),
+            _ => core::panic!("Uncaptured entity: {entity:#?} "),
         };
     }
-    return (lines, arcs);
+    return (lines, arcs, circles);
 }
