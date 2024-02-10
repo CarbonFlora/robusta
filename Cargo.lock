@@ -3965,6 +3965,7 @@ dependencies = [
  "bevy_window",
  "egui 0.25.0",
  "egui_dock",
+ "nalgebra",
  "robusta-core",
  "robusta-dxf",
 ]

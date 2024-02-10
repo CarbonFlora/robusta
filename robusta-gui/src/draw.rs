@@ -5,6 +5,7 @@ use bevy::{
     sprite::MaterialMesh2dBundle,
 };
 use bevy_mod_picking::{prelude::*, PickableBundle};
+use nalgebra::Matrix3;
 use robusta_core::point::Point;
 
 use crate::*;
@@ -90,11 +91,6 @@ fn draw_arcs(
 ) {
     let line_width = 0.3f32;
     for arc in &wrapper.arcs {
-        // let delta_x = line.definition[1].coordinates.x - line.definition[0].coordinates.x;
-        // let delta_y = line.definition[1].coordinates.y - line.definition[0].coordinates.y;
-        // let length = (delta_x.powi(2) + delta_y.powi(2)).sqrt();
-        // let angle_rad = angle_full_circle(delta_x, delta_y);
-
         commands.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes
@@ -169,9 +165,9 @@ fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
 
 fn arc_mesh(line_width: f32, definition: [Point; 3]) -> Mesh {
     let lw_half = line_width / 2.0f32;
-    let number_of_segments = 30u32;
-    let mut vertexes: Vec<[f32; 3]> = arc_vertexes(line_width, definition);
-    let mut triangle_indexes: Vec<u32> = Vec::new();
+    let num_segments = 30u32;
+    let vertexes: Vec<[f32; 3]> = arc_vertexes(num_segments, definition, lw_half);
+    let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
 
     Mesh::new(PrimitiveTopology::TriangleList)
         .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
@@ -179,20 +175,174 @@ fn arc_mesh(line_width: f32, definition: [Point; 3]) -> Mesh {
         .with_indices(Some(Indices::U32(triangle_indexes)))
 }
 
-fn arc_vertexes(line_width: f32, definition: [Point; 3]) -> Vec<[f32; 3]> {
-    let vertexes = Vec::new();
-    let radius = arc_radius(definition);
+fn arc_vertexes(num_segments: u32, definition: [Point; 3], lw_half: f32) -> Vec<[f32; 3]> {
+    let mut vertexes = Vec::new();
+    let (radius, center) = circle_specs(definition);
+    let start_angle_rad = angle_full_circle(
+        definition[0].coordinates.x - center[0],
+        definition[0].coordinates.y - center[1],
+    ) % (2. * PI);
+    let end_angle_rad = angle_full_circle(
+        definition[1].coordinates.x - center[0],
+        definition[1].coordinates.y - center[1],
+    ) % (2. * PI);
+    let angle_increment = (end_angle_rad - start_angle_rad) / num_segments as f32;
+
+    for i in 0..=num_segments {
+        let angle_offset = start_angle_rad + angle_increment * i as f32;
+        let x_outer = center[0] + (radius + lw_half) * (angle_offset).cos();
+        let y_outer = center[1] + (radius + lw_half) * (angle_offset).sin();
+        let x_inner = center[0] + (radius - lw_half) * (angle_offset).cos();
+        let y_inner = center[1] + (radius - lw_half) * (angle_offset).sin();
+
+        vertexes.push([x_outer, y_outer, 0.]);
+        vertexes.push([x_inner, y_inner, 0.]);
+    }
 
     return vertexes;
 }
-// https://math.stackexchange.com/questions/2836274/3-point-to-circle-and-get-radius
-fn arc_radius(def: [Point; 3]) -> f32 {
-    let delta_x2 = def[2].coordinates.x - def[1].coordinates.x;
-    let delta_x3 = def[3].coordinates.x - def[1].coordinates.x;
-    let delta_y2 = def[2].coordinates.y - def[1].coordinates.y;
-    let delta_y3 = def[3].coordinates.y - def[1].coordinates.y;
 
-    return ((1.0f32).powi(2) + (1.0f32).powi(2)).sqrt();
+fn arc_indexes(num_segments: u32) -> Vec<u32> {
+    let mut a = Vec::new();
+
+    for i in 0..(num_segments * 2) {
+        a.extend(vec![i, i + 1, i + 2]);
+    }
+
+    return a;
+}
+
+fn circle_specs(definition: [Point; 3]) -> (f32, [f32; 3]) {
+    let i_11 = definition[0].coordinates.x.powi(2) + definition[0].coordinates.y.powi(2);
+    let i_21 = definition[1].coordinates.x.powi(2) + definition[1].coordinates.y.powi(2);
+    let i_31 = definition[2].coordinates.x.powi(2) + definition[2].coordinates.y.powi(2);
+
+    let m_14 = Matrix3::new(
+        i_11,
+        definition[0].coordinates.x,
+        definition[0].coordinates.y,
+        i_21,
+        definition[1].coordinates.x,
+        definition[1].coordinates.y,
+        i_31,
+        definition[2].coordinates.x,
+        definition[2].coordinates.y,
+    )
+    .determinant();
+    let m_13 = Matrix3::new(
+        i_11,
+        definition[0].coordinates.x,
+        1.,
+        i_21,
+        definition[1].coordinates.x,
+        1.,
+        i_31,
+        definition[2].coordinates.x,
+        1.,
+    )
+    .determinant();
+    let m_12 = Matrix3::new(
+        i_11,
+        definition[0].coordinates.y,
+        1.,
+        i_21,
+        definition[1].coordinates.y,
+        1.,
+        i_31,
+        definition[2].coordinates.y,
+        1.,
+    )
+    .determinant();
+    let m_11 = Matrix3::new(
+        definition[0].coordinates.x,
+        definition[0].coordinates.y,
+        1.,
+        definition[1].coordinates.x,
+        definition[1].coordinates.y,
+        1.,
+        definition[2].coordinates.x,
+        definition[2].coordinates.y,
+        1.,
+    )
+    .determinant();
+
+    if m_11 == 0. {
+        panic!("not a circle.");
+    }
+
+    let x_center = 1. / 2. * m_12 / m_11;
+    let y_center = -1. / 2. * m_13 / m_11;
+    let radius = (x_center.powi(2) + y_center.powi(2) + m_14 / m_11).sqrt();
+    return (radius, [x_center, y_center, 0.]);
+}
+
+#[test]
+fn arc_v_test() {
+    let p1 = Point::new(0., 0., 0.);
+    let p2 = Point::new(4., 0., 0.);
+    let p3 = Point::new(2., 2., 0.);
+    let definition = [p1, p2, p3];
+    let (radius, center) = circle_specs(definition);
+    assert_eq!(radius, 2.);
+    assert_eq!(center, [2., 0., 0.]);
+    // let a = arc_vertexes(0.5, 5, b);
+    let start_angle_rad = angle_full_circle(
+        definition[0].coordinates.x - center[0],
+        definition[0].coordinates.y - center[1],
+    ) % (2. * PI);
+    let end_angle_rad = angle_full_circle(
+        definition[1].coordinates.x - center[0],
+        definition[1].coordinates.y - center[1],
+    ) % (2. * PI);
+    assert_eq!((start_angle_rad * 1000.).trunc(), (PI * 1000.).trunc());
+    assert_eq!(end_angle_rad, 0.);
+}
+
+// fn find_circle(p1: [f32; 3], p2: [f32; 3], p3: [f32; 3]) -> (f32, [f32; 3]) {
+//     // Calculate midpoints of two sides of the triangle
+//     let mid1 = [
+//         (p1[0] + p2[0]) / 2.0,
+//         (p1[1] + p2[1]) / 2.0,
+//         (p1[2] + p2[2]) / 2.0,
+//     ];
+//     let mid2 = [
+//         (p2[0] + p3[0]) / 2.0,
+//         (p2[1] + p3[1]) / 2.0,
+//         (p2[2] + p3[2]) / 2.0,
+//     ];
+
+//     // Calculate slopes of lines perpendicular to the sides of the triangle
+//     let slope1 = -1.0 / ((p2[1] - p1[1]) / (p2[0] - p1[0]));
+//     let slope2 = -1.0 / ((p3[1] - p2[1]) / (p3[0] - p2[0]));
+
+//     // Calculate the center of the circle
+//     let center_x = (slope1 * mid1[0] - slope2 * mid2[0] + mid2[1] - mid1[1]) / (slope1 - slope2);
+//     let center_y = slope1 * (center_x - mid1[0]) + mid1[1];
+//     let center = [center_x, center_y, 0.0]; // Assuming z coordinate to be 0.0 for simplicity
+
+//     // Calculate the radius
+//     let radius = ((center[0] - p1[0]).powi(2) + (center[1] - p1[1]).powi(2)).sqrt();
+
+//     (radius, center)
+// }
+
+// #[test]
+// fn radius_eq_1() {
+//     let p1 = [1., 1., 0.];
+//     let p2 = [2., 4., 0.];
+//     let p3 = [5., 3., 0.];
+//     // let a = [p1, p2, p3];
+//     assert_eq!(find_circle(p1, p2, p3).0, (5.0f32).sqrt());
+//     assert_eq!(find_circle(p1, p2, p3).1, [3., 2., 0.]);
+// }
+#[test]
+fn radius_eq_2() {
+    let p1 = Point::new(1., 1., 0.);
+    let p2 = Point::new(2., 4., 0.);
+    let p3 = Point::new(5., 3., 0.);
+    let a = [p1, p2, p3];
+    assert_eq!(circle_specs(a).0, (5.0f32).sqrt());
+    assert_eq!(circle_specs(a).1, [3., 2., 0.]);
 }
 
 fn _create_simple_parallelogram() -> Mesh {

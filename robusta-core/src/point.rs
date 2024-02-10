@@ -13,6 +13,10 @@ impl Point {
     pub fn origin() -> Self {
         return Point::new(0., 0., 0.);
     }
+
+    pub fn xyz(&self) -> [f32; 3] {
+        return [self.coordinates.x, self.coordinates.y, self.coordinates.z];
+    }
 }
 
 impl std::fmt::Display for Point {
