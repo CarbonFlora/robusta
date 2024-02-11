@@ -1,3 +1,4 @@
+use core::panic;
 use std::f32::consts::PI;
 
 use bevy::{
@@ -97,11 +98,7 @@ fn draw_arcs(
                     .add(arc_mesh(line_width, arc.definition).into())
                     .into(),
                 material: materials.add(ColorMaterial::from(Color::WHITE)),
-                transform: Transform::from_translation(Vec3::new(
-                    arc.definition[0].coordinates.x,
-                    arc.definition[0].coordinates.y,
-                    7.,
-                )),
+                transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
                 ..default()
             },
             PickableBundle::default(),
@@ -128,7 +125,7 @@ fn angle_full_circle(delta_x: f32, delta_y: f32) -> f32 {
     if delta_x.is_sign_negative() {
         angle_rad += PI;
     }
-    return angle_rad;
+    return angle_rad % (2. * PI);
 }
 
 fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
@@ -181,15 +178,21 @@ fn arc_vertexes(num_segments: u32, definition: [Point; 3], lw_half: f32) -> Vec<
     let start_angle_rad = angle_full_circle(
         definition[0].coordinates.x - center[0],
         definition[0].coordinates.y - center[1],
-    ) % (2. * PI);
+    );
     let end_angle_rad = angle_full_circle(
         definition[1].coordinates.x - center[0],
         definition[1].coordinates.y - center[1],
-    ) % (2. * PI);
-    let angle_increment = (end_angle_rad - start_angle_rad) / num_segments as f32;
+    );
+
+    let mut angle = (end_angle_rad - start_angle_rad).abs();
+    if end_angle_rad < start_angle_rad {
+        angle = (2. * PI) - angle;
+    }
+    let angle_increment = angle / num_segments as f32;
 
     for i in 0..=num_segments {
         let angle_offset = start_angle_rad + angle_increment * i as f32;
+
         let x_outer = center[0] + (radius + lw_half) * (angle_offset).cos();
         let y_outer = center[1] + (radius + lw_half) * (angle_offset).sin();
         let x_inner = center[0] + (radius - lw_half) * (angle_offset).cos();

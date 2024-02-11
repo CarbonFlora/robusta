@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use crate::*;
 
 /// Returns the two endpoints and center of an arc.
@@ -11,11 +13,14 @@ pub fn to_points(specific: &Arc) -> [Point; 3] {
     let y2 = specific.center.y + specific.end_angle.to_radians().sin() * specific.radius;
     let point2 = Point::new(x2 as f32, y2 as f32, 0.);
 
-    let p3_angle_rad =
-        ((specific.end_angle - specific.start_angle) / 2. + specific.start_angle).to_radians();
+    let mut p3_angle_rad = ((specific.start_angle + specific.end_angle) / 2.).to_radians();
+    if specific.start_angle > specific.end_angle {
+        p3_angle_rad -= PI;
+    }
+
     let (p3_x, p3_y) = (
         specific.center.x + specific.radius * p3_angle_rad.cos(),
-        specific.center.x + specific.radius * p3_angle_rad.sin(),
+        specific.center.y + specific.radius * p3_angle_rad.sin(),
     );
     let lazy_point = Point::new(p3_x as f32, p3_y as f32, 0.);
 

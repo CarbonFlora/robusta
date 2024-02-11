@@ -29,7 +29,7 @@ pub fn camera_startup(mut commands: Commands) {
     commands
         .spawn(Camera2dBundle::default())
         .insert((bevy_pancam::PanCam {
-            grab_buttons: vec![MouseButton::Middle],
+            // grab_buttons: vec![MouseButton::Middle],
             zoom_to_cursor: false,
             ..default()
         },));
