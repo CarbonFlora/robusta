@@ -1,4 +1,4 @@
-use bevy::prelude::{Input, KeyCode, Res, ResMut};
+use bevy::prelude::*;
 
 use crate::uistate::UiState;
 
@@ -33,6 +33,7 @@ pub fn capture_keystrokes(
 pub enum Actions {
     None,
     Exit,
+    // DeselectAll,
     OpenCADTerm,
     TryOpen(String),
 }

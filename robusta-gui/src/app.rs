@@ -12,9 +12,9 @@ pub fn app2d(path: Option<String>) {
         .add_systems(Startup, camera_startup)
         .add_systems(Startup, spawn_window)
         .add_systems(PostStartup, draw_first)
+        // .add_systems(First, disable_picking)
         .add_systems(PreUpdate, capture_keystrokes)
         .add_systems(Update, update_viewport_ui)
-        // .add_systems(Update, update_dock.after(update_viewport_ui))
         .add_systems(Update, update_dock)
         .run();
 }
@@ -24,12 +24,16 @@ pub fn spawn_window(mut commands: Commands) {
     commands.spawn((window::Window::default(), CADPanel::default()));
 }
 
-// Spawn a camera.
-pub fn camera_startup(mut commands: Commands) {
+// Spawn a camera & configures bevy_mod_picking.
+pub fn camera_startup(
+    mut commands: Commands,
+    mut selection_settings: ResMut<selection::SelectionSettings>,
+) {
+    selection_settings.click_nothing_deselect_all = false;
     commands
         .spawn(Camera2dBundle::default())
         .insert((bevy_pancam::PanCam {
-            // grab_buttons: vec![MouseButton::Middle],
+            grab_buttons: vec![MouseButton::Middle, MouseButton::Right],
             zoom_to_cursor: false,
             ..default()
         },));

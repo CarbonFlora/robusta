@@ -1,3 +1,5 @@
+use bevy_mod_picking::pointer::Location;
+
 use super::*;
 
 type LoadedFiles = HashMap<Option<String>, DXFWrapper>;
@@ -25,8 +27,8 @@ pub enum EguiWindow {
     Inspector,
 }
 
-#[derive(Event, Clone, Debug, PartialEq, Eq, Hash)]
-pub struct SelectionInstance(Entity, SelectionAddRemove);
+#[derive(Event, Clone, Debug, PartialEq)]
+pub struct SelectionInstance(pub Entity, pub PointerId, pub Location, SelectionAddRemove);
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum SelectionAddRemove {
@@ -36,13 +38,23 @@ pub enum SelectionAddRemove {
 
 impl From<ListenerInput<Pointer<Select>>> for SelectionInstance {
     fn from(event: ListenerInput<Pointer<Select>>) -> Self {
-        SelectionInstance(event.target, SelectionAddRemove::Add)
+        SelectionInstance(
+            event.target,
+            event.pointer_id,
+            event.pointer_location.clone(),
+            SelectionAddRemove::Add,
+        )
     }
 }
 
 impl From<ListenerInput<Pointer<Deselect>>> for SelectionInstance {
     fn from(event: ListenerInput<Pointer<Deselect>>) -> Self {
-        SelectionInstance(event.target, SelectionAddRemove::Remove)
+        SelectionInstance(
+            event.target,
+            event.pointer_id,
+            event.pointer_location.clone(),
+            SelectionAddRemove::Remove,
+        )
     }
 }
 
@@ -122,7 +134,7 @@ pub fn update_dock(
         .collect::<Vec<SelectionInstance>>();
 
     for i in buf {
-        match i.1 {
+        match i.3 {
             SelectionAddRemove::Add => ui_state.selected_entities.push(i),
             SelectionAddRemove::Remove => ui_state.selected_entities.retain(|x| x.0 != i.0),
         };

@@ -31,3 +31,16 @@ pub fn open_term_egui(
             });
     }
 }
+
+pub fn run_cadt(ui_state: &UiState, input: &String, deselections: EventWriter<Pointer<Deselect>>) {
+    match input.as_str() {
+        "dsa" => deselect_all(ui_state, deselections),
+        _ => (),
+    }
+}
+
+fn deselect_all(ui_state: &UiState, mut deselections: EventWriter<Pointer<Deselect>>) {
+    for i in &ui_state.selected_entities {
+        deselections.send(Pointer::new(i.1, i.2.clone(), i.0, Deselect))
+    }
+}
