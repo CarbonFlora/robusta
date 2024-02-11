@@ -23,6 +23,7 @@ pub fn draw_first(
         draw_points(&mut commands, &mut meshes, &mut materials, file.1);
         draw_lines(&mut commands, &mut meshes, &mut materials, file.1);
         draw_arcs(&mut commands, &mut meshes, &mut materials, file.1);
+        draw_circles(&mut commands, &mut meshes, &mut materials, file.1);
     }
 }
 
@@ -108,6 +109,30 @@ fn draw_arcs(
     }
 }
 
+fn draw_circles(
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
+    wrapper: &DXFWrapper,
+) {
+    let line_width = 0.3f32;
+    for circle in &wrapper.circles {
+        commands.spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes
+                    .add(circle_mesh(line_width, circle.definition).into())
+                    .into(),
+                material: materials.add(ColorMaterial::from(Color::WHITE)),
+                transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
+                ..default()
+            },
+            PickableBundle::default(),
+            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        ));
+    }
+}
+
 fn angle_full_circle(delta_x: f32, delta_y: f32) -> f32 {
     if delta_x == 0. && delta_y == 0. {
         panic!("Zero length line detected.")
@@ -172,6 +197,18 @@ fn arc_mesh(line_width: f32, definition: [Point; 3]) -> Mesh {
         .with_indices(Some(Indices::U32(triangle_indexes)))
 }
 
+fn circle_mesh(line_width: f32, definition: [Point; 2]) -> Mesh {
+    let lw_half = line_width / 2.0f32;
+    let num_segments = 30u32;
+    let vertexes: Vec<[f32; 3]> = circle_vertexes(num_segments, definition, lw_half);
+    let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
+
+    Mesh::new(PrimitiveTopology::TriangleList)
+        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
+        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
+        .with_indices(Some(Indices::U32(triangle_indexes)))
+}
+
 fn arc_vertexes(num_segments: u32, definition: [Point; 3], lw_half: f32) -> Vec<[f32; 3]> {
     let mut vertexes = Vec::new();
     let (radius, center) = circle_specs(definition);
@@ -192,6 +229,27 @@ fn arc_vertexes(num_segments: u32, definition: [Point; 3], lw_half: f32) -> Vec<
 
     for i in 0..=num_segments {
         let angle_offset = start_angle_rad + angle_increment * i as f32;
+
+        let x_outer = center[0] + (radius + lw_half) * (angle_offset).cos();
+        let y_outer = center[1] + (radius + lw_half) * (angle_offset).sin();
+        let x_inner = center[0] + (radius - lw_half) * (angle_offset).cos();
+        let y_inner = center[1] + (radius - lw_half) * (angle_offset).sin();
+
+        vertexes.push([x_outer, y_outer, 0.]);
+        vertexes.push([x_inner, y_inner, 0.]);
+    }
+
+    return vertexes;
+}
+
+fn circle_vertexes(num_segments: u32, definition: [Point; 2], lw_half: f32) -> Vec<[f32; 3]> {
+    let mut vertexes = Vec::new();
+    let center = [definition[1].coordinates.x, definition[1].coordinates.y];
+    let radius = (definition[0].coordinates.x - definition[1].coordinates.x).abs();
+    let angle_increment = (2. * PI) / num_segments as f32;
+
+    for i in 0..=num_segments {
+        let angle_offset = angle_increment * i as f32;
 
         let x_outer = center[0] + (radius + lw_half) * (angle_offset).cos();
         let y_outer = center[1] + (radius + lw_half) * (angle_offset).sin();
@@ -301,43 +359,6 @@ fn arc_v_test() {
     assert_eq!(end_angle_rad, 0.);
 }
 
-// fn find_circle(p1: [f32; 3], p2: [f32; 3], p3: [f32; 3]) -> (f32, [f32; 3]) {
-//     // Calculate midpoints of two sides of the triangle
-//     let mid1 = [
-//         (p1[0] + p2[0]) / 2.0,
-//         (p1[1] + p2[1]) / 2.0,
-//         (p1[2] + p2[2]) / 2.0,
-//     ];
-//     let mid2 = [
-//         (p2[0] + p3[0]) / 2.0,
-//         (p2[1] + p3[1]) / 2.0,
-//         (p2[2] + p3[2]) / 2.0,
-//     ];
-
-//     // Calculate slopes of lines perpendicular to the sides of the triangle
-//     let slope1 = -1.0 / ((p2[1] - p1[1]) / (p2[0] - p1[0]));
-//     let slope2 = -1.0 / ((p3[1] - p2[1]) / (p3[0] - p2[0]));
-
-//     // Calculate the center of the circle
-//     let center_x = (slope1 * mid1[0] - slope2 * mid2[0] + mid2[1] - mid1[1]) / (slope1 - slope2);
-//     let center_y = slope1 * (center_x - mid1[0]) + mid1[1];
-//     let center = [center_x, center_y, 0.0]; // Assuming z coordinate to be 0.0 for simplicity
-
-//     // Calculate the radius
-//     let radius = ((center[0] - p1[0]).powi(2) + (center[1] - p1[1]).powi(2)).sqrt();
-
-//     (radius, center)
-// }
-
-// #[test]
-// fn radius_eq_1() {
-//     let p1 = [1., 1., 0.];
-//     let p2 = [2., 4., 0.];
-//     let p3 = [5., 3., 0.];
-//     // let a = [p1, p2, p3];
-//     assert_eq!(find_circle(p1, p2, p3).0, (5.0f32).sqrt());
-//     assert_eq!(find_circle(p1, p2, p3).1, [3., 2., 0.]);
-// }
 #[test]
 fn radius_eq_2() {
     let p1 = Point::new(1., 1., 0.);

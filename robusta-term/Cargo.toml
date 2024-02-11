@@ -14,6 +14,9 @@ name = "lines2"
 [[example]]
 name = "arcs_circles"
 
+[[example]]
+name = "circles"
+
 [dependencies]
 robusta-core = { path = "../robusta-core" }
 robusta-gui = { path = "../robusta-gui" }
