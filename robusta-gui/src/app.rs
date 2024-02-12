@@ -9,13 +9,14 @@ pub fn app2d(path: Option<String>) {
         .add_plugins(bevy_pancam::PanCamPlugin::default())
         .insert_resource(UiState::new(&path))
         .add_event::<SelectionInstance>()
+        .add_event::<Act>()
         .add_systems(Startup, camera_startup)
         .add_systems(Startup, spawn_window)
         .add_systems(PostStartup, draw_first)
-        // .add_systems(First, disable_picking)
         .add_systems(PreUpdate, capture_keystrokes)
         .add_systems(Update, update_viewport_ui)
         .add_systems(Update, update_dock)
+        .add_systems(PostUpdate, update_act)
         .run();
 }
 

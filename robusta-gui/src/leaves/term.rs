@@ -2,9 +2,11 @@ use egui::{Align2, TextEdit, Vec2};
 
 use crate::*;
 
-use self::{keystrokes::Actions, uistate::UiState};
+use self::uistate::UiState;
 
 pub fn open_term_egui(
+    // mut act_read: EventReader<Act>,
+    mut act_write: EventWriter<Act>,
     ui_state: &mut UiState,
     context: Query<&mut EguiContext, With<PrimaryWindow>>,
 ) {
@@ -22,25 +24,12 @@ pub fn open_term_egui(
 
                     if response.lost_focus() {
                         ui_state.cad_state.cad_term.0 = false;
-                        ui_state.actions = Actions::TryOpen(ui_state.cad_state.cad_term.1.clone());
+                        act_write.send(Act::TryAct(ui_state.cad_state.cad_term.1.clone()));
                         return;
                     }
 
                     response.request_focus();
                 });
             });
-    }
-}
-
-pub fn run_cadt(ui_state: &UiState, input: &String, deselections: EventWriter<Pointer<Deselect>>) {
-    match input.as_str() {
-        "dsa" => deselect_all(ui_state, deselections),
-        _ => (),
-    }
-}
-
-fn deselect_all(ui_state: &UiState, mut deselections: EventWriter<Pointer<Deselect>>) {
-    for i in &ui_state.selected_entities {
-        deselections.send(Pointer::new(i.1, i.2.clone(), i.0, Deselect))
     }
 }

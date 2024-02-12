@@ -6,8 +6,6 @@ type LoadedFiles = HashMap<Option<String>, DXFWrapper>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
-    pub pressed_keys: [Option<KeyCode>; 2], //this is mainly for debug.
-    pub actions: Actions,
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
@@ -80,8 +78,6 @@ impl UiState {
     // pub fn new(cameras: Query<&mut Camera, With<ViewportCamera>>) -> Self {
     pub fn new(path: &Option<String>) -> Self {
         Self {
-            pressed_keys: [None; 2],
-            actions: Actions::None,
             cad_state: CADState::new(),
             loaded_files: load_files(path),
             dock_state: default_cadpanel(),
@@ -89,11 +85,10 @@ impl UiState {
         }
     }
 
-    pub fn ui(&mut self, ctx: &mut egui::Context) {
+    pub fn ui(&mut self, ctx: &mut egui::Context, acts: Vec<&Act>) {
         let mut tab_viewer = TabViewer {
             loaded_files: &mut self.loaded_files,
-            pressed_keys: &self.pressed_keys,
-            actions: &self.actions,
+            acts,
             selected_entities: &mut self.selected_entities,
         };
         DockArea::new(&mut self.dock_state)
@@ -123,15 +118,16 @@ fn load_files(path: &Option<String>) -> LoadedFiles {
 pub struct CADPanel {}
 
 pub fn update_dock(
+    mut act_read: EventReader<Act>,
     mut ui_state: ResMut<UiState>,
     egui_context_cadpanel: Query<&mut EguiContext, With<CADPanel>>,
-    // egui_context_primary: Query<&mut EguiContext, With<PrimaryWindow>>,
     mut greetings: EventReader<SelectionInstance>,
 ) {
     let buf = greetings
         .read()
         .map(|x| x.clone())
         .collect::<Vec<SelectionInstance>>();
+    let acts = act_read.read().collect::<Vec<&Act>>();
 
     for i in buf {
         match i.3 {
@@ -140,15 +136,14 @@ pub fn update_dock(
         };
     }
     if let Ok(mut w) = egui_context_cadpanel.get_single().cloned() {
-        ui_state.ui(w.get_mut());
+        ui_state.ui(w.get_mut(), acts);
     }
 }
 
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     loaded_files: &'a LoadedFiles,
-    pressed_keys: &'a [Option<KeyCode>; 2],
-    actions: &'a Actions,
+    acts: Vec<&'a Act>,
     selected_entities: &'a mut Vec<SelectionInstance>,
 }
 
@@ -162,7 +157,8 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         match window {
             EguiWindow::CADView => (),
             EguiWindow::Hierarchy => (),
-            EguiWindow::Debug => view_pressed_keys(ui, self.pressed_keys, self.actions),
+            // EguiWindow::Debug => view_pressed_keys(ui, self.pressed_keys, self.acts),
+            EguiWindow::Debug => (),
             EguiWindow::Points => view_points(ui, self.loaded_files),
             EguiWindow::Inspector => view_inspection(ui, self.selected_entities),
         }

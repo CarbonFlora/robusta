@@ -1,12 +1,6 @@
 use bevy::prelude::*;
 
-use crate::uistate::UiState;
-
-pub fn capture_keystrokes(
-    // context: Query<&mut EguiContext, With<PrimaryWindow>>,
-    mut ui_state: ResMut<UiState>,
-    keys: Res<Input<KeyCode>>,
-) {
+pub fn capture_keystrokes(keys: Res<Input<KeyCode>>, mut act_write: EventWriter<Act>) {
     let mut buffer = [None; 2];
 
     for keycode in keys.get_pressed() {
@@ -18,22 +12,24 @@ pub fn capture_keystrokes(
         };
     }
 
-    ui_state.pressed_keys = buffer;
-
-    ui_state.actions = match buffer {
-        [None, Some(KeyCode::Escape)] => Actions::Exit,
+    let act = match buffer {
+        [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
-            Actions::OpenCADTerm
+            Act::OpenCADTerm
         }
-        _ => Actions::None,
+        _ => Act::None,
+    };
+
+    if act != Act::None {
+        act_write.send(act);
     }
 }
 
-#[derive(Debug, PartialEq)]
-pub enum Actions {
+#[derive(Event, Debug, PartialEq)]
+pub enum Act {
     None,
     Exit,
-    // DeselectAll,
+    DeselectAll,
     OpenCADTerm,
-    TryOpen(String),
+    TryAct(String),
 }
