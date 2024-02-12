@@ -32,4 +32,5 @@ pub enum Act {
     DeselectAll,
     OpenCADTerm,
     TryAct(String),
+    NewPoint,
 }

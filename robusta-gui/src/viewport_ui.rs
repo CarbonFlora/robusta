@@ -16,7 +16,7 @@ pub fn update_viewport_ui(
         }
     }
 
-    if ui_state.cad_state.cad_term.0 {
+    if ui_state.cad_state.cad_term.is_some() {
         open_term_egui(act_write, &mut ui_state, egui_context_primary);
     }
 }

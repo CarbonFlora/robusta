@@ -1,21 +1,42 @@
 use bevy::prelude::*;
 use bevy_mod_picking::{prelude::Pointer, selection::Deselect};
 
-use crate::{keystrokes::Act, uistate::UiState};
+use crate::{keystrokes::Act, new_point, uistate::UiState};
 
 pub fn update_act(
     mut act_read: EventReader<Act>,
     mut ui_state: ResMut<UiState>,
     mut deselections: EventWriter<Pointer<Deselect>>,
+    // cursor_moves: EventReader<CursorMoved>,
+    // mut commands: Commands,
+    // mut meshes: ResMut<Assets<Mesh>>,
+    // mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for act in act_read.read() {
-        match act {
-            Act::DeselectAll => deselect_all(&ui_state, &mut deselections),
-            Act::OpenCADTerm => ui_state.cad_state.cad_term = (true, String::new()),
-            Act::TryAct(input) => try_act(&ui_state, &input, &mut deselections),
-            Act::Exit => ui_state.cad_state.close_all(),
-            _ => (),
+        if let Act::TryAct(a) = act {
+            run_act(&to_act(a), &mut ui_state, &mut deselections);
+        } else {
+            run_act(act, &mut ui_state, &mut deselections)
         }
+    }
+}
+
+fn run_act(
+    act: &Act,
+    ui_state: &mut ResMut<UiState>,
+    deselections: &mut EventWriter<Pointer<Deselect>>,
+) {
+    match act {
+        // Act::NewPoint => new_point(
+        //     &mut commands,
+        //     &mut meshes,
+        //     &mut materials,
+        //     ui_state.cad_state.construction,
+        // ),
+        Act::DeselectAll => deselect_all(&ui_state, deselections),
+        Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
+        Act::Exit => ui_state.cad_state.close_all(),
+        _ => (),
     }
 }
 
@@ -25,9 +46,10 @@ pub fn deselect_all(ui_state: &UiState, deselections: &mut EventWriter<Pointer<D
     }
 }
 
-fn try_act(ui_state: &UiState, input: &String, deselections: &mut EventWriter<Pointer<Deselect>>) {
-    match input.as_str() {
-        "deselect" | "dsa" => deselect_all(ui_state, deselections),
-        _ => (),
-    }
+fn to_act(input: &String) -> Act {
+    return match input.as_str() {
+        "deselect" | "dsa" => Act::DeselectAll,
+        "point" | "p" => Act::NewPoint,
+        _ => Act::None,
+    };
 }

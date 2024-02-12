@@ -9,10 +9,7 @@ pub struct UiState {
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
-    // pub viewport_rectangles: Vec<egui::Rect>,
-    // pub viewport_rectangles: HashMap<Uuid, Viewport>,
     pub selected_entities: Vec<SelectionInstance>,
-    // pub selection: InspectorSelection,
 }
 
 /// This is all available tabs to be accessed.
@@ -58,7 +55,8 @@ impl From<ListenerInput<Pointer<Deselect>>> for SelectionInstance {
 
 #[derive(Debug, Default)]
 pub struct CADState {
-    pub cad_term: (bool, String),
+    // pub construction: Option<Entity>,
+    pub cad_term: Option<String>,
 }
 
 impl CADState {
@@ -67,7 +65,7 @@ impl CADState {
     }
 
     pub fn close_all(&mut self) {
-        self.cad_term = (false, String::new());
+        self.cad_term = None;
     }
 }
 

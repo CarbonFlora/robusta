@@ -5,7 +5,6 @@ use crate::*;
 use self::uistate::UiState;
 
 pub fn open_term_egui(
-    // mut act_read: EventReader<Act>,
     mut act_write: EventWriter<Act>,
     ui_state: &mut UiState,
     context: Query<&mut EguiContext, With<PrimaryWindow>>,
@@ -18,13 +17,13 @@ pub fn open_term_egui(
                 ui.horizontal(|ui| {
                     ui.label("CADT: ");
                     let response = ui.add(
-                        TextEdit::singleline(&mut ui_state.cad_state.cad_term.1)
+                        TextEdit::singleline(ui_state.cad_state.cad_term.as_mut().unwrap())
                             .hint_text("Enter a command."),
                     );
 
                     if response.lost_focus() {
-                        ui_state.cad_state.cad_term.0 = false;
-                        act_write.send(Act::TryAct(ui_state.cad_state.cad_term.1.clone()));
+                        act_write.send(Act::TryAct(ui_state.cad_state.cad_term.clone().unwrap()));
+                        ui_state.cad_state.cad_term = None;
                         return;
                     }
 
