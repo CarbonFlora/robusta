@@ -1,6 +1,6 @@
 use crate::{angle_full_circle, PI};
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Arc {
     pub definition: [crate::point::Point; 3],
 }
@@ -11,7 +11,7 @@ impl Arc {
     }
 
     pub fn specifications(&self) -> ArcSpec {
-        let (radius, center) = circle_specs(self.definition);
+        let (radius, center) = circle_specs(&self.definition);
         let start_angle_rad = angle_full_circle(
             self.definition[0].coordinates.x - center[0],
             self.definition[0].coordinates.y - center[1],
@@ -36,7 +36,7 @@ impl Arc {
     }
 }
 
-fn circle_specs(definition: [crate::point::Point; 3]) -> (f32, [f32; 3]) {
+fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, [f32; 3]) {
     let i_11 = definition[0].coordinates.x.powi(2) + definition[0].coordinates.y.powi(2);
     let i_21 = definition[1].coordinates.x.powi(2) + definition[1].coordinates.y.powi(2);
     let i_31 = definition[2].coordinates.x.powi(2) + definition[2].coordinates.y.powi(2);

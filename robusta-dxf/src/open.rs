@@ -1,5 +1,5 @@
 // use std::io::Write;
-use crate::wrapper::DXFWrapper;
+use crate::wrapper::RobustaEntities;
 
 use crate::*;
 
@@ -9,16 +9,9 @@ pub fn open_from_path(path: PathBuf) -> Drawing {
         Ok(d) => return d,
         Err(_e) => return Drawing::new(),
     };
-
-    // todo!() As I currently do not know how to do conditional debug compilation, uncomment when you want to see what's in the file at this point.
-    // let mut w = Vec::new();
-    // for entity in drawing.entities() {
-    //     writeln!(&mut w, "Found: {entity:?}")?;
-    // }
-    // return Ok(drawing);
 }
 
-pub fn parse_dxf(path: &Option<String>) -> DXFWrapper {
+pub fn parse_dxf(path: &Option<String>) -> RobustaEntities {
     let d = open_from_path(path.clone().unwrap_or_default().into());
-    return DXFWrapper::from(&d);
+    return RobustaEntities::from(&d);
 }

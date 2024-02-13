@@ -1,32 +1,42 @@
 use crate::*;
 
 pub fn draw_lines(
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
-    wrapper: &DXFWrapper,
+    entity_package: &mut (
+        &mut Commands,
+        &mut ResMut<Assets<Mesh>>,
+        &mut ResMut<Assets<ColorMaterial>>,
+    ),
+    wrapper: &RobustaEntities,
+    entity_mapping: &mut EntityMapping,
 ) {
     let line_width = 0.3f32;
     for line in &wrapper.lines {
         let spec = line.specifications();
 
-        commands.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes
-                    .add(line_mesh(line_width, spec.length, spec.h_angle).into())
-                    .into(),
-                material: materials.add(ColorMaterial::from(Color::WHITE)),
-                transform: Transform::from_translation(Vec3::new(
-                    line.definition[0].coordinates.x,
-                    line.definition[0].coordinates.y,
-                    8.,
-                )),
-                ..default()
-            },
-            PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-        ));
+        let id = entity_package
+            .0
+            .spawn((
+                MaterialMesh2dBundle {
+                    mesh: entity_package
+                        .1
+                        .add(line_mesh(line_width, spec.length, spec.h_angle).into())
+                        .into(),
+                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
+                    transform: Transform::from_translation(Vec3::new(
+                        line.definition[0].coordinates.x,
+                        line.definition[0].coordinates.y,
+                        8.,
+                    )),
+                    ..default()
+                },
+                PickableBundle::default(),
+                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            ))
+            .id();
+        entity_mapping
+            .hash
+            .insert(id, robusta_core::RobustaEntity::Line(line.clone()));
     }
 }
 

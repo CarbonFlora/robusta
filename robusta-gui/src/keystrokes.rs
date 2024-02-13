@@ -34,4 +34,17 @@ pub enum Act {
     OpenCADTerm,
     TryAct(String),
     NewPoint,
+    DebugReMapSelection(Entity),
+    DebugReMapSelectionsAll,
 }
+
+// impl Act {
+//     fn to_act(&self, string: &String) -> Self {
+//         return match string.as_str() {
+//             "deselect" | "dsa" => Act::DeselectAll,
+//             "point" | "p" => Act::NewPoint,
+//             "q!" => Act::QuitWithoutSaving,
+//             _ => Act::None,
+//         };
+//     }
+// }

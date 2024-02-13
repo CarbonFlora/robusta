@@ -1,26 +1,35 @@
 use crate::*;
 
 pub fn draw_points(
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
-    wrapper: &DXFWrapper,
+    entity_package: &mut (
+        &mut Commands,
+        &mut ResMut<Assets<Mesh>>,
+        &mut ResMut<Assets<ColorMaterial>>,
+    ),
+    wrapper: &RobustaEntities,
+    entity_mapping: &mut EntityMapping,
 ) {
     for point in &wrapper.points {
-        commands.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(0.5).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::WHITE)),
-                transform: Transform::from_translation(Vec3::new(
-                    point.coordinates.x,
-                    point.coordinates.y,
-                    9.,
-                )),
-                ..default()
-            },
-            PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-        ));
+        let id = entity_package
+            .0
+            .spawn((
+                MaterialMesh2dBundle {
+                    mesh: entity_package.1.add(shape::Circle::new(0.5).into()).into(),
+                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
+                    transform: Transform::from_translation(Vec3::new(
+                        point.coordinates.x,
+                        point.coordinates.y,
+                        9.,
+                    )),
+                    ..default()
+                },
+                PickableBundle::default(),
+                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            ))
+            .id();
+        entity_mapping
+            .hash
+            .insert(id, robusta_core::RobustaEntity::Point(point.clone()));
     }
 }

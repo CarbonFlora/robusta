@@ -1,11 +1,12 @@
 use bevy::prelude::*;
 use bevy_mod_picking::{prelude::Pointer, selection::Deselect};
 
-use crate::{keystrokes::Act, uistate::UiState};
+use crate::{keystrokes::Act, uistate::UiState, EntityMapping};
 
 pub fn update_act(
     mut act_read: EventReader<Act>,
     mut ui_state: ResMut<UiState>,
+    entity_mapping: Res<EntityMapping>,
     mut deselections: EventWriter<Pointer<Deselect>>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
 ) {
@@ -14,11 +15,18 @@ pub fn update_act(
             run_act(
                 &to_act(a),
                 &mut ui_state,
+                &entity_mapping,
                 &mut deselections,
                 &mut app_exit_events,
             );
         } else {
-            run_act(act, &mut ui_state, &mut deselections, &mut app_exit_events)
+            run_act(
+                act,
+                &mut ui_state,
+                &entity_mapping,
+                &mut deselections,
+                &mut app_exit_events,
+            )
         }
     }
 }
@@ -26,6 +34,7 @@ pub fn update_act(
 fn run_act(
     act: &Act,
     ui_state: &mut ResMut<UiState>,
+    entity_mapping: &Res<EntityMapping>,
     deselections: &mut EventWriter<Pointer<Deselect>>,
     app_exit_events: &mut ResMut<Events<bevy::app::AppExit>>,
 ) {
@@ -36,17 +45,13 @@ fn run_act(
         //     &mut materials,
         //     ui_state.cad_state.construction,
         // ),
-        Act::DeselectAll => deselect_all(&ui_state, deselections),
+        // Act::DeselectAll => deselect_all(&ui_state, deselections),
+        Act::DeselectAll => ui_state.deselect_all(deselections),
         Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
+        Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, entity_mapping),
         Act::Exit => ui_state.cad_state.close_all(),
         Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
         _ => (),
-    }
-}
-
-pub fn deselect_all(ui_state: &UiState, deselections: &mut EventWriter<Pointer<Deselect>>) {
-    for i in &ui_state.selected_entities {
-        deselections.send(Pointer::new(i.1, i.2.clone(), i.0, Deselect))
     }
 }
 

@@ -1,24 +1,36 @@
 use crate::*;
 
 pub fn draw_arcs(
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
-    wrapper: &DXFWrapper,
+    entity_package: &mut (
+        &mut Commands,
+        &mut ResMut<Assets<Mesh>>,
+        &mut ResMut<Assets<ColorMaterial>>,
+    ),
+    wrapper: &RobustaEntities,
+    entity_mapping: &mut EntityMapping,
 ) {
     let line_width = 0.3f32;
     for arc in &wrapper.arcs {
-        commands.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes.add(arc_mesh(line_width, arc).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::WHITE)),
-                transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
-                ..default()
-            },
-            PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-        ));
+        let id = entity_package
+            .0
+            .spawn((
+                MaterialMesh2dBundle {
+                    mesh: entity_package
+                        .1
+                        .add(arc_mesh(line_width, arc).into())
+                        .into(),
+                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
+                    transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
+                    ..default()
+                },
+                PickableBundle::default(),
+                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            ))
+            .id();
+        entity_mapping
+            .hash
+            .insert(id, robusta_core::RobustaEntity::Arc(arc.clone()));
     }
 }
 

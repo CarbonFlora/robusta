@@ -6,6 +6,16 @@ pub mod line;
 pub mod point;
 pub mod text;
 
+#[derive(Debug, Clone, PartialEq)]
+pub enum RobustaEntity {
+    None,
+    Arc(arc::Arc),
+    Circle(circle::Circle),
+    Line(line::Line),
+    Point(point::Point),
+    Text(text::Text),
+}
+
 pub fn angle_full_circle(delta_x: f32, delta_y: f32) -> f32 {
     if delta_x == 0. && delta_y == 0. {
         panic!("At least two points are identical.")

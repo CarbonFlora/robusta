@@ -8,6 +8,7 @@ pub fn app2d(path: Option<String>) {
         .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
         .add_plugins(bevy_pancam::PanCamPlugin::default())
         .insert_resource(UiState::new(&path))
+        .insert_resource(EntityMapping::new())
         .add_event::<SelectionInstance>()
         .add_event::<Act>()
         .add_systems(Startup, camera_startup)

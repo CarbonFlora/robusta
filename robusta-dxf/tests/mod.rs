@@ -3,7 +3,7 @@ mod open {
     use robusta_dxf::open::open_from_path;
 
     use anyhow::Result;
-    use robusta_dxf::wrapper::DXFWrapper;
+    use robusta_dxf::wrapper::RobustaEntities;
     use std::fs::File;
     use std::io::prelude::*;
     use std::io::BufReader;
@@ -28,21 +28,21 @@ mod open {
     #[test]
     fn parse_lines() {
         let d = open_from_path("tests/resources/lines-2018.dxf".into());
-        let a = DXFWrapper::from(&d);
+        let a = RobustaEntities::from(&d);
         assert!(a.points.len() > 0);
     }
 
     #[test]
     fn parse_arcs() {
         let d = open_from_path("tests/resources/arcs-2018.dxf".into());
-        let a = DXFWrapper::from(&d);
+        let a = RobustaEntities::from(&d);
         assert!(a.points.len() > 0);
     }
 
     #[test]
     fn parse_minimal() {
         let d = open_from_path("tests/resources/minimal-2018.dxf".into());
-        let a = DXFWrapper::from(&d);
+        let a = RobustaEntities::from(&d);
         assert!(a.points.len() > 0);
     }
 }

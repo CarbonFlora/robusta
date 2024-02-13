@@ -2,7 +2,7 @@ use crate::parse::*;
 use crate::*;
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct DXFWrapper {
+pub struct RobustaEntities {
     pub points: Vec<robusta_core::point::Point>,
     pub lines: Vec<robusta_core::line::Line>,
     pub arcs: Vec<robusta_core::arc::Arc>,
@@ -10,9 +10,9 @@ pub struct DXFWrapper {
     pub text: Vec<robusta_core::text::Text>,
 }
 
-impl DXFWrapper {
+impl RobustaEntities {
     pub fn new() -> Self {
-        return DXFWrapper::default();
+        return RobustaEntities::default();
     }
 
     pub fn from(drawing: &Drawing) -> Self {
@@ -20,7 +20,7 @@ impl DXFWrapper {
         let (lines, arcs, circles) = get_segments(drawing); //this is garbage way rn
         let text = get_text(drawing);
 
-        DXFWrapper {
+        RobustaEntities {
             points,
             lines,
             arcs,

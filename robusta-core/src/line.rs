@@ -1,6 +1,6 @@
 use crate::angle_full_circle;
 
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Line {
     pub definition: [crate::point::Point; 2],
 }

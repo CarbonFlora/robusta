@@ -1,15 +1,16 @@
 use bevy_mod_picking::pointer::Location;
+use robusta_core::RobustaEntity;
 
 use super::*;
 
-type LoadedFiles = HashMap<Option<String>, DXFWrapper>;
+type LoadedFiles = HashMap<Option<String>, RobustaEntities>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
-    pub selected_entities: Vec<SelectionInstance>,
+    pub selected_entities: Vec<(SelectionInstance, RobustaEntity)>,
 }
 
 /// This is all available tabs to be accessed.
@@ -70,6 +71,12 @@ impl CADState {
     }
 }
 
+// #[derive(Event, Clone, Debug, PartialEq)]
+// pub enum ReMapSelections {
+//     All,
+//     One(Entity),
+// }
+
 impl UiState {
     /// This is currently the default gui layout.
     /// Future Features:
@@ -92,6 +99,21 @@ impl UiState {
         DockArea::new(&mut self.dock_state)
             .style(Style::from_egui(ctx.style().as_ref()))
             .show(ctx, &mut tab_viewer);
+    }
+
+    pub fn deselect_all(&self, deselections: &mut EventWriter<Pointer<Deselect>>) {
+        for i in &self.selected_entities {
+            deselections.send(Pointer::new(i.0 .1, i.0 .2.clone(), i.0 .0, Deselect))
+        }
+    }
+
+    pub fn remap_selection(&mut self, entity: &Entity, entity_mapping: &EntityMapping) {
+        let a = entity_mapping.hash(entity);
+        for i in &mut self.selected_entities {
+            if i.0 .0 == *entity {
+                i.1 = a.clone();
+            }
+        }
     }
 }
 
@@ -116,7 +138,9 @@ fn load_files(path: &Option<String>) -> LoadedFiles {
 pub struct CADPanel {}
 
 pub fn update_dock(
+    // mut remap_selection_write: EventWriter<ReMapSelections>,
     // mut act_read: EventReader<Act>,
+    mut act_write: EventWriter<Act>,
     mut ui_state: ResMut<UiState>,
     egui_context_cadpanel: Query<&mut EguiContext, With<CADPanel>>,
     mut greetings: EventReader<SelectionInstance>,
@@ -129,8 +153,13 @@ pub fn update_dock(
 
     for i in buf {
         match i.3 {
-            SelectionAddRemove::Add => ui_state.selected_entities.push(i),
-            SelectionAddRemove::Remove => ui_state.selected_entities.retain(|x| x.0 != i.0),
+            SelectionAddRemove::Add => {
+                ui_state
+                    .selected_entities
+                    .push((i.clone(), RobustaEntity::None));
+                act_write.send(Act::DebugReMapSelection(i.0));
+            }
+            SelectionAddRemove::Remove => ui_state.selected_entities.retain(|x| x.0 .0 != i.0),
         };
     }
     if let Ok(mut w) = egui_context_cadpanel.get_single().cloned() {
@@ -142,7 +171,7 @@ pub fn update_dock(
 struct TabViewer<'a> {
     loaded_files: &'a LoadedFiles,
     // acts: Vec<&'a Act>,
-    selected_entities: &'a mut Vec<SelectionInstance>,
+    selected_entities: &'a mut Vec<(SelectionInstance, RobustaEntity)>,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
