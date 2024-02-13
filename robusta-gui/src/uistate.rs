@@ -20,6 +20,7 @@ pub enum EguiWindow {
     Debug,
     Points,
     Inspector,
+    History,
 }
 
 #[derive(Event, Clone, Debug, PartialEq)]
@@ -83,10 +84,9 @@ impl UiState {
         }
     }
 
-    pub fn ui(&mut self, ctx: &mut egui::Context, acts: Vec<&Act>) {
+    pub fn ui(&mut self, ctx: &mut egui::Context) {
         let mut tab_viewer = TabViewer {
             loaded_files: &mut self.loaded_files,
-            acts,
             selected_entities: &mut self.selected_entities,
         };
         DockArea::new(&mut self.dock_state)
@@ -116,7 +116,7 @@ fn load_files(path: &Option<String>) -> LoadedFiles {
 pub struct CADPanel {}
 
 pub fn update_dock(
-    mut act_read: EventReader<Act>,
+    // mut act_read: EventReader<Act>,
     mut ui_state: ResMut<UiState>,
     egui_context_cadpanel: Query<&mut EguiContext, With<CADPanel>>,
     mut greetings: EventReader<SelectionInstance>,
@@ -125,7 +125,7 @@ pub fn update_dock(
         .read()
         .map(|x| x.clone())
         .collect::<Vec<SelectionInstance>>();
-    let acts = act_read.read().collect::<Vec<&Act>>();
+    // let acts = act_read.read().collect::<Vec<&Act>>();
 
     for i in buf {
         match i.3 {
@@ -134,14 +134,14 @@ pub fn update_dock(
         };
     }
     if let Ok(mut w) = egui_context_cadpanel.get_single().cloned() {
-        ui_state.ui(w.get_mut(), acts);
+        ui_state.ui(w.get_mut());
     }
 }
 
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     loaded_files: &'a LoadedFiles,
-    acts: Vec<&'a Act>,
+    // acts: Vec<&'a Act>,
     selected_entities: &'a mut Vec<SelectionInstance>,
 }
 
@@ -157,6 +157,8 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Hierarchy => (),
             // EguiWindow::Debug => view_pressed_keys(ui, self.pressed_keys, self.acts),
             EguiWindow::Debug => (),
+            // EguiWindow::History => view_history(ui, self.acts),
+            EguiWindow::History => (),
             EguiWindow::Points => view_points(ui, self.loaded_files),
             EguiWindow::Inspector => view_inspection(ui, self.selected_entities),
         }

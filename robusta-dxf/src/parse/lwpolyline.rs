@@ -17,12 +17,10 @@ pub fn to_segments(specific: &LwPolyline) -> Vec<robusta_core::line::Line> {
 
     if let Some(mut lagging) = iter.next() {
         for latest in iter {
-            lines.push(robusta_core::line::Line {
-                definition: [
-                    Point::new(lagging.x as f32, lagging.y as f32, 0.),
-                    Point::new(latest.x as f32, latest.y as f32, 0.),
-                ],
-            });
+            lines.push(robusta_core::line::Line::new([
+                Point::new(lagging.x as f32, lagging.y as f32, 0.),
+                Point::new(latest.x as f32, latest.y as f32, 0.),
+            ]));
 
             lagging = latest;
         }

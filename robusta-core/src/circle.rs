@@ -8,3 +8,6 @@ impl Circle {
         return Circle { definition };
     }
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct CircleSpec {}

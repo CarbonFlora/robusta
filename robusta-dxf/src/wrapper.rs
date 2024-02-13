@@ -73,7 +73,8 @@ fn get_text(drawing: &Drawing) -> Vec<robusta_core::text::Text> {
             // EntityType::ArcAlignedText(specific) => texts.extend(),
             // EntityType::MText(specific) => texts.extend(),
             // EntityType::RText(specific) => texts.extend(),
-            _ => core::panic!("Uncaptured entity: {entity:#?} "),
+            // _ => core::panic!("Uncaptured entity: {entity:#?} "),
+            _ => (),
         };
     }
     return texts;

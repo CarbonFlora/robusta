@@ -29,6 +29,7 @@ pub fn capture_keystrokes(keys: Res<Input<KeyCode>>, mut act_write: EventWriter<
 pub enum Act {
     None,
     Exit,
+    QuitWithoutSaving,
     DeselectAll,
     OpenCADTerm,
     TryAct(String),
