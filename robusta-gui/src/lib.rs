@@ -8,7 +8,6 @@ use bevy_mod_picking::prelude::*;
 use bevy_mod_picking::PickableBundle;
 use bevy_window::PrimaryWindow;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
-use robusta_core::point::Point;
 use robusta_dxf::wrapper::DXFWrapper;
 use std::f32::consts::PI;
 

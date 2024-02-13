@@ -10,9 +10,7 @@ pub fn draw_circles(
     for circle in &wrapper.circles {
         commands.spawn((
             MaterialMesh2dBundle {
-                mesh: meshes
-                    .add(circle_mesh(line_width, circle.definition).into())
-                    .into(),
+                mesh: meshes.add(circle_mesh(line_width, circle).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::WHITE)),
                 transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
                 ..default()
@@ -24,10 +22,10 @@ pub fn draw_circles(
     }
 }
 
-fn circle_mesh(line_width: f32, definition: [Point; 2]) -> Mesh {
+fn circle_mesh(line_width: f32, circle: &robusta_core::circle::Circle) -> Mesh {
     let lw_half = line_width / 2.0f32;
     let num_segments = 30u32;
-    let vertexes: Vec<[f32; 3]> = circle_vertexes(num_segments, definition, lw_half);
+    let vertexes: Vec<[f32; 3]> = circle_vertexes(num_segments, circle, lw_half);
     let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
 
     Mesh::new(PrimitiveTopology::TriangleList)
@@ -46,19 +44,22 @@ fn arc_indexes(num_segments: u32) -> Vec<u32> {
     return a;
 }
 
-fn circle_vertexes(num_segments: u32, definition: [Point; 2], lw_half: f32) -> Vec<[f32; 3]> {
+fn circle_vertexes(
+    num_segments: u32,
+    circle: &robusta_core::circle::Circle,
+    lw_half: f32,
+) -> Vec<[f32; 3]> {
     let mut vertexes = Vec::new();
-    let center = [definition[1].coordinates.x, definition[1].coordinates.y];
-    let radius = (definition[0].coordinates.x - definition[1].coordinates.x).abs();
+    let spec = circle.specifications();
     let angle_increment = (2. * PI) / num_segments as f32;
 
     for i in 0..=num_segments {
         let angle_offset = angle_increment * i as f32;
 
-        let x_outer = center[0] + (radius + lw_half) * (angle_offset).cos();
-        let y_outer = center[1] + (radius + lw_half) * (angle_offset).sin();
-        let x_inner = center[0] + (radius - lw_half) * (angle_offset).cos();
-        let y_inner = center[1] + (radius - lw_half) * (angle_offset).sin();
+        let x_outer = spec.center[0] + (spec.radius + lw_half) * (angle_offset).cos();
+        let y_outer = spec.center[1] + (spec.radius + lw_half) * (angle_offset).sin();
+        let x_inner = spec.center[0] + (spec.radius - lw_half) * (angle_offset).cos();
+        let y_inner = spec.center[1] + (spec.radius - lw_half) * (angle_offset).sin();
 
         vertexes.push([x_outer, y_outer, 0.]);
         vertexes.push([x_inner, y_inner, 0.]);
