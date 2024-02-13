@@ -24,6 +24,7 @@ pub fn draw_first(
         draw_lines(&mut commands, &mut meshes, &mut materials, file.1);
         draw_arcs(&mut commands, &mut meshes, &mut materials, file.1);
         draw_circles(&mut commands, &mut meshes, &mut materials, file.1);
+        draw_text(&mut commands, file.1);
     }
 }
 
@@ -367,6 +368,26 @@ fn radius_eq_2() {
     let a = [p1, p2, p3];
     assert_eq!(circle_specs(a).0, (5.0f32).sqrt());
     assert_eq!(circle_specs(a).1, [3., 2., 0.]);
+}
+
+fn draw_text(commands: &mut Commands, wrapper: &DXFWrapper) {
+    for text in &wrapper.text {
+        let text_body = Text::from_section(text.body.clone(), TextStyle::default());
+        let origin = text.coordinates.xyz();
+
+        commands.spawn((
+            Text2dBundle {
+                text: text_body,
+                text_anchor: bevy::sprite::Anchor::Center,
+                transform: Transform::from_translation(Vec3::new(origin[0], origin[1], origin[2])),
+                text_layout_info: bevy::text::TextLayoutInfo::default(),
+                ..default()
+            },
+            PickableBundle::default(),
+            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        ));
+    }
 }
 
 fn _create_simple_parallelogram() -> Mesh {

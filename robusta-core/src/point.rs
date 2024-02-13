@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default, PartialOrd)]
 pub struct Point {
     pub coordinates: nalgebra::Point3<f32>,
 }

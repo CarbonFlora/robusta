@@ -1,17 +1,14 @@
 use bevy::{
-    prelude::{Commands, Entity, EventReader, Mesh, ResMut},
+    prelude::{Commands, Entity, Mesh, ResMut},
     sprite::ColorMaterial,
 };
 use bevy_asset::Assets;
-use bevy_window::CursorMoved;
-
-use crate::uistate::UiState;
 
 pub fn new_point(
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
-    held_point: Option<Entity>,
+    _commands: &mut Commands,
+    _meshes: &mut ResMut<Assets<Mesh>>,
+    _materials: &mut ResMut<Assets<ColorMaterial>>,
+    _held_point: Option<Entity>,
 ) {
     // ui_state.cad_state.held_point
 }

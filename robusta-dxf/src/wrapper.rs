@@ -7,6 +7,7 @@ pub struct DXFWrapper {
     pub lines: Vec<robusta_core::line::Line>,
     pub arcs: Vec<robusta_core::arc::Arc>,
     pub circles: Vec<robusta_core::circle::Circle>,
+    pub text: Vec<robusta_core::text::Text>,
 }
 
 impl DXFWrapper {
@@ -17,12 +18,14 @@ impl DXFWrapper {
     pub fn from(drawing: &Drawing) -> Self {
         let points = get_points(drawing);
         let (lines, arcs, circles) = get_segments(drawing); //this is garbage way rn
+        let text = get_text(drawing);
 
         DXFWrapper {
             points,
             lines,
             arcs,
             circles,
+            text,
         }
     }
 }
@@ -43,6 +46,7 @@ fn get_points(drawing: &Drawing) -> Vec<robusta_core::point::Point> {
 
 fn get_segments(
     drawing: &Drawing,
+    // points: &Vec<robusta_core::point::Point>,
 ) -> (
     Vec<robusta_core::line::Line>,
     Vec<robusta_core::arc::Arc>,
@@ -59,4 +63,18 @@ fn get_segments(
         };
     }
     return (lines, arcs, circles);
+}
+
+fn get_text(drawing: &Drawing) -> Vec<robusta_core::text::Text> {
+    let mut texts = Vec::new();
+    for entity in drawing.entities() {
+        match &entity.specific {
+            EntityType::Text(specific) => texts.push(text::to_text(specific)),
+            // EntityType::ArcAlignedText(specific) => texts.extend(),
+            // EntityType::MText(specific) => texts.extend(),
+            // EntityType::RText(specific) => texts.extend(),
+            _ => core::panic!("Uncaptured entity: {entity:#?} "),
+        };
+    }
+    return texts;
 }
