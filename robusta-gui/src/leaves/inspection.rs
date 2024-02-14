@@ -4,7 +4,7 @@ pub fn view_inspection(
     ui: &mut egui::Ui,
     selected_entities: &mut Vec<(crate::uistate::SelectionInstance, RobustaEntity)>,
 ) {
-    ui.colored_label(egui::Color32::WHITE, "Properties:");
+    // ui.colored_label(egui::Color32::WHITE, "Properties:");
     ui.separator();
 
     if selected_entities.is_empty() {
