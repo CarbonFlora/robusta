@@ -31,3 +31,23 @@ pub struct LineSpec {
     pub h_angle: f32, // in rad
     pub length: f32,
 }
+
+impl std::fmt::Display for Line {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "1: {}\n2: {}\n{}",
+            self.definition[0],
+            self.definition[1],
+            self.specifications()
+        ))
+    }
+}
+
+impl std::fmt::Display for LineSpec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "dy/dx: {:.4}\nRadians: {}\nLength: {:.4}",
+            self.slope, self.h_angle, self.length
+        ))
+    }
+}

@@ -54,10 +54,10 @@ fn arc_vertexes(num_segments: u32, arc: &robusta_core::arc::Arc, lw_half: f32) -
     for i in 0..=num_segments {
         let angle_offset = spec.start_angle_rad + angle_increment * i as f32;
 
-        let x_outer = spec.center[0] + (spec.radius + lw_half) * (angle_offset).cos();
-        let y_outer = spec.center[1] + (spec.radius + lw_half) * (angle_offset).sin();
-        let x_inner = spec.center[0] + (spec.radius - lw_half) * (angle_offset).cos();
-        let y_inner = spec.center[1] + (spec.radius - lw_half) * (angle_offset).sin();
+        let x_outer = spec.center.coordinates.x + (spec.radius + lw_half) * (angle_offset).cos();
+        let y_outer = spec.center.coordinates.y + (spec.radius + lw_half) * (angle_offset).sin();
+        let x_inner = spec.center.coordinates.x + (spec.radius - lw_half) * (angle_offset).cos();
+        let y_inner = spec.center.coordinates.y + (spec.radius - lw_half) * (angle_offset).sin();
 
         vertexes.push([x_outer, y_outer, 0.]);
         vertexes.push([x_inner, y_inner, 0.]);

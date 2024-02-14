@@ -20,7 +20,7 @@ pub enum EguiWindow {
     Hierarchy,
     Debug,
     Points,
-    Inspector,
+    Inspect,
     History,
 }
 
@@ -58,6 +58,7 @@ impl From<ListenerInput<Pointer<Deselect>>> for SelectionInstance {
 #[derive(Debug, Default)]
 pub struct CADState {
     // pub construction: Option<Entity>,
+    pub mode: Mode,
     pub cad_term: Option<String>,
 }
 
@@ -69,6 +70,13 @@ impl CADState {
     pub fn close_all(&mut self) {
         self.cad_term = None;
     }
+}
+
+#[derive(Debug, Default)]
+pub enum Mode {
+    #[default]
+    Normal,
+    Typing,
 }
 
 // #[derive(Event, Clone, Debug, PartialEq)]
@@ -115,12 +123,20 @@ impl UiState {
             }
         }
     }
+
+    pub fn inspect(&mut self) {
+        if let Some(b) = self.dock_state.find_tab(&EguiWindow::Inspect) {
+            self.dock_state.set_active_tab(b);
+        } else {
+            self.dock_state.add_window(vec![EguiWindow::Inspect]);
+        }
+    }
 }
 
 fn default_cadpanel() -> DockState<EguiWindow> {
     let mut state = DockState::new(vec![EguiWindow::CADView]);
     let tree = state.main_surface_mut();
-    let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspector]);
+    let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspect]);
     let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
     let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Debug]);
 
@@ -189,7 +205,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             // EguiWindow::History => view_history(ui, self.acts),
             EguiWindow::History => (),
             EguiWindow::Points => view_points(ui, self.loaded_files),
-            EguiWindow::Inspector => view_inspection(ui, self.selected_entities),
+            EguiWindow::Inspect => view_inspection(ui, self.selected_entities),
         }
     }
 

@@ -4,15 +4,24 @@ pub fn view_inspection(
     ui: &mut egui::Ui,
     selected_entities: &mut Vec<(crate::uistate::SelectionInstance, RobustaEntity)>,
 ) {
-    let mut text = String::new();
+    ui.colored_label(egui::Color32::WHITE, "Properties:");
+    ui.separator();
+
+    if selected_entities.is_empty() {
+        ui.label("No Selected Entities.");
+        return;
+    }
 
     for entity in selected_entities {
-        text += format!("Selected Entity: {:?}\n", entity.1).as_str();
-    }
+        match &entity.1 {
+            RobustaEntity::Point(a) => ui.label(format!("{a}")),
+            RobustaEntity::Line(a) => ui.label(format!("{a}")),
+            RobustaEntity::Arc(a) => ui.label(format!("{a}")),
+            RobustaEntity::Circle(a) => ui.label(format!("{a}")),
+            RobustaEntity::Text(a) => ui.label(format!("{a}")),
+            RobustaEntity::None => continue,
+        };
 
-    if text.is_empty() {
-        text += format!("No Selected Entities.").as_str();
+        ui.separator();
     }
-
-    ui.label(text);
 }

@@ -35,3 +35,8 @@ pub fn angle_full_circle(delta_x: f32, delta_y: f32) -> f32 {
     }
     return angle_rad % (2. * PI);
 }
+
+pub fn rad_to_deg_string(rad: &f32) -> String {
+    let deg = (rad % (2. * PI)) * 180. / PI;
+    return format!("{}°", deg);
+}

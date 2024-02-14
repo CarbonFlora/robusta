@@ -1,6 +1,12 @@
 use bevy::prelude::*;
 
-pub fn capture_keystrokes(keys: Res<Input<KeyCode>>, mut act_write: EventWriter<Act>) {
+use crate::UiState;
+
+pub fn capture_keystrokes(
+    ui_state: Res<UiState>,
+    keys: Res<Input<KeyCode>>,
+    mut act_write: EventWriter<Act>,
+) {
     let mut buffer = [None; 2];
 
     for keycode in keys.get_pressed() {
@@ -12,17 +18,35 @@ pub fn capture_keystrokes(keys: Res<Input<KeyCode>>, mut act_write: EventWriter<
         };
     }
 
-    let act = match buffer {
+    let act = match ui_state.cad_state.mode {
+        crate::Mode::Normal => normal_act(buffer),
+        crate::Mode::Typing => typing_act(buffer),
+    };
+
+    if act != Act::None {
+        act_write.send(act);
+    }
+}
+
+fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
+    return match buffer {
+        [None, Some(KeyCode::Escape)] => Act::Exit,
+        [None, Some(KeyCode::I)] => Act::Inspect,
+        [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
+            Act::OpenCADTerm
+        }
+        _ => Act::None,
+    };
+}
+
+fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
+    return match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
             Act::OpenCADTerm
         }
         _ => Act::None,
     };
-
-    if act != Act::None {
-        act_write.send(act);
-    }
 }
 
 #[derive(Event, Debug, PartialEq)]
@@ -35,16 +59,5 @@ pub enum Act {
     TryAct(String),
     NewPoint,
     DebugReMapSelection(Entity),
-    DebugReMapSelectionsAll,
+    Inspect,
 }
-
-// impl Act {
-//     fn to_act(&self, string: &String) -> Self {
-//         return match string.as_str() {
-//             "deselect" | "dsa" => Act::DeselectAll,
-//             "point" | "p" => Act::NewPoint,
-//             "q!" => Act::QuitWithoutSaving,
-//             _ => Act::None,
-//         };
-//     }
-// }

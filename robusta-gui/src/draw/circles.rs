@@ -68,10 +68,14 @@ fn circle_vertexes(
     for i in 0..=num_segments {
         let angle_offset = angle_increment * i as f32;
 
-        let x_outer = spec.center[0] + (spec.radius + lw_half) * (angle_offset).cos();
-        let y_outer = spec.center[1] + (spec.radius + lw_half) * (angle_offset).sin();
-        let x_inner = spec.center[0] + (spec.radius - lw_half) * (angle_offset).cos();
-        let y_inner = spec.center[1] + (spec.radius - lw_half) * (angle_offset).sin();
+        let x_outer =
+            circle.definition[1].coordinates.x + (spec.radius + lw_half) * (angle_offset).cos();
+        let y_outer =
+            circle.definition[1].coordinates.y + (spec.radius + lw_half) * (angle_offset).sin();
+        let x_inner =
+            circle.definition[1].coordinates.x + (spec.radius - lw_half) * (angle_offset).cos();
+        let y_inner =
+            circle.definition[1].coordinates.y + (spec.radius - lw_half) * (angle_offset).sin();
 
         vertexes.push([x_outer, y_outer, 0.]);
         vertexes.push([x_inner, y_inner, 0.]);

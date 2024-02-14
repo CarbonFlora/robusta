@@ -46,6 +46,7 @@ fn run_act(
         //     ui_state.cad_state.construction,
         // ),
         // Act::DeselectAll => deselect_all(&ui_state, deselections),
+        Act::Inspect => ui_state.inspect(),
         Act::DeselectAll => ui_state.deselect_all(deselections),
         Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
         Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, entity_mapping),
@@ -58,6 +59,7 @@ fn run_act(
 fn to_act(input: &String) -> Act {
     return match input.as_str() {
         "deselect" | "dsa" => Act::DeselectAll,
+        "inspect" | "i" => Act::Inspect,
         "point" | "p" => Act::NewPoint,
         "q!" => Act::QuitWithoutSaving,
         _ => Act::None,

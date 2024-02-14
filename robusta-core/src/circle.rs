@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Circle {
-    pub definition: [crate::point::Point; 2],
+    pub definition: [crate::point::Point; 2], // [@ angle=0, center]
 }
 
 impl Circle {
@@ -9,18 +9,29 @@ impl Circle {
     }
 
     pub fn specifications(&self) -> CircleSpec {
-        let center = [
-            self.definition[1].coordinates.x,
-            self.definition[1].coordinates.y,
-        ];
         let radius = (self.definition[0].coordinates.x - self.definition[1].coordinates.x).abs();
 
-        return CircleSpec { radius, center };
+        return CircleSpec { radius };
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct CircleSpec {
     pub radius: f32,
-    pub center: [f32; 2],
+}
+
+impl std::fmt::Display for Circle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!(
+            "Center: {}\n{}",
+            self.definition[1],
+            self.specifications()
+        ))
+    }
+}
+
+impl std::fmt::Display for CircleSpec {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("Radius: {:.4}", self.radius))
+    }
 }
