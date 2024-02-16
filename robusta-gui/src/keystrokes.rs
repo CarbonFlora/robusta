@@ -60,4 +60,5 @@ pub enum Act {
     NewPoint,
     DebugReMapSelection(Entity),
     Inspect,
+    PullCameraFocus(Rect),
 }

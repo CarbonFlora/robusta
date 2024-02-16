@@ -20,6 +20,15 @@ impl Point {
     pub fn xyz(&self) -> [f32; 3] {
         return [self.coordinates.x, self.coordinates.y, self.coordinates.z];
     }
+
+    pub fn min_max(&self) -> [f32; 4] {
+        return [
+            self.coordinates.x,
+            self.coordinates.y,
+            self.coordinates.x,
+            self.coordinates.y,
+        ];
+    }
 }
 
 impl std::fmt::Display for Point {

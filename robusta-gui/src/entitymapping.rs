@@ -15,10 +15,7 @@ impl EntityMapping {
         }
     }
 
-    pub fn hash(&self, entity: &Entity) -> &RobustaEntity {
-        if let Some(a) = self.hash.get(entity) {
-            return a;
-        }
-        return &RobustaEntity::None;
+    pub fn get(&self, entity: &Entity) -> Option<&RobustaEntity> {
+        return self.hash.get(entity);
     }
 }

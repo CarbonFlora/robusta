@@ -8,7 +8,7 @@ pub mod text;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum RobustaEntity {
-    None,
+    // None,
     Arc(arc::Arc),
     Circle(circle::Circle),
     Line(line::Line),

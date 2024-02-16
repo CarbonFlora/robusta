@@ -10,7 +10,7 @@ pub struct UiState {
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
-    pub selected_entities: Vec<(SelectionInstance, RobustaEntity)>,
+    pub selected_entities: Vec<(SelectionInstance, Option<RobustaEntity>)>,
 }
 
 /// This is all available tabs to be accessed.
@@ -99,9 +99,10 @@ impl UiState {
         }
     }
 
-    pub fn ui(&mut self, ctx: &mut egui::Context) {
+    pub fn ui(&mut self, ctx: &mut egui::Context, act_write: EventWriter<Act>) {
         let mut tab_viewer = TabViewer {
             loaded_files: &mut self.loaded_files,
+            act_write,
             selected_entities: &mut self.selected_entities,
         };
         DockArea::new(&mut self.dock_state)
@@ -116,10 +117,12 @@ impl UiState {
     }
 
     pub fn remap_selection(&mut self, entity: &Entity, entity_mapping: &EntityMapping) {
-        let a = entity_mapping.hash(entity);
+        let a = entity_mapping
+            .get(entity)
+            .expect("entity_mapping and entity miscommunication.");
         for i in &mut self.selected_entities {
             if i.0 .0 == *entity {
-                i.1 = a.clone();
+                i.1 = Some(a.clone());
             }
         }
     }
@@ -170,24 +173,22 @@ pub fn update_dock(
     for i in buf {
         match i.3 {
             SelectionAddRemove::Add => {
-                ui_state
-                    .selected_entities
-                    .push((i.clone(), RobustaEntity::None));
+                ui_state.selected_entities.push((i.clone(), None));
                 act_write.send(Act::DebugReMapSelection(i.0));
             }
             SelectionAddRemove::Remove => ui_state.selected_entities.retain(|x| x.0 .0 != i.0),
         };
     }
     if let Ok(mut w) = egui_context_cadpanel.get_single().cloned() {
-        ui_state.ui(w.get_mut());
+        ui_state.ui(w.get_mut(), act_write);
     }
 }
 
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     loaded_files: &'a LoadedFiles,
-    // acts: Vec<&'a Act>,
-    selected_entities: &'a mut Vec<(SelectionInstance, RobustaEntity)>,
+    act_write: EventWriter<'a, Act>,
+    selected_entities: &'a mut Vec<(SelectionInstance, Option<RobustaEntity>)>,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -205,7 +206,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             // EguiWindow::History => view_history(ui, self.acts),
             EguiWindow::History => (),
             EguiWindow::Points => view_points(ui, self.loaded_files),
-            EguiWindow::Inspect => view_inspection(ui, self.selected_entities),
+            EguiWindow::Inspect => view_inspection(ui, self.selected_entities, &mut self.act_write),
         }
     }
 
