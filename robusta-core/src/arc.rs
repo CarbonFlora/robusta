@@ -34,6 +34,10 @@ impl Arc {
             angle,
         };
     }
+
+    pub fn min_max(&self) -> (f32, f32, f32, f32) {
+        return crate::min_max(&self.definition.to_vec());
+    }
 }
 
 fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, Point) {

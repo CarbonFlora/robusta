@@ -21,13 +21,13 @@ impl Point {
         return [self.coordinates.x, self.coordinates.y, self.coordinates.z];
     }
 
-    pub fn min_max(&self) -> [f32; 4] {
-        return [
+    pub fn min_max(&self) -> (f32, f32, f32, f32) {
+        return (
             self.coordinates.x,
             self.coordinates.y,
             self.coordinates.x,
             self.coordinates.y,
-        ];
+        );
     }
 }
 

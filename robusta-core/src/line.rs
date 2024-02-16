@@ -23,6 +23,10 @@ impl Line {
             length,
         };
     }
+
+    pub fn min_max(&self) -> (f32, f32, f32, f32) {
+        return crate::min_max(&self.definition.to_vec());
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]

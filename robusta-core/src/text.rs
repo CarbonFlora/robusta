@@ -11,6 +11,11 @@ impl Text {
             body: String::new(),
         };
     }
+
+    pub fn min_max(&self) -> (f32, f32, f32, f32) {
+        // This is temp as text is not implimented.
+        return crate::min_max(&vec![self.coordinates.clone()]);
+    }
 }
 
 impl std::fmt::Display for Text {

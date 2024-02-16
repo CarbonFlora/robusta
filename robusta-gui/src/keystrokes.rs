@@ -61,4 +61,5 @@ pub enum Act {
     DebugReMapSelection(Entity),
     Inspect,
     PullCameraFocus(Rect),
+    FitView,
 }

@@ -8,7 +8,6 @@ pub mod text;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum RobustaEntity {
-    // None,
     Arc(arc::Arc),
     Circle(circle::Circle),
     Line(line::Line),
@@ -39,4 +38,28 @@ pub fn angle_full_circle(delta_x: f32, delta_y: f32) -> f32 {
 pub fn rad_to_deg_string(rad: &f32) -> String {
     let deg = (rad % (2. * PI)) * 180. / PI;
     return format!("{}°", deg);
+}
+
+pub fn min_max(points: &Vec<crate::point::Point>) -> (f32, f32, f32, f32) {
+    let mut min_x = points[0].coordinates.x;
+    let mut max_x = points[0].coordinates.x;
+    let mut min_y = points[0].coordinates.y;
+    let mut max_y = points[0].coordinates.y;
+
+    for point in points.iter() {
+        if point.coordinates.x < min_x {
+            min_x = point.coordinates.x;
+        }
+        if point.coordinates.x > max_x {
+            max_x = point.coordinates.x;
+        }
+        if point.coordinates.y < min_y {
+            min_y = point.coordinates.y;
+        }
+        if point.coordinates.y > max_y {
+            max_y = point.coordinates.y;
+        }
+    }
+
+    (min_x, min_y, max_x, max_y)
 }

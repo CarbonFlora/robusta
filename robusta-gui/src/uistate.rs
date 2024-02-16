@@ -134,6 +134,37 @@ impl UiState {
             self.dock_state.add_window(vec![EguiWindow::Inspect]);
         }
     }
+
+    pub fn all_rect(&self) -> Rect {
+        let mut a = self.loaded_files.values().flat_map(|x| x.points.iter());
+
+        let (mut min_x, mut min_y, mut max_x, mut max_y) = match a.next() {
+            None => (0., 0., 0., 0.),
+            Some(point) => (
+                point.coordinates.x,
+                point.coordinates.y,
+                point.coordinates.x,
+                point.coordinates.y,
+            ),
+        };
+
+        for point in a {
+            if point.coordinates.x < min_x {
+                min_x = point.coordinates.x;
+            }
+            if point.coordinates.x > max_x {
+                max_x = point.coordinates.x;
+            }
+            if point.coordinates.y < min_y {
+                min_y = point.coordinates.y;
+            }
+            if point.coordinates.y > max_y {
+                max_y = point.coordinates.y;
+            }
+        }
+
+        return Rect::new(min_x, min_y, max_x, max_y);
+    }
 }
 
 fn default_cadpanel() -> DockState<EguiWindow> {
@@ -157,8 +188,6 @@ fn load_files(path: &Option<String>) -> LoadedFiles {
 pub struct CADPanel {}
 
 pub fn update_dock(
-    // mut remap_selection_write: EventWriter<ReMapSelections>,
-    // mut act_read: EventReader<Act>,
     mut act_write: EventWriter<Act>,
     mut ui_state: ResMut<UiState>,
     egui_context_cadpanel: Query<&mut EguiContext, With<CADPanel>>,
