@@ -55,15 +55,15 @@ fn run_act(
     }
 }
 
-fn to_act(input: &String) -> Act {
-    return match input.as_str() {
+fn to_act(input: &str) -> Act {
+    match input {
         "deselect" | "dsa" => Act::DeselectAll,
         "inspect" | "i" => Act::Inspect,
         "fitview" | "fv" => Act::FitView,
         "point" | "p" => Act::NewPoint,
         "q!" => Act::QuitWithoutSaving,
         _ => Act::None,
-    };
+    }
 }
 
 fn camera_movement(

@@ -22,27 +22,27 @@ mod open {
         let mut line = String::new();
         let len = reader.read_line(&mut line)?;
         println!("First line is {len} bytes long");
-        return Ok(());
+        Ok(())
     }
 
     #[test]
     fn parse_lines() {
         let d = open_from_path("tests/resources/lines-2018.dxf".into());
         let a = RobustaEntities::from(&d);
-        assert!(a.points.len() > 0);
+        assert!(!a.points.is_empty());
     }
 
     #[test]
     fn parse_arcs() {
         let d = open_from_path("tests/resources/arcs-2018.dxf".into());
         let a = RobustaEntities::from(&d);
-        assert!(a.points.len() > 0);
+        assert!(!a.points.is_empty());
     }
 
     #[test]
     fn parse_minimal() {
         let d = open_from_path("tests/resources/minimal-2018.dxf".into());
         let a = RobustaEntities::from(&d);
-        assert!(a.points.len() > 0);
+        assert!(!a.points.is_empty());
     }
 }

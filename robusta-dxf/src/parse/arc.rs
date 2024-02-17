@@ -24,12 +24,12 @@ pub fn to_points(specific: &Arc) -> [Point; 3] {
     );
     let lazy_point = Point::new(p3_x as f32, p3_y as f32, 0.);
 
-    return [point1, point2, lazy_point];
+    [point1, point2, lazy_point]
 }
 
 /// Returns a arc segment.
 pub fn to_segment(specific: &Arc) -> robusta_core::arc::Arc {
-    return robusta_core::arc::Arc {
+    robusta_core::arc::Arc {
         definition: to_points(specific),
-    };
+    }
 }

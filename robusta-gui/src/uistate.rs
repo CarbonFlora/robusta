@@ -64,7 +64,7 @@ pub struct CADState {
 
 impl CADState {
     fn new() -> Self {
-        return CADState::default();
+        CADState::default()
     }
 
     pub fn close_all(&mut self) {
@@ -163,7 +163,7 @@ impl UiState {
             }
         }
 
-        return Rect::new(min_x, min_y, max_x, max_y);
+        Rect::new(min_x, min_y, max_x, max_y)
     }
 }
 
@@ -174,14 +174,15 @@ fn default_cadpanel() -> DockState<EguiWindow> {
     let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
     let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Debug]);
 
-    return state;
+    state
 }
 
 fn load_files(path: &Option<String>) -> LoadedFiles {
     let loaded_file = robusta_dxf::open::parse_dxf(path);
     let mut loaded_files = HashMap::new();
     loaded_files.insert(path.clone(), loaded_file);
-    return loaded_files;
+
+    loaded_files
 }
 
 #[derive(Component, Default)]
@@ -195,9 +196,8 @@ pub fn update_dock(
 ) {
     let buf = greetings
         .read()
-        .map(|x| x.clone())
+        .cloned()
         .collect::<Vec<SelectionInstance>>();
-    // let acts = act_read.read().collect::<Vec<&Act>>();
 
     for i in buf {
         match i.3 {

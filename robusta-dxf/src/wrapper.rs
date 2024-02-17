@@ -12,7 +12,7 @@ pub struct RobustaEntities {
 
 impl RobustaEntities {
     pub fn new() -> Self {
-        return RobustaEntities::default();
+        RobustaEntities::default()
     }
 
     pub fn from(drawing: &Drawing) -> Self {
@@ -41,7 +41,7 @@ fn get_points(drawing: &Drawing) -> Vec<robusta_core::point::Point> {
             _ => core::panic!("Uncaptured entity: {entity:#?} "),
         };
     }
-    return points;
+    points
 }
 
 fn get_segments(
@@ -62,7 +62,7 @@ fn get_segments(
             _ => core::panic!("Uncaptured entity: {entity:#?} "),
         };
     }
-    return (lines, arcs, circles);
+    (lines, arcs, circles)
 }
 
 fn get_text(drawing: &Drawing) -> Vec<robusta_core::text::Text> {
@@ -70,6 +70,9 @@ fn get_text(drawing: &Drawing) -> Vec<robusta_core::text::Text> {
     for entity in drawing.entities() {
         match &entity.specific {
             EntityType::Text(specific) => texts.push(text::to_text(specific)),
+            // EntityType::ArcAlignedText(specific) => texts.push(text::to_text_aat(specific)),
+            // EntityType::Text(specific) => texts.push(text::to_text(specific)),
+            // EntityType::Text(specific) => texts.push(text::to_text(specific)),
             // EntityType::ArcAlignedText(specific) => texts.extend(),
             // EntityType::MText(specific) => texts.extend(),
             // EntityType::RText(specific) => texts.extend(),
@@ -77,5 +80,5 @@ fn get_text(drawing: &Drawing) -> Vec<robusta_core::text::Text> {
             _ => (),
         };
     }
-    return texts;
+    texts
 }

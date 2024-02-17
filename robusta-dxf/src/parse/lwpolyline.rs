@@ -7,7 +7,7 @@ pub fn to_points(specific: &LwPolyline) -> Vec<Point> {
         points.push(Point::new(vertex.x as f32, vertex.y as f32, 0.));
     }
 
-    return points;
+    points
 }
 
 /// Returns a vector of line segments.
@@ -30,5 +30,5 @@ pub fn to_segments(specific: &LwPolyline) -> Vec<robusta_core::line::Line> {
     //     // lines.push(Point::new(vertex.x as f32, vertex.y as f32, 0.));
     // }
 
-    return lines;
+    lines
 }

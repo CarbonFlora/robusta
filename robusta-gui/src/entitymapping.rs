@@ -3,7 +3,7 @@ use robusta_core::RobustaEntity;
 
 use super::*;
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct EntityMapping {
     pub hash: HashMap<Entity, RobustaEntity>,
 }

@@ -6,7 +6,7 @@ pub fn app2d(path: Option<String>) {
         .add_plugins(bevy_framepace::FramepacePlugin)
         .add_plugins(bevy_egui::EguiPlugin)
         .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
-        .add_plugins(bevy_pancam::PanCamPlugin::default())
+        .add_plugins(bevy_pancam::PanCamPlugin)
         .insert_resource(UiState::new(&path))
         .insert_resource(EntityMapping::new())
         .add_event::<SelectionInstance>()

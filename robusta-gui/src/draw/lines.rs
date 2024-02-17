@@ -19,7 +19,7 @@ pub fn draw_lines(
                 MaterialMesh2dBundle {
                     mesh: entity_package
                         .1
-                        .add(line_mesh(line_width, spec.length, spec.h_angle).into())
+                        .add(line_mesh(line_width, spec.length, spec.h_angle))
                         .into(),
                     material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
                     transform: Transform::from_translation(Vec3::new(

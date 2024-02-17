@@ -5,17 +5,17 @@ pub struct Circle {
 
 impl Circle {
     pub fn new(definition: [crate::point::Point; 2]) -> Self {
-        return Circle { definition };
+        Circle { definition }
     }
 
     pub fn specifications(&self) -> CircleSpec {
         let radius = (self.definition[0].coordinates.x - self.definition[1].coordinates.x).abs();
 
-        return CircleSpec { radius };
+        CircleSpec { radius }
     }
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
-        return crate::min_max(&self.definition.to_vec());
+        crate::min_max(self.definition.as_ref())
     }
 }
 

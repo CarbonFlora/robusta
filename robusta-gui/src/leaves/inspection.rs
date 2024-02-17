@@ -5,7 +5,7 @@ use crate::keystrokes::Act;
 
 pub fn view_inspection(
     ui: &mut egui::Ui,
-    selected_entities: &Vec<(crate::uistate::SelectionInstance, Option<RobustaEntity>)>,
+    selected_entities: &[(crate::uistate::SelectionInstance, Option<RobustaEntity>)],
     act_write: &mut EventWriter<Act>,
 ) {
     // ui.colored_label(egui::Color32::WHITE, "Properties:");

@@ -7,7 +7,7 @@ pub struct Line {
 
 impl Line {
     pub fn new(definition: [crate::point::Point; 2]) -> Self {
-        return Line { definition };
+        Line { definition }
     }
 
     pub fn specifications(&self) -> LineSpec {
@@ -17,15 +17,15 @@ impl Line {
         let length = (delta_x.powi(2) + delta_y.powi(2)).sqrt();
         let h_angle = angle_full_circle(delta_x, delta_y);
 
-        return LineSpec {
+        LineSpec {
             slope,
             h_angle,
             length,
-        };
+        }
     }
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
-        return crate::min_max(&self.definition.to_vec());
+        crate::min_max(self.definition.as_ref())
     }
 }
 

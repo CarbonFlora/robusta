@@ -14,7 +14,7 @@ pub fn capture_keystrokes(
             KeyCode::ControlLeft | KeyCode::ControlRight => buffer[0] = Some(KeyCode::ControlLeft),
             KeyCode::ShiftLeft | KeyCode::ShiftRight => buffer[0] = Some(KeyCode::ShiftLeft),
             KeyCode::AltLeft | KeyCode::AltRight => buffer[0] = Some(KeyCode::AltLeft),
-            _ => buffer[1] = Some(keycode.clone()),
+            _ => buffer[1] = Some(*keycode),
         };
     }
 
@@ -29,24 +29,24 @@ pub fn capture_keystrokes(
 }
 
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
-    return match buffer {
+    match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::I)] => Act::Inspect,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
             Act::OpenCADTerm
         }
         _ => Act::None,
-    };
+    }
 }
 
 fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
-    return match buffer {
+    match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
             Act::OpenCADTerm
         }
         _ => Act::None,
-    };
+    }
 }
 
 #[derive(Event, Debug, PartialEq)]

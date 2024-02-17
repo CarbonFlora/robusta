@@ -15,10 +15,7 @@ pub fn draw_circles(
             .0
             .spawn((
                 MaterialMesh2dBundle {
-                    mesh: entity_package
-                        .1
-                        .add(circle_mesh(line_width, circle).into())
-                        .into(),
+                    mesh: entity_package.1.add(circle_mesh(line_width, circle)).into(),
                     material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
                     transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
                     ..default()
@@ -53,7 +50,7 @@ fn arc_indexes(num_segments: u32) -> Vec<u32> {
         a.extend(vec![i, i + 1, i + 2]);
     }
 
-    return a;
+    a
 }
 
 fn circle_vertexes(
@@ -81,5 +78,5 @@ fn circle_vertexes(
         vertexes.push([x_inner, y_inner, 0.]);
     }
 
-    return vertexes;
+    vertexes
 }

@@ -7,27 +7,27 @@ pub struct Point {
 
 impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
-        return Point {
+        Point {
             // bevy_ids: Vec::new(),
             coordinates: nalgebra::Point3::new(x, y, z),
-        };
+        }
     }
 
     pub fn origin() -> Self {
-        return Point::new(0., 0., 0.);
+        Point::new(0., 0., 0.)
     }
 
     pub fn xyz(&self) -> [f32; 3] {
-        return [self.coordinates.x, self.coordinates.y, self.coordinates.z];
+        [self.coordinates.x, self.coordinates.y, self.coordinates.z]
     }
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
-        return (
+        (
             self.coordinates.x,
             self.coordinates.y,
             self.coordinates.x,
             self.coordinates.y,
-        );
+        )
     }
 }
 

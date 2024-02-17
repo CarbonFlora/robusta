@@ -6,15 +6,15 @@ pub struct Text {
 
 impl Text {
     pub fn new(origin: crate::point::Point) -> Self {
-        return Text {
+        Text {
             coordinates: origin,
             body: String::new(),
-        };
+        }
     }
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
         // This is temp as text is not implimented.
-        return crate::min_max(&vec![self.coordinates.clone()]);
+        crate::min_max(&[self.coordinates.clone()])
     }
 }
 

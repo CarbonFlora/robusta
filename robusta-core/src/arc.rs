@@ -7,7 +7,7 @@ pub struct Arc {
 
 impl Arc {
     pub fn new(definition: [crate::point::Point; 3]) -> Self {
-        return Arc { definition };
+        Arc { definition }
     }
 
     pub fn specifications(&self) -> ArcSpec {
@@ -26,17 +26,17 @@ impl Arc {
             angle = (2. * PI) - angle;
         }
 
-        return ArcSpec {
+        ArcSpec {
             radius,
             center,
             start_angle_rad,
             end_angle_rad,
             angle,
-        };
+        }
     }
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
-        return crate::min_max(&self.definition.to_vec());
+        crate::min_max(self.definition.as_ref())
     }
 }
 
@@ -101,7 +101,7 @@ fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, Point) {
     let x_center = 1. / 2. * m_12 / m_11;
     let y_center = -1. / 2. * m_13 / m_11;
     let radius = (x_center.powi(2) + y_center.powi(2) + m_14 / m_11).sqrt();
-    return (radius, Point::new(x_center, y_center, 0.));
+    (radius, Point::new(x_center, y_center, 0.))
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
