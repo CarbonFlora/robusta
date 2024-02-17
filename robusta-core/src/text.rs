@@ -2,6 +2,8 @@
 pub struct Text {
     pub coordinates: crate::point::Point,
     pub body: String,
+    pub rotation: f32,
+    pub height: f32,
 }
 
 impl Text {
@@ -9,6 +11,8 @@ impl Text {
         Text {
             coordinates: origin,
             body: String::new(),
+            rotation: 0.,
+            height: 10.,
         }
     }
 

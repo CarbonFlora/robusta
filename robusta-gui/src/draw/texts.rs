@@ -21,6 +21,12 @@ pub fn draw_texts(
                     text_anchor: bevy::sprite::Anchor::Center,
                     transform: Transform::from_translation(Vec3::new(
                         origin[0], origin[1], origin[2],
+                    ))
+                    .with_rotation(Quat::from_rotation_z(text.rotation))
+                    .with_scale(Vec3::new(
+                        text.height / 5.,
+                        text.height / 5.,
+                        1.,
                     )),
                     text_layout_info: bevy::text::TextLayoutInfo::default(),
                     ..default()

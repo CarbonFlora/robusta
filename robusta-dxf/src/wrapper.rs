@@ -38,6 +38,8 @@ fn get_points(drawing: &Drawing) -> Vec<robusta_core::point::Point> {
             EntityType::Arc(specific) => points.extend(arc::to_points(specific)),
             EntityType::LwPolyline(specific) => points.extend(lwpolyline::to_points(specific)),
             EntityType::Circle(specific) => points.extend(circle::to_points(specific)),
+            EntityType::Text(_) => (),
+            EntityType::MText(_) => (),
             _ => core::panic!("Uncaptured entity: {entity:#?} "),
         };
     }
@@ -59,6 +61,8 @@ fn get_segments(
             EntityType::Arc(specific) => arcs.push(arc::to_segment(specific)),
             EntityType::LwPolyline(specific) => lines.extend(lwpolyline::to_segments(specific)),
             EntityType::Circle(specific) => circles.push(circle::to_segment(specific)),
+            EntityType::Text(_) => (),
+            EntityType::MText(_) => (),
             _ => core::panic!("Uncaptured entity: {entity:#?} "),
         };
     }
@@ -70,11 +74,8 @@ fn get_text(drawing: &Drawing) -> Vec<robusta_core::text::Text> {
     for entity in drawing.entities() {
         match &entity.specific {
             EntityType::Text(specific) => texts.push(text::to_text(specific)),
-            // EntityType::ArcAlignedText(specific) => texts.push(text::to_text_aat(specific)),
-            // EntityType::Text(specific) => texts.push(text::to_text(specific)),
-            // EntityType::Text(specific) => texts.push(text::to_text(specific)),
             // EntityType::ArcAlignedText(specific) => texts.extend(),
-            // EntityType::MText(specific) => texts.extend(),
+            EntityType::MText(specific) => texts.push(text::to_text_mtext(specific)),
             // EntityType::RText(specific) => texts.extend(),
             // _ => core::panic!("Uncaptured entity: {entity:#?} "),
             _ => (),
