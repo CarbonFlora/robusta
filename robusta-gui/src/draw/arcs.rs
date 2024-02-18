@@ -17,7 +17,11 @@ pub fn draw_arcs(
                 MaterialMesh2dBundle {
                     mesh: entity_package.1.add(arc_mesh(line_width, arc)).into(),
                     material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
+                    transform: Transform::from_translation(Vec3::new(
+                        0.,
+                        0.,
+                        entity_mapping.z_layer_add(),
+                    )),
                     ..default()
                 },
                 PickableBundle::default(),

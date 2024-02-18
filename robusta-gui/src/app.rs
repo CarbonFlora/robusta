@@ -1,3 +1,5 @@
+use bevy_mod_picking::debug::DebugPickingMode;
+
 use super::*;
 
 pub fn app2d(path: Option<String>) {
@@ -26,12 +28,14 @@ pub fn spawn_window(mut commands: Commands) {
     commands.spawn((window::Window::default(), CADPanel::default()));
 }
 
-// Spawn a camera & configures bevy_mod_picking.
 pub fn camera_startup(
     mut commands: Commands,
     mut selection_settings: ResMut<selection::SelectionSettings>,
+    debug_picking: ResMut<State<bevy_mod_picking::debug::DebugPickingMode>>,
 ) {
     selection_settings.click_nothing_deselect_all = false;
+    *debug_picking.into_inner() = State::new(DebugPickingMode::Disabled);
+
     commands
         .spawn(Camera2dBundle::default())
         .insert((bevy_pancam::PanCam {

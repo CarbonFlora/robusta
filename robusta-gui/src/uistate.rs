@@ -57,7 +57,7 @@ impl From<ListenerInput<Pointer<Deselect>>> for SelectionInstance {
 
 #[derive(Debug, Default)]
 pub struct CADState {
-    // pub construction: Option<Entity>,
+    pub construction: Option<(Entity, RobustaEntity)>,
     pub mode: Mode,
     pub cad_term: Option<String>,
 }
@@ -68,6 +68,11 @@ impl CADState {
     }
 
     pub fn close_all(&mut self) {
+        // if let Some((a, b)) = self.construction {
+
+        // }
+        self.construction = None;
+        self.mode = Mode::Normal;
         self.cad_term = None;
     }
 }
@@ -164,6 +169,39 @@ impl UiState {
         }
 
         Rect::new(min_x, min_y, max_x, max_y)
+    }
+
+    pub fn new_point(
+        &mut self,
+        entity_mapping: &mut ResMut<EntityMapping>,
+        commands: &mut Commands,
+        meshes: &mut ResMut<Assets<Mesh>>,
+        materials: &mut ResMut<Assets<ColorMaterial>>,
+    ) {
+        let entity_package = (commands, meshes, materials);
+        let id = entity_package
+            .0
+            .spawn((
+                MaterialMesh2dBundle {
+                    mesh: entity_package.1.add(shape::Circle::new(0.5).into()).into(),
+                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
+                    transform: Transform::from_translation(Vec3::new(
+                        0.,
+                        0.,
+                        entity_mapping.z_layer_add(),
+                    )),
+                    ..default()
+                },
+                PickableBundle::default(),
+                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            ))
+            .id();
+
+        self.cad_state.construction = Some((
+            id,
+            RobustaEntity::Point(robusta_core::point::Point::new(0., 0., 0.)),
+        ));
     }
 }
 

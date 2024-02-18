@@ -17,7 +17,11 @@ pub fn draw_circles(
                 MaterialMesh2dBundle {
                     mesh: entity_package.1.add(circle_mesh(line_width, circle)).into(),
                     material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(0., 0., 7.)),
+                    transform: Transform::from_translation(Vec3::new(
+                        0.,
+                        0.,
+                        entity_mapping.z_layer_add(),
+                    )),
                     ..default()
                 },
                 PickableBundle::default(),

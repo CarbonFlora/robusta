@@ -3,44 +3,58 @@ use bevy_mod_picking::{prelude::Pointer, selection::Deselect};
 
 use crate::{keystrokes::Act, uistate::UiState, EntityMapping};
 
+#[allow(clippy::too_many_arguments)]
 pub fn update_act(
     mut act_read: EventReader<Act>,
     mut ui_state: ResMut<UiState>,
-    entity_mapping: Res<EntityMapping>,
+    mut entity_mapping: ResMut<EntityMapping>,
     mut deselections: EventWriter<Pointer<Deselect>>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut camera: Query<(&mut Transform, &GlobalTransform), With<bevy_pancam::PanCam>>,
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for act in act_read.read() {
         if let Act::TryAct(a) = act {
             run_act(
                 &to_act(a),
                 &mut ui_state,
-                &entity_mapping,
+                &mut entity_mapping,
                 &mut deselections,
                 &mut app_exit_events,
                 &mut camera,
+                &mut commands,
+                &mut meshes,
+                &mut materials,
             );
         } else {
             run_act(
                 act,
                 &mut ui_state,
-                &entity_mapping,
+                &mut entity_mapping,
                 &mut deselections,
                 &mut app_exit_events,
                 &mut camera,
+                &mut commands,
+                &mut meshes,
+                &mut materials,
             )
         }
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn run_act(
     act: &Act,
     ui_state: &mut ResMut<UiState>,
-    entity_mapping: &Res<EntityMapping>,
+    entity_mapping: &mut ResMut<EntityMapping>,
     deselections: &mut EventWriter<Pointer<Deselect>>,
     app_exit_events: &mut ResMut<Events<bevy::app::AppExit>>,
     camera: &mut Query<(&mut Transform, &GlobalTransform), With<bevy_pancam::PanCam>>,
+    commands: &mut Commands,
+    meshes: &mut ResMut<Assets<Mesh>>,
+    materials: &mut ResMut<Assets<ColorMaterial>>,
 ) {
     match act {
         Act::PullCameraFocus(rect) => camera_movement(rect, camera),
@@ -49,6 +63,7 @@ fn run_act(
         Act::DeselectAll => ui_state.deselect_all(deselections),
         Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
         Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, entity_mapping),
+        Act::NewPoint => ui_state.new_point(entity_mapping, commands, meshes, materials),
         Act::Exit => ui_state.cad_state.close_all(),
         Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
         _ => (),

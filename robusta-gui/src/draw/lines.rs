@@ -25,7 +25,7 @@ pub fn draw_lines(
                     transform: Transform::from_translation(Vec3::new(
                         line.definition[0].coordinates.x,
                         line.definition[0].coordinates.y,
-                        8.,
+                        entity_mapping.z_layer_add(),
                     )),
                     ..default()
                 },

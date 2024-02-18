@@ -22,10 +22,10 @@ pub fn draw_first(
     let entity_mapping = entity_mapping.into_inner();
 
     for file in &ui_state.loaded_files {
-        draw_points(&mut entity_package, file.1, entity_mapping);
+        draw_texts(&mut entity_package, file.1, entity_mapping);
         draw_lines(&mut entity_package, file.1, entity_mapping);
         draw_arcs(&mut entity_package, file.1, entity_mapping);
         draw_circles(&mut entity_package, file.1, entity_mapping);
-        draw_texts(&mut entity_package, file.1, entity_mapping);
+        draw_points(&mut entity_package, file.1, entity_mapping);
     }
 }

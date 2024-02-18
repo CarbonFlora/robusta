@@ -16,7 +16,8 @@ impl RobustaEntities {
     }
 
     pub fn from(drawing: &Drawing) -> Self {
-        let points = get_points(drawing);
+        // let points = get_points(drawing);
+        let points = Vec::new();
         let (lines, arcs, circles) = get_segments(drawing); //this is garbage way rn
         let text = get_text(drawing);
 
@@ -30,21 +31,22 @@ impl RobustaEntities {
     }
 }
 
-fn get_points(drawing: &Drawing) -> Vec<robusta_core::point::Point> {
-    let mut points = Vec::new();
-    for entity in drawing.entities() {
-        match &entity.specific {
-            EntityType::Line(specific) => points.extend(line::to_points(specific)),
-            EntityType::Arc(specific) => points.extend(arc::to_points(specific)),
-            EntityType::LwPolyline(specific) => points.extend(lwpolyline::to_points(specific)),
-            EntityType::Circle(specific) => points.extend(circle::to_points(specific)),
-            EntityType::Text(_) => (),
-            EntityType::MText(_) => (),
-            _ => core::panic!("Uncaptured entity: {entity:#?} "),
-        };
-    }
-    points
-}
+// fn get_points(drawing: &Drawing) -> Vec<robusta_core::point::Point> {
+//     let mut points = Vec::new();
+//     for entity in drawing.entities() {
+//         match &entity.specific {
+//             // EntityType::Line(specific) => points.extend(line::to_points(specific)),
+//             // EntityType::Arc(specific) => points.extend(arc::to_points(specific)),
+//             // EntityType::LwPolyline(specific) => points.extend(lwpolyline::to_points(specific)),
+//             // EntityType::Circle(specific) => points.extend(circle::to_points(specific)),
+//             // EntityType::Text(_) => (),
+//             // EntityType::MText(_) => (),
+//             // _ => core::panic!("Uncaptured entity: {entity:#?} "),
+//             _ => (),
+//         };
+//     }
+//     points
+// }
 
 fn get_segments(
     drawing: &Drawing,

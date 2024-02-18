@@ -20,7 +20,9 @@ pub fn draw_texts(
                     text: text_body,
                     text_anchor: bevy::sprite::Anchor::Center,
                     transform: Transform::from_translation(Vec3::new(
-                        origin[0], origin[1], origin[2],
+                        origin[0],
+                        origin[1],
+                        entity_mapping.z_layer_add(),
                     ))
                     .with_rotation(Quat::from_rotation_z(text.rotation))
                     .with_scale(Vec3::new(

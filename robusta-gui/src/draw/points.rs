@@ -19,7 +19,7 @@ pub fn draw_points(
                     transform: Transform::from_translation(Vec3::new(
                         point.coordinates.x,
                         point.coordinates.y,
-                        9.,
+                        entity_mapping.z_layer_add(),
                     )),
                     ..default()
                 },

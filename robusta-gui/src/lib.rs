@@ -27,7 +27,7 @@ use crate::keystrokes::*;
 use crate::leaves::inspection::view_inspection;
 // use crate::leaves::keystrokes::view_pressed_keys;
 use crate::leaves::points::view_points;
-use crate::leaves::term::open_term_egui;
+use crate::leaves::term::update_terminal_egui;
 // use crate::new_point::*;
 use crate::entitymapping::*;
 use crate::uistate::*;

@@ -4,12 +4,13 @@ use crate::*;
 
 use self::uistate::UiState;
 
-pub fn open_term_egui(
+pub fn update_terminal_egui(
     mut act_write: EventWriter<Act>,
     ui_state: &mut UiState,
     context: Query<&mut EguiContext, With<PrimaryWindow>>,
 ) {
     if let Ok(w) = context.get_single() {
+        ui_state.cad_state.mode = Mode::Typing;
         egui::Window::new("CADTerminal")
             .title_bar(false)
             .anchor(Align2::CENTER_BOTTOM, Vec2 { x: 0., y: 0. })
@@ -23,6 +24,7 @@ pub fn open_term_egui(
 
                     if response.lost_focus() {
                         act_write.send(Act::TryAct(ui_state.cad_state.cad_term.clone().unwrap()));
+                        ui_state.cad_state.mode = Mode::Normal;
                         ui_state.cad_state.cad_term = None;
                         return;
                     }
