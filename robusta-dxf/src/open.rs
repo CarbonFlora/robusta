@@ -1,5 +1,5 @@
 // use std::io::Write;
-use crate::wrapper::RobustaEntities;
+use crate::wrapper::RFile;
 
 use crate::*;
 
@@ -11,7 +11,7 @@ pub fn open_from_path(path: PathBuf) -> Drawing {
     }
 }
 
-pub fn parse_dxf(path: &Option<String>) -> RobustaEntities {
+pub fn parse_dxf(path: &Option<String>) -> RFile {
     let d = open_from_path(path.clone().unwrap_or_default().into());
-    RobustaEntities::from(&d)
+    RFile::from(&d)
 }

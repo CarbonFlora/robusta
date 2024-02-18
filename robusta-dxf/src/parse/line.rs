@@ -8,6 +8,6 @@ pub fn to_points(specific: &Line) -> [Point; 2] {
 }
 
 /// Returns a line segment.
-pub fn to_segment(specific: &Line) -> robusta_core::line::Line {
-    robusta_core::line::Line::new(to_points(specific))
+pub fn to_segment(specific: &Line) -> robusta_core::RobustaEntity {
+    robusta_core::RobustaEntity::Line(robusta_core::line::Line::new(to_points(specific)))
 }

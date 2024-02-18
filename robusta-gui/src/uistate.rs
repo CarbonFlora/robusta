@@ -3,7 +3,7 @@ use robusta_core::RobustaEntity;
 
 use super::*;
 
-type LoadedFiles = HashMap<Option<String>, RobustaEntities>;
+type LoadedFiles = HashMap<Option<String>, RFile>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
@@ -141,7 +141,7 @@ impl UiState {
     }
 
     pub fn all_rect(&self) -> Rect {
-        let mut a = self.loaded_files.values().flat_map(|x| x.points.iter());
+        let mut a = self.loaded_files.iter().flat_map(|x| x.1.iter_points());
 
         let (mut min_x, mut min_y, mut max_x, mut max_y) = match a.next() {
             None => (0., 0., 0., 0.),

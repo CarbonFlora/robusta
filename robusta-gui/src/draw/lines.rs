@@ -1,3 +1,5 @@
+use robusta_core::line::Line;
+
 use crate::*;
 
 pub fn draw_lines(
@@ -6,38 +8,36 @@ pub fn draw_lines(
         &mut ResMut<Assets<Mesh>>,
         &mut ResMut<Assets<ColorMaterial>>,
     ),
-    wrapper: &RobustaEntities,
+    specific: &Line,
     entity_mapping: &mut EntityMapping,
 ) {
     let line_width = 0.3f32;
-    for line in &wrapper.lines {
-        let spec = line.specifications();
+    let spec = specific.specifications();
 
-        let id = entity_package
-            .0
-            .spawn((
-                MaterialMesh2dBundle {
-                    mesh: entity_package
-                        .1
-                        .add(line_mesh(line_width, spec.length, spec.h_angle))
-                        .into(),
-                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(
-                        line.definition[0].coordinates.x,
-                        line.definition[0].coordinates.y,
-                        entity_mapping.z_layer_add(),
-                    )),
-                    ..default()
-                },
-                PickableBundle::default(),
-                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-            ))
-            .id();
-        entity_mapping
-            .hash
-            .insert(id, robusta_core::RobustaEntity::Line(line.clone()));
-    }
+    let id = entity_package
+        .0
+        .spawn((
+            MaterialMesh2dBundle {
+                mesh: entity_package
+                    .1
+                    .add(line_mesh(line_width, spec.length, spec.h_angle))
+                    .into(),
+                material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
+                transform: Transform::from_translation(Vec3::new(
+                    specific.definition[0].coordinates.x,
+                    specific.definition[0].coordinates.y,
+                    entity_mapping.z_layer_add(),
+                )),
+                ..default()
+            },
+            PickableBundle::default(),
+            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        ))
+        .id();
+    entity_mapping
+        .hash
+        .insert(id, robusta_core::RobustaEntity::Line(specific.clone()));
 }
 
 fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {

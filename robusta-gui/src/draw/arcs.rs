@@ -1,3 +1,5 @@
+use robusta_core::arc::Arc;
+
 use crate::*;
 
 pub fn draw_arcs(
@@ -6,33 +8,32 @@ pub fn draw_arcs(
         &mut ResMut<Assets<Mesh>>,
         &mut ResMut<Assets<ColorMaterial>>,
     ),
-    wrapper: &RobustaEntities,
+    // wrapper: &RFile,
+    specific: &Arc,
     entity_mapping: &mut EntityMapping,
 ) {
     let line_width = 0.3f32;
-    for arc in &wrapper.arcs {
-        let id = entity_package
-            .0
-            .spawn((
-                MaterialMesh2dBundle {
-                    mesh: entity_package.1.add(arc_mesh(line_width, arc)).into(),
-                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(
-                        0.,
-                        0.,
-                        entity_mapping.z_layer_add(),
-                    )),
-                    ..default()
-                },
-                PickableBundle::default(),
-                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-            ))
-            .id();
-        entity_mapping
-            .hash
-            .insert(id, robusta_core::RobustaEntity::Arc(arc.clone()));
-    }
+    let id = entity_package
+        .0
+        .spawn((
+            MaterialMesh2dBundle {
+                mesh: entity_package.1.add(arc_mesh(line_width, specific)).into(),
+                material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
+                transform: Transform::from_translation(Vec3::new(
+                    0.,
+                    0.,
+                    entity_mapping.z_layer_add(),
+                )),
+                ..default()
+            },
+            PickableBundle::default(),
+            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        ))
+        .id();
+    entity_mapping
+        .hash
+        .insert(id, robusta_core::RobustaEntity::Arc(specific.clone()));
 }
 
 fn arc_mesh(line_width: f32, arc: &robusta_core::arc::Arc) -> Mesh {

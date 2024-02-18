@@ -21,11 +21,25 @@ pub fn draw_first(
     let mut entity_package = (&mut commands, &mut meshes, &mut materials);
     let entity_mapping = entity_mapping.into_inner();
 
-    for file in &ui_state.loaded_files {
-        draw_texts(&mut entity_package, file.1, entity_mapping);
-        draw_lines(&mut entity_package, file.1, entity_mapping);
-        draw_arcs(&mut entity_package, file.1, entity_mapping);
-        draw_circles(&mut entity_package, file.1, entity_mapping);
-        draw_points(&mut entity_package, file.1, entity_mapping);
+    for (_file_name, file) in &ui_state.loaded_files {
+        for entity in &file.entities {
+            match entity {
+                robusta_core::RobustaEntity::Arc(specific) => {
+                    draw_arcs(&mut entity_package, specific, entity_mapping)
+                }
+                robusta_core::RobustaEntity::Circle(specific) => {
+                    draw_circles(&mut entity_package, specific, entity_mapping)
+                }
+                robusta_core::RobustaEntity::Line(specific) => {
+                    draw_lines(&mut entity_package, specific, entity_mapping)
+                }
+                robusta_core::RobustaEntity::Point(specific) => {
+                    draw_points(&mut entity_package, specific, entity_mapping)
+                }
+                robusta_core::RobustaEntity::Text(specific) => {
+                    draw_texts(&mut entity_package, specific, entity_mapping)
+                }
+            }
+        }
     }
 }

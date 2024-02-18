@@ -1,14 +1,14 @@
 use crate::*;
 
-pub fn to_text(specific: &Text) -> robusta_core::text::Text {
+pub fn to_text(specific: &Text) -> robusta_core::RobustaEntity {
     let origin = Point::new(specific.location.x as f32, specific.location.y as f32, 0.);
 
-    robusta_core::text::Text {
+    robusta_core::RobustaEntity::Text(robusta_core::text::Text {
         coordinates: origin,
         body: specific.value.clone(),
         rotation: specific.rotation as f32,
         height: specific.text_height as f32,
-    }
+    })
 }
 
 pub fn to_text_mtext(specific: &MText) -> robusta_core::text::Text {

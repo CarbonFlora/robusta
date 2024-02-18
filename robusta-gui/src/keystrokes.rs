@@ -31,11 +31,12 @@ pub fn capture_keystrokes(
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::I)] => Act::Inspect,
         [None, Some(KeyCode::H)] => Act::MoveCamera((-1., 0.)),
         [None, Some(KeyCode::J)] => Act::MoveCamera((0., -1.)),
         [None, Some(KeyCode::K)] => Act::MoveCamera((0., 1.)),
         [None, Some(KeyCode::L)] => Act::MoveCamera((1., 0.)),
+        [None, Some(KeyCode::I)] => Act::ZoomCamera(-1.),
+        [None, Some(KeyCode::O)] => Act::ZoomCamera(1.),
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
             Act::OpenCADTerm
         }
@@ -67,4 +68,5 @@ pub enum Act {
     PullCameraFocus(Rect),
     FitView,
     MoveCamera((f32, f32)),
+    ZoomCamera(f32),
 }

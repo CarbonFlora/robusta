@@ -6,40 +6,38 @@ pub fn draw_texts(
         &mut ResMut<Assets<Mesh>>,
         &mut ResMut<Assets<ColorMaterial>>,
     ),
-    wrapper: &RobustaEntities,
+    specific: &robusta_core::text::Text,
     entity_mapping: &mut EntityMapping,
 ) {
-    for text in &wrapper.text {
-        let text_body = Text::from_section(text.body.clone(), TextStyle::default());
-        let origin = text.coordinates.xyz();
+    let text_body = Text::from_section(specific.body.clone(), TextStyle::default());
+    let origin = specific.coordinates.xyz();
 
-        let id = entity_package
-            .0
-            .spawn((
-                Text2dBundle {
-                    text: text_body,
-                    text_anchor: bevy::sprite::Anchor::Center,
-                    transform: Transform::from_translation(Vec3::new(
-                        origin[0],
-                        origin[1],
-                        entity_mapping.z_layer_add(),
-                    ))
-                    .with_rotation(Quat::from_rotation_z(text.rotation))
-                    .with_scale(Vec3::new(
-                        text.height / 5.,
-                        text.height / 5.,
-                        1.,
-                    )),
-                    text_layout_info: bevy::text::TextLayoutInfo::default(),
-                    ..default()
-                },
-                PickableBundle::default(),
-                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-            ))
-            .id();
-        entity_mapping
-            .hash
-            .insert(id, robusta_core::RobustaEntity::Text(text.clone()));
-    }
+    let id = entity_package
+        .0
+        .spawn((
+            Text2dBundle {
+                text: text_body,
+                text_anchor: bevy::sprite::Anchor::Center,
+                transform: Transform::from_translation(Vec3::new(
+                    origin[0],
+                    origin[1],
+                    entity_mapping.z_layer_add(),
+                ))
+                .with_rotation(Quat::from_rotation_z(specific.rotation))
+                .with_scale(Vec3::new(
+                    specific.height / 5.,
+                    specific.height / 5.,
+                    1.,
+                )),
+                text_layout_info: bevy::text::TextLayoutInfo::default(),
+                ..default()
+            },
+            PickableBundle::default(),
+            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        ))
+        .id();
+    entity_mapping
+        .hash
+        .insert(id, robusta_core::RobustaEntity::Text(specific.clone()));
 }

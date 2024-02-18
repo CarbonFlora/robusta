@@ -1,3 +1,5 @@
+use robusta_core::circle::Circle;
+
 use crate::*;
 
 pub fn draw_circles(
@@ -6,33 +8,34 @@ pub fn draw_circles(
         &mut ResMut<Assets<Mesh>>,
         &mut ResMut<Assets<ColorMaterial>>,
     ),
-    wrapper: &RobustaEntities,
+    specific: &Circle,
     entity_mapping: &mut EntityMapping,
 ) {
     let line_width = 0.3f32;
-    for circle in &wrapper.circles {
-        let id = entity_package
-            .0
-            .spawn((
-                MaterialMesh2dBundle {
-                    mesh: entity_package.1.add(circle_mesh(line_width, circle)).into(),
-                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(
-                        0.,
-                        0.,
-                        entity_mapping.z_layer_add(),
-                    )),
-                    ..default()
-                },
-                PickableBundle::default(),
-                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
-            ))
-            .id();
-        entity_mapping
-            .hash
-            .insert(id, robusta_core::RobustaEntity::Circle(circle.clone()));
-    }
+    let id = entity_package
+        .0
+        .spawn((
+            MaterialMesh2dBundle {
+                mesh: entity_package
+                    .1
+                    .add(circle_mesh(line_width, specific))
+                    .into(),
+                material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
+                transform: Transform::from_translation(Vec3::new(
+                    0.,
+                    0.,
+                    entity_mapping.z_layer_add(),
+                )),
+                ..default()
+            },
+            PickableBundle::default(),
+            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+        ))
+        .id();
+    entity_mapping
+        .hash
+        .insert(id, robusta_core::RobustaEntity::Circle(specific.clone()));
 }
 
 fn circle_mesh(line_width: f32, circle: &robusta_core::circle::Circle) -> Mesh {

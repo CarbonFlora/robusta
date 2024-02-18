@@ -11,7 +11,11 @@ pub fn update_act(
     mut deselections: EventWriter<Pointer<Deselect>>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut camera: Query<
-        (&mut Transform, &GlobalTransform, &OrthographicProjection),
+        (
+            &mut Transform,
+            &GlobalTransform,
+            &mut OrthographicProjection,
+        ),
         With<bevy_pancam::PanCam>,
     >,
     mut commands: Commands,
@@ -55,7 +59,11 @@ fn run_act(
     deselections: &mut EventWriter<Pointer<Deselect>>,
     app_exit_events: &mut ResMut<Events<bevy::app::AppExit>>,
     camera: &mut Query<
-        (&mut Transform, &GlobalTransform, &OrthographicProjection),
+        (
+            &mut Transform,
+            &GlobalTransform,
+            &mut OrthographicProjection,
+        ),
         With<bevy_pancam::PanCam>,
     >,
     commands: &mut Commands,
@@ -64,6 +72,7 @@ fn run_act(
 ) {
     match act {
         Act::MoveCamera((x, y)) => camera_transform(x, y, camera),
+        Act::ZoomCamera(z) => camera_zoom(z, camera),
         Act::PullCameraFocus(rect) => camera_movement(rect, camera),
         Act::FitView => camera_movement(&ui_state.all_rect(), camera),
         Act::Inspect => ui_state.inspect(),
@@ -91,7 +100,11 @@ fn to_act(input: &str) -> Act {
 fn camera_movement(
     entity_position: &Rect,
     camera: &mut Query<
-        (&mut Transform, &GlobalTransform, &OrthographicProjection),
+        (
+            &mut Transform,
+            &GlobalTransform,
+            &mut OrthographicProjection,
+        ),
         With<bevy_pancam::PanCam>,
     >,
 ) {
@@ -109,7 +122,11 @@ fn camera_transform(
     x: &f32,
     y: &f32,
     camera: &mut Query<
-        (&mut Transform, &GlobalTransform, &OrthographicProjection),
+        (
+            &mut Transform,
+            &GlobalTransform,
+            &mut OrthographicProjection,
+        ),
         With<bevy_pancam::PanCam>,
     >,
 ) {
@@ -118,11 +135,26 @@ fn camera_transform(
     let current_3d_pos = camera.1.to_scale_rotation_translation().2;
     let current_2d_pos = Vec2::new(current_3d_pos.x, current_3d_pos.y);
     let movement = Vec2 {
-        x: *x * scale * 40.,
-        y: *y * scale * 40.,
+        x: *x * scale * 20.,
+        y: *y * scale * 20.,
     };
     let delta = current_2d_pos + movement;
     let proposed_cam_transform = delta.extend(0.);
 
     camera.0.translation = proposed_cam_transform;
+}
+
+fn camera_zoom(
+    z: &f32,
+    camera: &mut Query<
+        (
+            &mut Transform,
+            &GlobalTransform,
+            &mut OrthographicProjection,
+        ),
+        With<bevy_pancam::PanCam>,
+    >,
+) {
+    let mut camera = camera.get_single_mut().unwrap();
+    camera.2.scale += z * 0.02;
 }

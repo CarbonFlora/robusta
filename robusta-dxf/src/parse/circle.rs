@@ -13,8 +13,8 @@ pub fn to_points(specific: &Circle) -> [Point; 2] {
 }
 
 /// Returns a circle segment.
-pub fn to_segment(specific: &Circle) -> robusta_core::circle::Circle {
-    robusta_core::circle::Circle {
+pub fn to_segment(specific: &Circle) -> robusta_core::RobustaEntity {
+    robusta_core::RobustaEntity::Circle(robusta_core::circle::Circle {
         definition: to_points(specific),
-    }
+    })
 }
