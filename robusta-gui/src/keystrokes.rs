@@ -69,7 +69,7 @@ fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
     }
 }
 
-#[derive(Event, Debug, PartialEq)]
+#[derive(Event, Debug, PartialEq, Clone)]
 pub enum Act {
     None,
     Exit,

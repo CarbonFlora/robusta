@@ -1,6 +1,8 @@
 use bevy_mod_picking::pointer::Location;
 use robusta_core::RobustaEntity;
 
+use crate::leaves::history::view_history;
+
 use super::*;
 
 type LoadedFiles = HashMap<Option<String>, RFile>;
@@ -11,17 +13,17 @@ pub struct UiState {
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
     pub selected_entities: Vec<(SelectionInstance, Option<RobustaEntity>)>,
+    pub history: (Act, String),
 }
 
 /// This is all available tabs to be accessed.
 #[derive(Debug, PartialEq, Eq)]
 pub enum EguiWindow {
-    CADView,
-    Hierarchy,
-    Debug,
+    Empty,
     Points,
     Inspect,
     History,
+    StateRibbon,
 }
 
 #[derive(Event, Clone, Debug, PartialEq)]
@@ -78,23 +80,14 @@ pub enum Mode {
 #[derive(Debug, Component)]
 pub struct PhantomREntity;
 
-// #[derive(Event, Clone, Debug, PartialEq)]
-// pub enum ReMapSelections {
-//     All,
-//     One(Entity),
-// }
-
 impl UiState {
-    /// This is currently the default gui layout.
-    /// Future Features:
-    /// - custom default layout in config.toml
-    // pub fn new(cameras: Query<&mut Camera, With<ViewportCamera>>) -> Self {
     pub fn new(path: &Option<String>) -> Self {
         Self {
             cad_state: CADState::new(),
             loaded_files: load_files(path),
-            dock_state: default_cadpanel(),
+            dock_state: ribbon_cadpanel(),
             selected_entities: Vec::new(),
+            history: (Act::None, String::new()),
         }
     }
 
@@ -103,6 +96,7 @@ impl UiState {
             loaded_files: &mut self.loaded_files,
             act_write,
             selected_entities: &mut self.selected_entities,
+            history: &self.history,
         };
         DockArea::new(&mut self.dock_state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -233,14 +227,56 @@ impl UiState {
         self.cad_state.mode = Mode::Normal;
         self.cancel_construction(commands);
     }
+
+    pub fn push_history(&mut self, act: &Act) {
+        let (latest, history) = &mut self.history;
+
+        if act == latest {
+            return;
+        }
+
+        history.insert_str(
+            0,
+            match act {
+                Act::None => "",
+                Act::Exit => "Cleaning up.\n",
+                Act::QuitWithoutSaving => "Quit without saving.\n",
+                Act::DeselectAll => "Deselecting everything.\n",
+                Act::Confirm => "Confirmed placement.\n",
+                Act::OpenCADTerm => "Terminal opened.\n",
+                Act::TryAct(a) => "Terminal submitted.\n",
+                Act::NewPoint => "Point created.\n",
+                Act::DebugReMapSelection(_) => "Entity Selected.\n",
+                Act::Inspect => "Inspecting.\n",
+                Act::PullCameraFocus(_) => "Camera moved.\n",
+                Act::FitView => "Fit view to all entities.\n",
+                Act::MoveCamera(_) => "Camera moved.\n",
+                Act::ZoomCamera(_) => "Camera zoomed.\n",
+            },
+        );
+
+        self.history.0 = act.clone();
+    }
 }
 
-fn default_cadpanel() -> DockState<EguiWindow> {
-    let mut state = DockState::new(vec![EguiWindow::CADView]);
+fn ribbon_cadpanel() -> DockState<EguiWindow> {
+    let mut state = DockState::new(vec![EguiWindow::History]);
+    let tree = state.main_surface_mut();
+    let [old, _new] = tree.split_above(NodeIndex::root(), 0.1, vec![EguiWindow::StateRibbon]);
+    let [_old, _new] = tree.split_left(old, 0.22, vec![EguiWindow::Inspect, EguiWindow::Points]);
+    // let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspect]);
+    // let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
+    // let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Debug]);
+
+    state
+}
+
+fn debug_cadpanel() -> DockState<EguiWindow> {
+    let mut state = DockState::new(vec![EguiWindow::Empty]);
     let tree = state.main_surface_mut();
     let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspect]);
     let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
-    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Debug]);
+    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Empty]);
 
     state
 }
@@ -287,6 +323,7 @@ struct TabViewer<'a> {
     loaded_files: &'a LoadedFiles,
     act_write: EventWriter<'a, Act>,
     selected_entities: &'a mut Vec<(SelectionInstance, Option<RobustaEntity>)>,
+    history: &'a (Act, String),
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -297,14 +334,11 @@ impl egui_dock::TabViewer for TabViewer<'_> {
         // let type_registry = type_registry.read();
 
         match window {
-            EguiWindow::CADView => (),
-            EguiWindow::Hierarchy => (),
-            // EguiWindow::Debug => view_pressed_keys(ui, self.pressed_keys, self.acts),
-            EguiWindow::Debug => (),
-            // EguiWindow::History => view_history(ui, self.acts),
-            EguiWindow::History => (),
+            EguiWindow::Empty => (),
+            EguiWindow::History => view_history(ui, self.history),
             EguiWindow::Points => view_points(ui, self.loaded_files),
             EguiWindow::Inspect => view_inspection(ui, self.selected_entities, &mut self.act_write),
+            EguiWindow::StateRibbon => (),
         }
     }
 

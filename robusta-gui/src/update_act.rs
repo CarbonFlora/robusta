@@ -10,7 +10,6 @@ pub fn update_act(
     mut entity_mapping: ResMut<EntityMapping>,
     mut deselections: EventWriter<Pointer<Deselect>>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
-    // (With<PhantomREntity>, Without<bevy_pancam::PanCam>),
     mut camera: Query<
         (
             &mut Transform,
@@ -71,6 +70,8 @@ fn run_act(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
 ) {
+    ui_state.push_history(act);
+
     match act {
         Act::MoveCamera((x, y)) => camera_transform(x, y, camera),
         Act::ZoomCamera(z) => camera_zoom(z, camera),
