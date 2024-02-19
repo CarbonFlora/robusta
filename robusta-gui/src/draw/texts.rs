@@ -8,6 +8,7 @@ pub fn draw_texts(
     ),
     specific: &robusta_core::text::Text,
     entity_mapping: &mut EntityMapping,
+    index: usize,
 ) {
     let text_body = Text::from_section(specific.body.clone(), TextStyle::default());
     let origin = specific.coordinates.xyz();
@@ -21,7 +22,7 @@ pub fn draw_texts(
                 transform: Transform::from_translation(Vec3::new(
                     origin[0],
                     origin[1],
-                    entity_mapping.z_layer_add(),
+                    index as f32,
                 ))
                 .with_rotation(Quat::from_rotation_z(specific.rotation))
                 .with_scale(Vec3::new(

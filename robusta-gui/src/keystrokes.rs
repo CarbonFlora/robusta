@@ -5,6 +5,7 @@ use crate::UiState;
 pub fn capture_keystrokes(
     ui_state: Res<UiState>,
     keys: Res<Input<KeyCode>>,
+    mouse: Res<Input<MouseButton>>,
     mut act_write: EventWriter<Act>,
 ) {
     let mut buffer = [None; 2];
@@ -16,6 +17,19 @@ pub fn capture_keystrokes(
             KeyCode::AltLeft | KeyCode::AltRight => buffer[0] = Some(KeyCode::AltLeft),
             _ => buffer[1] = Some(*keycode),
         };
+    }
+
+    for mousekey in mouse.get_pressed() {
+        match mousekey {
+            MouseButton::Left => buffer[1] = Some(KeyCode::Insert),
+            MouseButton::Right => {
+                buffer[0] = Some(KeyCode::AltLeft);
+                buffer[1] = Some(KeyCode::Insert)
+            }
+            // MouseButton::Middle => todo!(),
+            // MouseButton::Other(_) => todo!(),
+            _ => (),
+        }
     }
 
     let act = match ui_state.cad_state.mode {
@@ -37,6 +51,7 @@ fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
         [None, Some(KeyCode::L)] => Act::MoveCamera((1., 0.)),
         [None, Some(KeyCode::I)] => Act::ZoomCamera(-1.),
         [None, Some(KeyCode::O)] => Act::ZoomCamera(1.),
+        [None, Some(KeyCode::Insert)] => Act::Confirm,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
             Act::OpenCADTerm
         }
@@ -60,6 +75,7 @@ pub enum Act {
     Exit,
     QuitWithoutSaving,
     DeselectAll,
+    Confirm,
     OpenCADTerm,
     TryAct(String),
     NewPoint,

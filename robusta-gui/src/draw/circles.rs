@@ -10,6 +10,7 @@ pub fn draw_circles(
     ),
     specific: &Circle,
     entity_mapping: &mut EntityMapping,
+    index: usize,
 ) {
     let line_width = 0.3f32;
     let id = entity_package
@@ -21,11 +22,7 @@ pub fn draw_circles(
                     .add(circle_mesh(line_width, specific))
                     .into(),
                 material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                transform: Transform::from_translation(Vec3::new(
-                    0.,
-                    0.,
-                    entity_mapping.z_layer_add(),
-                )),
+                transform: Transform::from_translation(Vec3::new(0., 0., index as f32)),
                 ..default()
             },
             PickableBundle::default(),

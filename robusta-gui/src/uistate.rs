@@ -66,15 +66,6 @@ impl CADState {
     fn new() -> Self {
         CADState::default()
     }
-
-    pub fn close_all(&mut self) {
-        // if let Some((a, b)) = self.construction {
-
-        // }
-        self.construction = None;
-        self.mode = Mode::Normal;
-        self.cad_term = None;
-    }
 }
 
 #[derive(Debug, Default)]
@@ -83,6 +74,9 @@ pub enum Mode {
     Normal,
     Typing,
 }
+
+#[derive(Debug, Component)]
+pub struct PhantomREntity;
 
 // #[derive(Event, Clone, Debug, PartialEq)]
 // pub enum ReMapSelections {
@@ -171,30 +165,30 @@ impl UiState {
         Rect::new(min_x, min_y, max_x, max_y)
     }
 
+    fn top_z_layer(&self) -> usize {
+        self.loaded_files
+            .iter()
+            .fold(0usize, |x, y| x + y.1.entities.len())
+    }
+
     pub fn new_point(
         &mut self,
-        entity_mapping: &mut ResMut<EntityMapping>,
         commands: &mut Commands,
         meshes: &mut ResMut<Assets<Mesh>>,
         materials: &mut ResMut<Assets<ColorMaterial>>,
     ) {
         let entity_package = (commands, meshes, materials);
+        let z_layer = self.top_z_layer();
         let id = entity_package
             .0
             .spawn((
                 MaterialMesh2dBundle {
                     mesh: entity_package.1.add(shape::Circle::new(0.5).into()).into(),
                     material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(
-                        0.,
-                        0.,
-                        entity_mapping.z_layer_add(),
-                    )),
+                    transform: Transform::from_translation(Vec3::new(0., 0., z_layer as f32)),
                     ..default()
                 },
-                PickableBundle::default(),
-                On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-                On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+                PhantomREntity,
             ))
             .id();
 
@@ -202,6 +196,42 @@ impl UiState {
             id,
             RobustaEntity::Point(robusta_core::point::Point::new(0., 0., 0.)),
         ));
+    }
+
+    pub fn canonize(
+        &mut self,
+        commands: &mut Commands,
+        entity_mapping: &mut ResMut<EntityMapping>,
+    ) {
+        if let Some((a, b)) = &mut self.cad_state.construction {
+            let c = self.loaded_files.get_mut(&None).unwrap();
+            commands.entity(*a).insert(PickableBundle::default());
+            commands
+                .entity(*a)
+                .insert(On::<Pointer<Select>>::send_event::<SelectionInstance>());
+            commands
+                .entity(*a)
+                .insert(On::<Pointer<Deselect>>::send_event::<SelectionInstance>());
+            commands.entity(*a).remove::<PhantomREntity>();
+
+            entity_mapping.hash.insert(*a, b.clone());
+            c.entities.push(b.clone());
+            self.cad_state.construction = None;
+        }
+        self.cancel_construction(commands);
+    }
+
+    pub fn cancel_construction(&mut self, commands: &mut Commands) {
+        if let Some((a, _b)) = &mut self.cad_state.construction {
+            commands.entity(*a).despawn_recursive();
+        }
+        self.cad_state.construction = None;
+    }
+
+    pub fn close_all(&mut self, commands: &mut Commands) {
+        self.cad_state.cad_term = None;
+        self.cad_state.mode = Mode::Normal;
+        self.cancel_construction(commands);
     }
 }
 
@@ -219,6 +249,7 @@ fn load_files(path: &Option<String>) -> LoadedFiles {
     let loaded_file = robusta_dxf::open::parse_dxf(path);
     let mut loaded_files = HashMap::new();
     loaded_files.insert(path.clone(), loaded_file);
+    loaded_files.insert(None, RFile::new());
 
     loaded_files
 }

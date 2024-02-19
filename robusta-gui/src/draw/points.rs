@@ -10,6 +10,7 @@ pub fn draw_points(
     ),
     specific: &Point,
     entity_mapping: &mut EntityMapping,
+    index: usize,
 ) {
     let id = entity_package
         .0
@@ -20,7 +21,7 @@ pub fn draw_points(
                 transform: Transform::from_translation(Vec3::new(
                     specific.coordinates.x,
                     specific.coordinates.y,
-                    entity_mapping.z_layer_add(),
+                    index as f32,
                 )),
                 ..default()
             },

@@ -10,6 +10,7 @@ pub fn update_act(
     mut entity_mapping: ResMut<EntityMapping>,
     mut deselections: EventWriter<Pointer<Deselect>>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
+    // (With<PhantomREntity>, Without<bevy_pancam::PanCam>),
     mut camera: Query<
         (
             &mut Transform,
@@ -79,8 +80,9 @@ fn run_act(
         Act::DeselectAll => ui_state.deselect_all(deselections),
         Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
         Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, entity_mapping),
-        Act::NewPoint => ui_state.new_point(entity_mapping, commands, meshes, materials),
-        Act::Exit => ui_state.cad_state.close_all(),
+        Act::NewPoint => ui_state.new_point(commands, meshes, materials),
+        Act::Confirm => ui_state.canonize(commands, entity_mapping),
+        Act::Exit => ui_state.close_all(commands),
         Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
         _ => (),
     }

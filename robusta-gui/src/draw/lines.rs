@@ -10,6 +10,7 @@ pub fn draw_lines(
     ),
     specific: &Line,
     entity_mapping: &mut EntityMapping,
+    index: usize,
 ) {
     let line_width = 0.3f32;
     let spec = specific.specifications();
@@ -26,7 +27,7 @@ pub fn draw_lines(
                 transform: Transform::from_translation(Vec3::new(
                     specific.definition[0].coordinates.x,
                     specific.definition[0].coordinates.y,
-                    entity_mapping.z_layer_add(),
+                    index as f32,
                 )),
                 ..default()
             },
