@@ -1,3 +1,4 @@
+use bevy::utils::hashbrown::HashMap;
 use bevy_mod_picking::pointer::Location;
 use robusta_core::RobustaEntity;
 
@@ -60,6 +61,7 @@ impl From<ListenerInput<Pointer<Deselect>>> for SelectionInstance {
 #[derive(Debug, Default)]
 pub struct CADState {
     pub construction: Option<(Entity, RobustaEntity)>,
+    pub object_snapping: SnapSettings,
     pub mode: Mode,
     pub cad_term: Option<String>,
 }
@@ -68,6 +70,34 @@ impl CADState {
     fn new() -> Self {
         CADState::default()
     }
+}
+
+#[derive(Debug, Default)]
+pub struct SnapSettings {
+    endpoint: bool,
+    midpoint: bool,
+    center: bool,
+    intersection: bool,
+    perpendicular: bool,
+    tangent: bool,
+}
+
+pub fn flip(boolean: &mut bool) {
+    if *boolean {
+        *boolean = false;
+    } else {
+        *boolean = true;
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Snaps {
+    Endpoint,
+    Midpoint,
+    Center,
+    Intersection,
+    Perpendicular,
+    Tangent,
 }
 
 #[derive(Debug, Default)]
@@ -228,34 +258,59 @@ impl UiState {
         self.cancel_construction(commands);
     }
 
-    pub fn push_history(&mut self, act: &Act) {
+    pub fn push_history(&mut self, act: &Act, entity_mapping: &HashMap<Entity, RobustaEntity>) {
         let (latest, history) = &mut self.history;
+        let mut meta_data = String::new();
 
         if act == latest {
             return;
         }
 
-        history.insert_str(
-            0,
+        history.push_str(
+            // 0,
             match act {
-                Act::None => "",
-                Act::Exit => "Cleaning up.\n",
-                Act::QuitWithoutSaving => "Quit without saving.\n",
-                Act::DeselectAll => "Deselecting everything.\n",
-                Act::Confirm => "Confirmed placement.\n",
-                Act::OpenCADTerm => "Terminal opened.\n",
-                Act::TryAct(_) => "Terminal submitted.\n",
-                Act::NewPoint => "Point created.\n",
-                Act::DebugReMapSelection(_) => "Entity Selected.\n",
-                Act::Inspect => "Inspecting.\n",
-                Act::PullCameraFocus(_) => "Camera moved.\n",
-                Act::FitView => "Fit view to all entities.\n",
-                Act::MoveCamera(_) => "Camera moved.\n",
-                Act::ZoomCamera(_) => "Camera zoomed.\n",
+                Act::None => return,
+                Act::Exit => "Cleaning up.",
+                Act::QuitWithoutSaving => "Quit without saving.",
+                Act::DeselectAll => "Deselecting everything.",
+                Act::Confirm => "Confirmed placement.",
+                Act::OpenCADTerm => "Terminal opened.",
+                Act::TryAct(a) => {
+                    meta_data = format!("{a:?}");
+                    "Terminal submitted: "
+                }
+                Act::NewPoint => "Point created.",
+                Act::ToggleSnap(a) => {
+                    meta_data = format!("{a:?}");
+                    "Snap configuration changed: "
+                }
+                Act::DebugReMapSelection(a) => {
+                    meta_data = format!("{:?}", entity_mapping.get(a).unwrap());
+                    "Entity Selected: "
+                }
+                Act::Inspect => "Inspecting.",
+                Act::PullCameraFocus(_) => "Camera moved.",
+                Act::FitView => "Fit view to all entities.",
+                Act::MoveCamera(_) => "Camera moved.",
+                Act::ZoomCamera(_) => "Camera zoomed.",
             },
         );
+        history.push_str(&meta_data);
+        history.push_str("\n");
 
         self.history.0 = act.clone();
+    }
+
+    pub fn toggle_snap(&mut self, snap: &Snaps) {
+        let snap_settings = &mut self.cad_state.object_snapping;
+        match snap {
+            Snaps::Endpoint => flip(&mut snap_settings.endpoint),
+            Snaps::Midpoint => flip(&mut snap_settings.midpoint),
+            Snaps::Center => flip(&mut snap_settings.center),
+            Snaps::Intersection => flip(&mut snap_settings.intersection),
+            Snaps::Perpendicular => flip(&mut snap_settings.perpendicular),
+            Snaps::Tangent => flip(&mut snap_settings.tangent),
+        }
     }
 }
 

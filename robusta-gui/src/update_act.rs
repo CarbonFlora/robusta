@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_mod_picking::{prelude::Pointer, selection::Deselect};
 
-use crate::{keystrokes::Act, uistate::UiState, EntityMapping};
+use crate::{keystrokes::Act, uistate::UiState, EntityMapping, Snaps};
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(
@@ -23,31 +23,22 @@ pub fn update_act(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for act in act_read.read() {
-        if let Act::TryAct(a) = act {
-            run_act(
-                &to_act(a),
-                &mut ui_state,
-                &mut entity_mapping,
-                &mut deselections,
-                &mut app_exit_events,
-                &mut camera,
-                &mut commands,
-                &mut meshes,
-                &mut materials,
-            );
-        } else {
-            run_act(
-                act,
-                &mut ui_state,
-                &mut entity_mapping,
-                &mut deselections,
-                &mut app_exit_events,
-                &mut camera,
-                &mut commands,
-                &mut meshes,
-                &mut materials,
-            )
+        let mut binding = act.clone();
+        if let Act::TryAct(string) = act {
+            binding = to_act(string);
         }
+
+        run_act(
+            &binding,
+            &mut ui_state,
+            &mut entity_mapping,
+            &mut deselections,
+            &mut app_exit_events,
+            &mut camera,
+            &mut commands,
+            &mut meshes,
+            &mut materials,
+        )
     }
 }
 
@@ -70,7 +61,7 @@ fn run_act(
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
 ) {
-    ui_state.push_history(act);
+    ui_state.push_history(act, &entity_mapping.hash);
 
     match act {
         Act::MoveCamera((x, y)) => camera_transform(x, y, camera),
@@ -82,6 +73,7 @@ fn run_act(
         Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
         Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, entity_mapping),
         Act::NewPoint => ui_state.new_point(commands, meshes, materials),
+        Act::ToggleSnap(a) => ui_state.toggle_snap(a),
         Act::Confirm => ui_state.canonize(commands, entity_mapping),
         Act::Exit => ui_state.close_all(commands),
         Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
@@ -95,6 +87,12 @@ fn to_act(input: &str) -> Act {
         "inspect" | "i" => Act::Inspect,
         "fitview" | "fv" => Act::FitView,
         "point" | "p" => Act::NewPoint,
+        "snap endpoint" | "s end" => Act::ToggleSnap(Snaps::Endpoint),
+        "snap midpoint" | "s mid" => Act::ToggleSnap(Snaps::Midpoint),
+        "snap center" | "s cen" => Act::ToggleSnap(Snaps::Center),
+        "snap intersection" | "s int" => Act::ToggleSnap(Snaps::Intersection),
+        "snap perpendicular" | "s per" => Act::ToggleSnap(Snaps::Perpendicular),
+        "snap tangent" | "s tan" => Act::ToggleSnap(Snaps::Tangent),
         "q!" => Act::QuitWithoutSaving,
         _ => Act::None,
     }

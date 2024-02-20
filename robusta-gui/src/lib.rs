@@ -1,4 +1,4 @@
-use bevy::{prelude::*, utils::HashMap, window};
+use bevy::{prelude::*, window};
 use bevy::{
     render::{mesh::Indices, render_resource::PrimitiveTopology},
     sprite::MaterialMesh2dBundle,
@@ -16,7 +16,6 @@ pub mod draw;
 pub mod entitymapping;
 pub mod keystrokes;
 pub mod leaves;
-pub mod new_point;
 pub mod test;
 pub mod uistate;
 pub mod update_act;
@@ -26,10 +25,9 @@ use crate::draw::*;
 use crate::keystrokes::*;
 use crate::leaves::inspection::view_inspection;
 // use crate::leaves::keystrokes::view_pressed_keys;
+use crate::entitymapping::*;
 use crate::leaves::points::view_points;
 use crate::leaves::term::update_terminal_egui;
-// use crate::new_point::*;
-use crate::entitymapping::*;
 use crate::uistate::*;
 use crate::update_act::*;
 use crate::viewport_ui::*;

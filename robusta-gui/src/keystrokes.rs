@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::UiState;
+use crate::{Snaps, UiState};
 
 pub fn capture_keystrokes(
     ui_state: Res<UiState>,
@@ -85,4 +85,5 @@ pub enum Act {
     FitView,
     MoveCamera((f32, f32)),
     ZoomCamera(f32),
+    ToggleSnap(Snaps),
 }
