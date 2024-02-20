@@ -244,7 +244,7 @@ impl UiState {
                 Act::DeselectAll => "Deselecting everything.\n",
                 Act::Confirm => "Confirmed placement.\n",
                 Act::OpenCADTerm => "Terminal opened.\n",
-                Act::TryAct(a) => "Terminal submitted.\n",
+                Act::TryAct(_) => "Terminal submitted.\n",
                 Act::NewPoint => "Point created.\n",
                 Act::DebugReMapSelection(_) => "Entity Selected.\n",
                 Act::Inspect => "Inspecting.\n",
@@ -271,7 +271,7 @@ fn ribbon_cadpanel() -> DockState<EguiWindow> {
     state
 }
 
-fn debug_cadpanel() -> DockState<EguiWindow> {
+fn _debug_cadpanel() -> DockState<EguiWindow> {
     let mut state = DockState::new(vec![EguiWindow::Empty]);
     let tree = state.main_surface_mut();
     let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspect]);

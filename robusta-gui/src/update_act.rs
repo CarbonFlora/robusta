@@ -160,4 +160,7 @@ fn camera_zoom(
 ) {
     let mut camera = camera.get_single_mut().unwrap();
     camera.2.scale += z * 0.02;
+    if camera.2.scale < 0. {
+        camera.2.scale = 0.;
+    }
 }
