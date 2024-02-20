@@ -8,6 +8,8 @@ Given station, bearing, line data information on plan, if a program can reconstr
 - Take into consideration the following:
     - Component Storage type
     - Component Bundles for organization
+- Break down systems into smaller chunks, then organize into plugins. Model after either bevy_egui or bevy_mod_picking.
+    - This is to increase the modularity, and decrease the accumulation of code debt. This will also contribute to reducing update cycle bloat. 
 
 ## Re-write 1
 - The primary window will host all the viewports and cameras.

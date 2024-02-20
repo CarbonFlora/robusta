@@ -273,7 +273,7 @@ impl UiState {
                 Act::Exit => "Cleaning up.",
                 Act::QuitWithoutSaving => "Quit without saving.",
                 Act::DeselectAll => "Deselecting everything.",
-                Act::Confirm => "Confirmed placement.",
+                Act::Confirm => "Action Confirmed.",
                 Act::OpenCADTerm => "Terminal opened.",
                 Act::TryAct(a) => {
                     meta_data = format!("{a:?}");
