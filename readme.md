@@ -3,6 +3,7 @@
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
 ## Proposed Re-write 2
+- Term, dxf, core, bevy_egui are all fine. gui is the one that requires a re-write.
 - Use more of the ECS system by adding RobustaEntity into the entity itself via component. This way, Hashmap isn't required to correlate the two. 
 - Take advantage of Bevy ECS change detection (https://docs.rs/bevy_ecs/latest/bevy_ecs/#change-detection). 
 - Take into consideration the following:
@@ -10,6 +11,16 @@ Given station, bearing, line data information on plan, if a program can reconstr
     - Component Bundles for organization
 - Break down systems into smaller chunks, then organize into plugins. Model after either bevy_egui or bevy_mod_picking.
     - This is to increase the modularity, and decrease the accumulation of code debt. This will also contribute to reducing update cycle bloat. 
+- Since egui is immediate mode, the entire cadpanel will be re-drawn every frame.
+- Constraints: add coincident & extension constriant type.
+- Entity behavior
+    click once: select the entity/place the point. bring up the constraints imposed on this entity. highlight the entity depending on if it's a fixed for floating entity. (entities that can have fixed and floating points use gradients.) 
+    click again on a definition point: If it's a fixed point, pick-up the point and move it to the mouse for dropping. If it's a float point, it bring up the constraints to be removed or converted to fixed point. 
+        Intersections:
+        fixed-fixed > pick-up the point belonging to the line/arc selected. No constraints can be added.
+        fixed-float > moving the fixed will also move the float, maintaining constraints. 
+        float-float > shouldn't be possible as it's underdefined. (untested)
+    
 
 ## Re-write 1
 - The primary window will host all the viewports and cameras.

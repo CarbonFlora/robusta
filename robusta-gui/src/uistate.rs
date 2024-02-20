@@ -107,8 +107,13 @@ pub enum Mode {
     Typing,
 }
 
+/// This is a marker component to delineate a point entity in the process of being placed.
 #[derive(Debug, Component)]
 pub struct PhantomREntity;
+
+/// This is a marker component to delineate snapping points.
+#[derive(Debug, Component)]
+pub struct TransientREntity;
 
 impl UiState {
     pub fn new(path: &Option<String>) -> Self {
