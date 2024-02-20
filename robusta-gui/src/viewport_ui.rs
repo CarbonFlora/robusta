@@ -6,10 +6,11 @@ use super::*;
 pub fn update_viewport_ui(
     act_write: EventWriter<Act>,
     mut ui_state: ResMut<UiState>,
+    //If this gets too clunky, use commands.entity() instead
     mut entity_transform: Query<
         &mut Transform,
         (With<PhantomREntity>, Without<bevy_pancam::PanCam>),
-    >, //If this gets too clunky, use commands.entity() instead
+    >,
     egui_context_primary: Query<&mut EguiContext, With<PrimaryWindow>>,
     mut camera: Query<&mut bevy_pancam::PanCam>,
     window: Query<&Window, With<PrimaryWindow>>,
@@ -57,7 +58,6 @@ fn update_construction_point(
         .and_then(|cursor_pos| camera.viewport_to_world_2d(global_transform, cursor_pos))
     {
         target.xyz_mut(cursor_world_pos.x, cursor_world_pos.y, target.coordinates.z);
-        println!("target: {:?}", target);
         a.translation = Vec3::new(cursor_world_pos.x, cursor_world_pos.y, a.translation.z)
     }
 }

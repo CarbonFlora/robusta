@@ -284,6 +284,7 @@ impl UiState {
                     meta_data = format!("{a:?}");
                     "Snap configuration changed: "
                 }
+                Act::ToggleSnapOff => "All object snaps turned off.",
                 Act::DebugReMapSelection(a) => {
                     meta_data = format!("{:?}", entity_mapping.get(a).unwrap());
                     "Entity Selected: "
@@ -311,6 +312,10 @@ impl UiState {
             Snaps::Perpendicular => flip(&mut snap_settings.perpendicular),
             Snaps::Tangent => flip(&mut snap_settings.tangent),
         }
+    }
+
+    pub fn toggle_snap_off(&mut self) {
+        self.cad_state.object_snapping = SnapSettings::default();
     }
 }
 

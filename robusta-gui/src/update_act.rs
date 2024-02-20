@@ -74,6 +74,7 @@ fn run_act(
         Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, entity_mapping),
         Act::NewPoint => ui_state.new_point(commands, meshes, materials),
         Act::ToggleSnap(a) => ui_state.toggle_snap(a),
+        Act::ToggleSnapOff => ui_state.toggle_snap_off(),
         Act::Confirm => ui_state.canonize(commands, entity_mapping),
         Act::Exit => ui_state.close_all(commands),
         Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
@@ -93,6 +94,7 @@ fn to_act(input: &str) -> Act {
         "snap intersection" | "s int" => Act::ToggleSnap(Snaps::Intersection),
         "snap perpendicular" | "s per" => Act::ToggleSnap(Snaps::Perpendicular),
         "snap tangent" | "s tan" => Act::ToggleSnap(Snaps::Tangent),
+        "snap off" | "s off" => Act::ToggleSnapOff,
         "q!" => Act::QuitWithoutSaving,
         _ => Act::None,
     }

@@ -86,4 +86,5 @@ pub enum Act {
     MoveCamera((f32, f32)),
     ZoomCamera(f32),
     ToggleSnap(Snaps),
+    ToggleSnapOff,
 }

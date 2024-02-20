@@ -2,6 +2,13 @@
 ## Brief
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
+## Proposed Re-write 2
+- Use more of the ECS system by adding RobustaEntity into the entity itself via component. This way, Hashmap isn't required to correlate the two. 
+- Take advantage of Bevy ECS change detection (https://docs.rs/bevy_ecs/latest/bevy_ecs/#change-detection). 
+- Take into consideration the following:
+    - Component Storage type
+    - Component Bundles for organization
+
 ## Re-write 1
 - The primary window will host all the viewports and cameras.
 - The 2nd window will host the egui docking controlboard. 
