@@ -16,7 +16,7 @@ pub mod draw;
 pub mod entitymapping;
 pub mod keystrokes;
 pub mod leaves;
-pub mod test;
+pub mod rcadplugin;
 pub mod uistate;
 pub mod update_act;
 pub mod viewport_ui;

@@ -28,57 +28,27 @@ pub fn update_act(
             binding = to_act(string);
         }
 
-        run_act(
-            &binding,
-            &mut ui_state,
-            &mut entity_mapping,
-            &mut deselections,
-            &mut app_exit_events,
-            &mut camera,
-            &mut commands,
-            &mut meshes,
-            &mut materials,
-        )
-    }
-}
+        ui_state.push_history(act, &entity_mapping.hash);
 
-#[allow(clippy::too_many_arguments)]
-fn run_act(
-    act: &Act,
-    ui_state: &mut ResMut<UiState>,
-    entity_mapping: &mut ResMut<EntityMapping>,
-    deselections: &mut EventWriter<Pointer<Deselect>>,
-    app_exit_events: &mut ResMut<Events<bevy::app::AppExit>>,
-    camera: &mut Query<
-        (
-            &mut Transform,
-            &GlobalTransform,
-            &mut OrthographicProjection,
-        ),
-        With<bevy_pancam::PanCam>,
-    >,
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
-) {
-    ui_state.push_history(act, &entity_mapping.hash);
-
-    match act {
-        Act::MoveCamera((x, y)) => camera_transform(x, y, camera),
-        Act::ZoomCamera(z) => camera_zoom(z, camera),
-        Act::PullCameraFocus(rect) => camera_movement(rect, camera),
-        Act::FitView => camera_movement(&ui_state.all_rect(), camera),
-        Act::Inspect => ui_state.inspect(),
-        Act::DeselectAll => ui_state.deselect_all(deselections),
-        Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-        Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, entity_mapping),
-        Act::NewPoint => ui_state.new_point(commands, meshes, materials),
-        Act::ToggleSnap(a) => ui_state.toggle_snap(a),
-        Act::ToggleSnapOff => ui_state.toggle_snap_off(),
-        Act::Confirm => ui_state.canonize(commands, entity_mapping),
-        Act::Exit => ui_state.close_all(commands),
-        Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
-        _ => (),
+        match &binding {
+            Act::MoveCamera((x, y)) => camera_transform(x, y, &mut camera),
+            Act::ZoomCamera(z) => camera_zoom(z, &mut camera),
+            Act::PullCameraFocus(rect) => camera_movement(rect, &mut camera),
+            Act::FitView => camera_movement(&ui_state.all_rect(), &mut camera),
+            Act::Inspect => ui_state.inspect(),
+            Act::DeselectAll => ui_state.deselect_all(&mut deselections),
+            Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
+            Act::DebugReMapSelection(entity) => {
+                ui_state.remap_selection(entity, &mut entity_mapping)
+            }
+            Act::NewPoint => ui_state.new_point(&mut commands, &mut meshes, &mut materials),
+            Act::ToggleSnap(a) => ui_state.toggle_snap(a),
+            Act::ToggleSnapOff => ui_state.toggle_snap_off(),
+            Act::Confirm => ui_state.canonize(&mut commands, &mut entity_mapping),
+            Act::Exit => ui_state.close_all(&mut commands),
+            Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
+            _ => (),
+        }
     }
 }
 
