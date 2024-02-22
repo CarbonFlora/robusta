@@ -1,10 +1,10 @@
 use bevy::utils::hashbrown::HashMap;
-use robusta_core::RobustaEntity;
+// use robusta_core::RobustaEntity;
 use robusta_dxf::open::InterchangeFormat;
 
 use crate::leaves::history::view_history;
 
-use self::rselection::normalize;
+use self::rselection::remove_phantoms;
 
 use super::*;
 
@@ -15,7 +15,22 @@ pub struct UiState {
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
-    pub history: (Act, String),
+    pub dock_buffer: DockBuffer,
+}
+
+#[derive(Debug)]
+pub struct DockBuffer {
+    history: (Act, String),
+    selected: Vec<REntity>,
+}
+
+impl DockBuffer {
+    pub fn new() -> Self {
+        DockBuffer {
+            history: (Act::None, String::new()),
+            selected: Vec::new(),
+        }
+    }
 }
 
 /// This is all available tabs to be accessed.
@@ -30,7 +45,6 @@ pub enum EguiWindow {
 
 #[derive(Debug, Default)]
 pub struct CADState {
-    pub construction: Option<(Entity, RobustaEntity)>,
     pub object_snapping: SnapSettings,
     pub mode: Mode,
     pub cad_term: Option<String>,
@@ -77,46 +91,24 @@ pub enum Mode {
 #[derive(Debug, Component)]
 pub struct PhantomREntity;
 
-/// This is a marker component to delineate snapping points.
-#[derive(Debug, Component)]
-pub struct TransientREntity;
-
 impl UiState {
     pub fn new(path: &Option<String>) -> Self {
         Self {
             cad_state: CADState::new(),
             loaded_files: load_files(path),
             dock_state: ribbon_cadpanel(),
-            history: (Act::None, String::new()),
+            dock_buffer: DockBuffer::new(),
         }
     }
 
     pub fn ui(&mut self, ctx: &mut egui::Context, act_write: EventWriter<Act>) {
         let mut tab_viewer = TabViewer {
-            loaded_files: &mut self.loaded_files,
             act_write,
-            history: &self.history,
+            dock_buffer: &self.dock_buffer,
         };
         DockArea::new(&mut self.dock_state)
             .style(Style::from_egui(ctx.style().as_ref()))
             .show(ctx, &mut tab_viewer);
-    }
-
-    pub fn deselect_all(&self, deselections: &mut EventWriter<Pointer<Deselect>>) {
-        for i in &self.selected_entities {
-            deselections.send(Pointer::new(i.0 .1, i.0 .2.clone(), i.0 .0, Deselect))
-        }
-    }
-
-    pub fn remap_selection(&mut self, entity: &Entity, entity_mapping: &EntityMapping) {
-        let a = entity_mapping
-            .get(entity)
-            .expect("entity_mapping and entity miscommunication.");
-        for i in &mut self.selected_entities {
-            if i.0 .0 == *entity {
-                i.1 = Some(a.clone());
-            }
-        }
     }
 
     pub fn inspect(&mut self) {
@@ -127,140 +119,65 @@ impl UiState {
         }
     }
 
-    pub fn all_rect(&self) -> Rect {
-        let mut a = self.loaded_files.iter().flat_map(|x| x.1.iter_points());
-
-        let (mut min_x, mut min_y, mut max_x, mut max_y) = match a.next() {
-            None => (0., 0., 0., 0.),
-            Some(point) => (
-                point.coordinates.x,
-                point.coordinates.y,
-                point.coordinates.x,
-                point.coordinates.y,
-            ),
-        };
-
-        for point in a {
-            if point.coordinates.x < min_x {
-                min_x = point.coordinates.x;
-            }
-            if point.coordinates.x > max_x {
-                max_x = point.coordinates.x;
-            }
-            if point.coordinates.y < min_y {
-                min_y = point.coordinates.y;
-            }
-            if point.coordinates.y > max_y {
-                max_y = point.coordinates.y;
-            }
-        }
-
-        Rect::new(min_x, min_y, max_x, max_y)
-    }
-
-    fn top_z_layer(&self) -> usize {
-        self.loaded_files
-            .iter()
-            .fold(0usize, |x, y| x + y.1.entities.len())
-    }
-
     pub fn new_point(
         &mut self,
-        commands: &mut Commands,
-        meshes: &mut ResMut<Assets<Mesh>>,
-        materials: &mut ResMut<Assets<ColorMaterial>>,
+        co: &mut Commands,
+        me: &mut ResMut<Assets<Mesh>>,
+        ma: &mut ResMut<Assets<ColorMaterial>>,
     ) {
-        let entity_package = (commands, meshes, materials);
-        let z_layer = self.top_z_layer();
-        let id = entity_package
-            .0
-            .spawn((
-                MaterialMesh2dBundle {
-                    mesh: entity_package.1.add(shape::Circle::new(0.5).into()).into(),
-                    material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                    transform: Transform::from_translation(Vec3::new(0., 0., z_layer as f32)),
-                    ..default()
-                },
-                PhantomREntity,
-            ))
-            .id();
-
-        self.cad_state.construction = Some((
-            id,
-            RobustaEntity::Point(robusta_core::point::Point::new(0., 0., 0.)),
+        let z_layer = 1000000usize;
+        co.spawn((
+            MaterialMesh2dBundle {
+                mesh: me.add(shape::Circle::new(0.5).into()).into(),
+                material: ma.add(ColorMaterial::from(Color::WHITE)),
+                transform: Transform::from_translation(Vec3::new(0., 0., z_layer as f32)),
+                ..default()
+            },
+            PhantomREntity,
         ));
     }
 
-    pub fn canonize(
-        &mut self,
-        commands: &mut Commands,
-        entity_mapping: &mut ResMut<EntityMapping>,
-    ) {
-        if let Some((a, b)) = &mut self.cad_state.construction {
-            let c = self.loaded_files.get_mut(&None).unwrap();
-            normalize(commands, *a);
-            entity_mapping.hash.insert(*a, b.clone());
-            c.entities.push(b.clone());
-            self.cad_state.construction = None;
-        }
-        self.cancel_construction(commands);
-    }
-
-    pub fn cancel_construction(&mut self, commands: &mut Commands) {
-        if let Some((a, _b)) = &mut self.cad_state.construction {
-            commands.entity(*a).despawn_recursive();
-        }
-        self.cad_state.construction = None;
-    }
-
-    pub fn close_all(&mut self, commands: &mut Commands) {
+    pub fn close_all(&mut self, c: &mut Commands, ewp: Query<Entity, With<PhantomREntity>>) {
         self.cad_state.cad_term = None;
         self.cad_state.mode = Mode::Normal;
-        self.cancel_construction(commands);
+        remove_phantoms(c, ewp)
     }
 
-    pub fn push_history(&mut self, act: &Act, entity_mapping: &HashMap<Entity, RobustaEntity>) {
-        let (latest, history) = &mut self.history;
+    pub fn push_history(&mut self, act: &Act) {
+        let (latest, history) = &mut self.dock_buffer.history;
         let mut meta_data = String::new();
 
         if act == latest {
             return;
         }
 
-        history.push_str(
-            // 0,
-            match act {
-                Act::None => return,
-                Act::Exit => "Cleaning up.",
-                Act::QuitWithoutSaving => "Quit without saving.",
-                Act::DeselectAll => "Deselecting everything.",
-                Act::Confirm => "Action Confirmed.",
-                Act::OpenCADTerm => "Terminal opened.",
-                Act::TryAct(a) => {
-                    meta_data = format!("{a:?}");
-                    "Terminal submitted: "
-                }
-                Act::NewPoint => "Point created.",
-                Act::ToggleSnap(a) => {
-                    meta_data = format!("{a:?}");
-                    "Snap configuration changed: "
-                }
-                Act::ToggleSnapOff => "All object snaps turned off.",
-                Act::DebugReMapSelection(a) => {
-                    meta_data = format!("{:?}", entity_mapping.get(a).unwrap());
-                    "Entity Selected: "
-                }
-                Act::Inspect => "Inspecting.",
-                Act::PullCameraFocus(_) => "Camera moved.",
-                Act::FitView => "Fit view to all entities.",
-                Act::MoveCamera(_) => "Camera moved.",
-                Act::ZoomCamera(_) => "Camera zoomed.",
-            },
-        );
+        history.push_str(match act {
+            Act::None => return,
+            Act::Exit => "Cleaning up.",
+            Act::QuitWithoutSaving => "Quit without saving.",
+            Act::DeselectAll => "Deselecting everything.",
+            Act::Confirm => "Action Confirmed.",
+            Act::OpenCADTerm => "Terminal opened.",
+            Act::TryAct(a) => {
+                meta_data = format!("{a:?}");
+                "Terminal submitted: "
+            }
+            Act::NewPoint => "Point created.",
+            Act::ToggleSnap(a) => {
+                meta_data = format!("{a:?}");
+                "Snap configuration changed: "
+            }
+            Act::ToggleSnapOff => "All object snaps turned off.",
+            Act::Inspect => "Inspecting.",
+            Act::PullCameraFocus(_) => "Camera moved.",
+            Act::FitView => "Fit view to all entities.",
+            Act::MoveCamera(_) => "Camera moved.",
+            Act::ZoomCamera(_) => "Camera zoomed.",
+        });
         history.push_str(&meta_data);
         history.push('\n');
 
-        self.history.0 = act.clone();
+        self.dock_buffer.history.0 = act.clone();
     }
 
     pub fn toggle_snap(&mut self, snap: &Snaps) {
@@ -315,25 +232,10 @@ fn load_files(path: &Option<String>) -> HashMap<Option<String>, InterchangeForma
 pub struct CADPanel {}
 
 pub fn update_dock(
-    mut act_write: EventWriter<Act>,
+    act_write: EventWriter<Act>,
     mut ui_state: ResMut<UiState>,
     egui_context_cadpanel: Query<&mut EguiContext, With<CADPanel>>,
-    mut greetings: EventReader<SelectionInstance>,
 ) {
-    let buf = greetings
-        .read()
-        .cloned()
-        .collect::<Vec<SelectionInstance>>();
-
-    for i in buf {
-        match i.3 {
-            SelectionAddRemove::Add => {
-                ui_state.selected_entities.push((i.clone(), None));
-                act_write.send(Act::DebugReMapSelection(i.0));
-            }
-            SelectionAddRemove::Remove => ui_state.selected_entities.retain(|x| x.0 .0 != i.0),
-        };
-    }
     if let Ok(mut w) = egui_context_cadpanel.get_single().cloned() {
         ui_state.ui(w.get_mut(), act_write);
     }
@@ -341,9 +243,8 @@ pub fn update_dock(
 
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
-    loaded_files: &'a LoadedFiles,
     act_write: EventWriter<'a, Act>,
-    history: &'a (Act, String),
+    dock_buffer: &'a DockBuffer,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -355,9 +256,11 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
         match window {
             EguiWindow::Empty => (),
-            EguiWindow::History => view_history(ui, self.history),
-            EguiWindow::Points => view_points(ui, self.loaded_files),
-            EguiWindow::Inspect => view_inspection(ui, self.selected_entities, &mut self.act_write),
+            EguiWindow::History => view_history(ui, &self.dock_buffer.history),
+            EguiWindow::Points => (),
+            EguiWindow::Inspect => {
+                view_inspection(ui, &self.dock_buffer.selected, &mut self.act_write)
+            }
             EguiWindow::StateRibbon => (),
         }
     }

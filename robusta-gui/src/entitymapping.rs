@@ -1,21 +1,21 @@
-use bevy::utils::hashbrown::HashMap;
-use robusta_core::RobustaEntity;
+// use bevy::utils::hashbrown::HashMap;
+// use robusta_core::RobustaEntity;
 
-use super::*;
+// use super::*;
 
-#[derive(Resource, Default)]
-pub struct EntityMapping {
-    pub hash: HashMap<Entity, RobustaEntity>,
-}
+// #[derive(Resource, Default)]
+// pub struct EntityMapping {
+//     pub hash: HashMap<Entity, RobustaEntity>,
+// }
 
-impl EntityMapping {
-    pub fn new() -> EntityMapping {
-        EntityMapping {
-            hash: HashMap::new(),
-        }
-    }
+// impl EntityMapping {
+//     pub fn new() -> EntityMapping {
+//         EntityMapping {
+//             hash: HashMap::new(),
+//         }
+//     }
 
-    pub fn get(&self, entity: &Entity) -> Option<&RobustaEntity> {
-        self.hash.get(entity)
-    }
-}
+//     pub fn get(&self, entity: &Entity) -> Option<&RobustaEntity> {
+//         self.hash.get(entity)
+//     }
+// }

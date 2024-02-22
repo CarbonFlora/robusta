@@ -18,8 +18,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
 pub struct RCADCorePlugin;
 impl bevy::app::Plugin for RCADCorePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(EntityMapping::new())
-            .add_event::<Act>()
+        app.add_event::<Act>()
             .add_systems(Startup, camera_startup)
             .add_systems(Startup, spawn_window)
             .add_systems(PostStartup, draw_first)

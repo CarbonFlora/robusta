@@ -1,42 +1,34 @@
-use robusta_core::circle::Circle;
+use super::*;
 
-use crate::*;
-
-use self::rselection::Selection;
-
-pub fn draw_circles(
-    entity_package: &mut (
-        &mut Commands,
-        &mut ResMut<Assets<Mesh>>,
-        &mut ResMut<Assets<ColorMaterial>>,
-    ),
-    specific: &Circle,
-    entity_mapping: &mut EntityMapping,
-    index: usize,
+pub fn spawn_circle(
+    sp: &dxf::entities::Circle,
+    co: &mut Commands,
+    me: &mut ResMut<Assets<Mesh>>,
+    ma: &mut ResMut<Assets<ColorMaterial>>,
+    ix: usize,
 ) {
-    let line_width = 0.3f32;
-    let id = entity_package
-        .0
-        .spawn((
-            MaterialMesh2dBundle {
-                mesh: entity_package
-                    .1
-                    .add(circle_mesh(line_width, specific))
-                    .into(),
-                material: entity_package.2.add(ColorMaterial::from(Color::WHITE)),
-                transform: Transform::from_translation(Vec3::new(0., 0., index as f32)),
-                ..default()
-            },
-            PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<Selection>(),
-            On::<Pointer<Deselect>>::send_event::<Selection>(),
-        ))
-        .id();
-    entity_mapping
-        .hash
-        .insert(id, robusta_core::RobustaEntity::Circle(specific.clone()));
+    let lw = 0.3f32;
+    let sp = to_rentity(sp);
+    co.spawn((
+        MaterialMesh2dBundle {
+            mesh: me.add(circle_mesh(lw, &sp)).into(),
+            material: ma.add(ColorMaterial::from(Color::WHITE)),
+            transform: Transform::from_translation(Vec3::new(0., 0., ix as f32)),
+            ..default()
+        },
+        REntity::Circle(sp),
+        PickableBundle::default(),
+        On::<Pointer<Select>>::send_event::<Selection>(),
+        On::<Pointer<Deselect>>::send_event::<Selection>(),
+    ));
 }
 
+fn to_rentity(sp: &dxf::entities::Circle) -> robusta_core::circle::Circle {
+    let point1 = Point::new((sp.center.x + sp.radius) as f32, sp.center.y as f32, 0.);
+    let point2 = Point::new(sp.center.x as f32, sp.center.y as f32, 0.);
+
+    robusta_core::circle::Circle::new([point1, point2])
+}
 fn circle_mesh(line_width: f32, circle: &robusta_core::circle::Circle) -> Mesh {
     let lw_half = line_width / 2.0f32;
     let num_segments = 30u32;

@@ -1,9 +1,12 @@
-use bevy::ecs::{
-    component::Component,
-    entity::Entity,
-    event::{Event, EventReader},
-    query::With,
-    system::{Commands, Query},
+use bevy::{
+    ecs::{
+        component::Component,
+        entity::Entity,
+        event::{Event, EventReader},
+        query::With,
+        system::{Commands, Query},
+    },
+    hierarchy::DespawnRecursiveExt,
 };
 use bevy_mod_picking::{
     events::Pointer,
@@ -42,16 +45,7 @@ pub fn update_selection(mut c: Commands, mut evs: EventReader<Selection>) {
     }
 }
 
-pub fn normalize(c: &mut Commands, e: Entity) {
-    c.entity(e).insert((
-        PickableBundle::default(),
-        On::<Pointer<Select>>::send_event::<Selection>(),
-        On::<Pointer<Deselect>>::send_event::<Selection>(),
-    ));
-    c.entity(e).remove::<PhantomREntity>();
-}
-
-pub fn deselect_all(mut c: Commands, es: Query<Entity, With<Selected>>) {
+pub fn deselect_all(c: &mut Commands, es: Query<Entity, With<Selected>>) {
     for e in es.iter() {
         c.entity(e).remove::<Selected>();
     }
@@ -59,6 +53,27 @@ pub fn deselect_all(mut c: Commands, es: Query<Entity, With<Selected>>) {
 
 pub fn select_all(mut c: Commands, es: Query<Entity, With<REntity>>) {
     for e in es.iter() {
-        c.entity(e).add(Selected);
+        c.entity(e).insert(Selected);
     }
+}
+
+pub fn remove_phantoms(c: &mut Commands, ewp: Query<Entity, With<PhantomREntity>>) {
+    for e in ewp.iter() {
+        c.entity(e).despawn_recursive();
+    }
+}
+
+pub fn canonize(c: &mut Commands, ewp: Query<Entity, With<PhantomREntity>>) {
+    for e in ewp.iter() {
+        normalize(c, e);
+    }
+}
+
+fn normalize(c: &mut Commands, e: Entity) {
+    c.entity(e).insert((
+        PickableBundle::default(),
+        On::<Pointer<Select>>::send_event::<Selection>(),
+        On::<Pointer<Deselect>>::send_event::<Selection>(),
+    ));
+    c.entity(e).remove::<PhantomREntity>();
 }

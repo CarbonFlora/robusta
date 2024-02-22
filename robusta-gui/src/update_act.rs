@@ -1,14 +1,20 @@
 use bevy::prelude::*;
 use bevy_mod_picking::{prelude::Pointer, selection::Deselect};
 
-use crate::{keystrokes::Act, uistate::UiState, EntityMapping, Snaps};
+use crate::{
+    keystrokes::Act,
+    rselection::{canonize, deselect_all, Selected},
+    uistate::UiState,
+    PhantomREntity, REntity, Snaps,
+};
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(
     mut act_read: EventReader<Act>,
+    re: Query<&REntity>,
+    ewp: Query<Entity, With<PhantomREntity>>,
+    es: Query<Entity, With<Selected>>,
     mut ui_state: ResMut<UiState>,
-    mut entity_mapping: ResMut<EntityMapping>,
-    mut deselections: EventWriter<Pointer<Deselect>>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut camera: Query<
         (
@@ -18,7 +24,7 @@ pub fn update_act(
         ),
         With<bevy_pancam::PanCam>,
     >,
-    mut commands: Commands,
+    mut co: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
@@ -28,22 +34,21 @@ pub fn update_act(
             binding = to_act(string);
         }
 
-        ui_state.push_history(act, &entity_mapping.hash);
+        ui_state.push_history(act);
 
         match &binding {
             Act::MoveCamera((x, y)) => camera_transform(x, y, &mut camera),
             Act::ZoomCamera(z) => camera_zoom(z, &mut camera),
             Act::PullCameraFocus(rect) => camera_movement(rect, &mut camera),
-            Act::FitView => camera_movement(&ui_state.all_rect(), &mut camera),
+            Act::FitView => camera_movement(&fit_view_rect(re), &mut camera),
             Act::Inspect => ui_state.inspect(),
-            Act::DeselectAll => ui_state.deselect_all(&mut deselections),
+            Act::DeselectAll => deselect_all(&mut co, es),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-            Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, &entity_mapping),
-            Act::NewPoint => ui_state.new_point(&mut commands, &mut meshes, &mut materials),
+            Act::NewPoint => ui_state.new_point(&mut co, &mut meshes, &mut materials),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(),
-            Act::Confirm => ui_state.canonize(&mut commands, &mut entity_mapping),
-            Act::Exit => ui_state.close_all(&mut commands),
+            Act::Confirm => canonize(&mut co, ewp),
+            Act::Exit => ui_state.close_all(&mut co, ewp),
             Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
             _ => (),
         }
@@ -131,4 +136,44 @@ fn camera_zoom(
     if camera.2.scale < 0. {
         camera.2.scale = 0.;
     }
+}
+
+fn fit_view_rect(re: Query<&REntity>) -> Rect {
+    let mut a = Vec::new();
+    for e in re.iter() {
+        match e {
+            REntity::Arc(sp) => a.extend(&sp.definition),
+            REntity::Circle(sp) => a.extend(&sp.definition),
+            REntity::Line(sp) => a.extend(&sp.definition),
+            REntity::Point(sp) => a.push(sp),
+            REntity::Text(sp) => a.push(&sp.coordinates),
+        }
+    }
+
+    let (mut min_x, mut min_y, mut max_x, mut max_y) = match a.first() {
+        None => (0., 0., 0., 0.),
+        Some(point) => (
+            point.coordinates.x,
+            point.coordinates.y,
+            point.coordinates.x,
+            point.coordinates.y,
+        ),
+    };
+
+    for point in a {
+        if point.coordinates.x < min_x {
+            min_x = point.coordinates.x;
+        }
+        if point.coordinates.x > max_x {
+            max_x = point.coordinates.x;
+        }
+        if point.coordinates.y < min_y {
+            min_y = point.coordinates.y;
+        }
+        if point.coordinates.y > max_y {
+            max_y = point.coordinates.y;
+        }
+    }
+
+    Rect::new(min_x, min_y, max_x, max_y)
 }

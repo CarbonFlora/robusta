@@ -27,9 +27,9 @@ pub fn to_points(specific: &Arc) -> [Point; 3] {
     [point1, point2, lazy_point]
 }
 
-/// Returns a arc segment.
-pub fn to_segment(specific: &Arc) -> robusta_core::RobustaEntity {
-    robusta_core::RobustaEntity::Arc(robusta_core::arc::Arc {
-        definition: to_points(specific),
-    })
-}
+// Returns a arc segment.
+// pub fn to_segment(specific: &Arc) -> robusta_core::RobustaEntity {
+//     robusta_core::RobustaEntity::Arc(robusta_core::arc::Arc {
+//         definition: to_points(specific),
+//     })
+// }

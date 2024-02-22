@@ -1,4 +1,4 @@
-use robusta_core::{line::Line, point::Point, RobustaEntity};
+use robusta_core::{line::Line, point::Point};
 
 use super::*;
 
