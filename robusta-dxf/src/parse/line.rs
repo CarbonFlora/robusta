@@ -7,6 +7,12 @@ pub fn to_points(specific: &Line) -> [Point; 2] {
     [point1, point2]
 }
 
+pub fn to_rentity(sp: &dxf::entities::Line) -> robusta_core::line::Line {
+    let point1 = Point::new(sp.p1.x as f32, sp.p1.y as f32, 0.);
+    let point2 = Point::new(sp.p2.x as f32, sp.p2.y as f32, 0.);
+    robusta_core::line::Line::new([point1, point2])
+}
+
 /// Returns a line segment.
 pub fn to_segment(specific: &Line) -> robusta_core::RobustaEntity {
     robusta_core::RobustaEntity::Line(robusta_core::line::Line::new(to_points(specific)))

@@ -16,6 +16,7 @@ bevy_egui = { path = "../robusta_bevy_egui", features = ["immutable_ctx"] }
 robusta-core = { path = "../robusta-core" }
 robusta-dxf = { path = "../robusta-dxf" }
 
+anyhow = "1.0.79"
 bevy-inspector-egui = "0.22.1"
 bevy = { version = "0.12.1", features = [
     "dynamic_linking",
@@ -30,3 +31,4 @@ bevy_pancam = { version = "0.10.0", features = ["bevy_egui"] }
 bevy_framepace = "0.14.1"
 bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
 nalgebra = "0.32.3"
+dxf = { git = "https://github.com/ixmilia/dxf-rs.git" }

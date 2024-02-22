@@ -1,3 +1,5 @@
+use self::rselection::update_selection;
+
 use super::*;
 
 pub struct RCADPlugins;
@@ -7,6 +9,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
         let mut builder = bevy::app::PluginGroupBuilder::start::<Self>();
 
         builder = builder.add(RCADCorePlugin);
+        builder = builder.add(RSelectionPlugin);
 
         builder
     }
@@ -16,7 +19,6 @@ pub struct RCADCorePlugin;
 impl bevy::app::Plugin for RCADCorePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(EntityMapping::new())
-            .add_event::<SelectionInstance>()
             .add_event::<Act>()
             .add_systems(Startup, camera_startup)
             .add_systems(Startup, spawn_window)
@@ -25,6 +27,15 @@ impl bevy::app::Plugin for RCADCorePlugin {
             .add_systems(Update, update_viewport_ui)
             .add_systems(Update, update_dock)
             .add_systems(PostUpdate, update_act);
+    }
+}
+
+/// This is a wrapper for bevy_mod_picking selection.
+pub struct RSelectionPlugin;
+impl bevy::app::Plugin for RSelectionPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_event::<rselection::Selection>()
+            .add_systems(PreUpdate, update_selection);
     }
 }
 

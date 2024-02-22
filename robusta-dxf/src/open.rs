@@ -1,5 +1,4 @@
 // use std::io::Write;
-use crate::wrapper::RFile;
 
 use crate::*;
 
@@ -11,7 +10,14 @@ pub fn open_from_path(path: PathBuf) -> Drawing {
     }
 }
 
-pub fn parse_dxf(path: &Option<String>) -> RFile {
-    let d = open_from_path(path.clone().unwrap_or_default().into());
-    RFile::from(&d)
+pub fn parse_dxf(path: &Option<String>) -> Drawing {
+    open_from_path(path.clone().unwrap_or_default().into())
+}
+
+pub fn new_dxf() -> Drawing {
+    Drawing::new()
+}
+
+pub enum InterchangeFormat {
+    DXF(Drawing),
 }

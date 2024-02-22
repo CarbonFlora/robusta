@@ -1,19 +1,20 @@
 use bevy::utils::hashbrown::HashMap;
-use bevy_mod_picking::pointer::Location;
 use robusta_core::RobustaEntity;
+use robusta_dxf::open::InterchangeFormat;
 
 use crate::leaves::history::view_history;
 
+use self::rselection::normalize;
+
 use super::*;
 
-type LoadedFiles = HashMap<Option<String>, RFile>;
+type LoadedFiles = HashMap<Option<String>, InterchangeFormat>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
-    pub selected_entities: Vec<(SelectionInstance, Option<RobustaEntity>)>,
     pub history: (Act, String),
 }
 
@@ -25,37 +26,6 @@ pub enum EguiWindow {
     Inspect,
     History,
     StateRibbon,
-}
-
-#[derive(Event, Clone, Debug, PartialEq)]
-pub struct SelectionInstance(pub Entity, pub PointerId, pub Location, SelectionAddRemove);
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub enum SelectionAddRemove {
-    Add,
-    Remove,
-}
-
-impl From<ListenerInput<Pointer<Select>>> for SelectionInstance {
-    fn from(event: ListenerInput<Pointer<Select>>) -> Self {
-        SelectionInstance(
-            event.target,
-            event.pointer_id,
-            event.pointer_location.clone(),
-            SelectionAddRemove::Add,
-        )
-    }
-}
-
-impl From<ListenerInput<Pointer<Deselect>>> for SelectionInstance {
-    fn from(event: ListenerInput<Pointer<Deselect>>) -> Self {
-        SelectionInstance(
-            event.target,
-            event.pointer_id,
-            event.pointer_location.clone(),
-            SelectionAddRemove::Remove,
-        )
-    }
 }
 
 #[derive(Debug, Default)]
@@ -83,11 +53,7 @@ pub struct SnapSettings {
 }
 
 pub fn flip(boolean: &mut bool) {
-    if *boolean {
-        *boolean = false;
-    } else {
-        *boolean = true;
-    }
+    *boolean = !(*boolean);
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -121,7 +87,6 @@ impl UiState {
             cad_state: CADState::new(),
             loaded_files: load_files(path),
             dock_state: ribbon_cadpanel(),
-            selected_entities: Vec::new(),
             history: (Act::None, String::new()),
         }
     }
@@ -130,7 +95,6 @@ impl UiState {
         let mut tab_viewer = TabViewer {
             loaded_files: &mut self.loaded_files,
             act_write,
-            selected_entities: &mut self.selected_entities,
             history: &self.history,
         };
         DockArea::new(&mut self.dock_state)
@@ -234,15 +198,7 @@ impl UiState {
     ) {
         if let Some((a, b)) = &mut self.cad_state.construction {
             let c = self.loaded_files.get_mut(&None).unwrap();
-            commands.entity(*a).insert(PickableBundle::default());
-            commands
-                .entity(*a)
-                .insert(On::<Pointer<Select>>::send_event::<SelectionInstance>());
-            commands
-                .entity(*a)
-                .insert(On::<Pointer<Deselect>>::send_event::<SelectionInstance>());
-            commands.entity(*a).remove::<PhantomREntity>();
-
+            normalize(commands, *a);
             entity_mapping.hash.insert(*a, b.clone());
             c.entities.push(b.clone());
             self.cad_state.construction = None;
@@ -302,7 +258,7 @@ impl UiState {
             },
         );
         history.push_str(&meta_data);
-        history.push_str("\n");
+        history.push('\n');
 
         self.history.0 = act.clone();
     }
@@ -346,11 +302,11 @@ fn _debug_cadpanel() -> DockState<EguiWindow> {
     state
 }
 
-fn load_files(path: &Option<String>) -> LoadedFiles {
+fn load_files(path: &Option<String>) -> HashMap<Option<String>, InterchangeFormat> {
     let loaded_file = robusta_dxf::open::parse_dxf(path);
     let mut loaded_files = HashMap::new();
-    loaded_files.insert(path.clone(), loaded_file);
-    loaded_files.insert(None, RFile::new());
+    loaded_files.insert(path.clone(), InterchangeFormat::DXF(loaded_file));
+    loaded_files.insert(None, InterchangeFormat::DXF(robusta_dxf::open::new_dxf()));
 
     loaded_files
 }
@@ -387,7 +343,6 @@ pub fn update_dock(
 struct TabViewer<'a> {
     loaded_files: &'a LoadedFiles,
     act_write: EventWriter<'a, Act>,
-    selected_entities: &'a mut Vec<(SelectionInstance, Option<RobustaEntity>)>,
     history: &'a (Act, String),
 }
 

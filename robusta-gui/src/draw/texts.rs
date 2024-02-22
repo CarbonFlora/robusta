@@ -1,5 +1,7 @@
 use crate::*;
 
+use self::rselection::Selection;
+
 pub fn draw_texts(
     entity_package: &mut (
         &mut Commands,
@@ -34,8 +36,8 @@ pub fn draw_texts(
                 ..default()
             },
             PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Select>>::send_event::<Selection>(),
+            On::<Pointer<Deselect>>::send_event::<Selection>(),
         ))
         .id();
     entity_mapping

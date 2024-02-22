@@ -5,7 +5,7 @@ use crate::keystrokes::Act;
 
 pub fn view_inspection(
     ui: &mut egui::Ui,
-    selected_entities: &[(crate::uistate::SelectionInstance, Option<RobustaEntity>)],
+    selected_entities: &[Option<RobustaEntity>],
     act_write: &mut EventWriter<Act>,
 ) {
     // ui.colored_label(egui::Color32::WHITE, "Properties:");
@@ -16,8 +16,8 @@ pub fn view_inspection(
         return;
     }
 
-    for entity in selected_entities.iter().filter(|x| x.1.is_some()) {
-        match &entity.1.as_ref().unwrap() {
+    for entity in selected_entities.iter().filter(|x| x.is_some()) {
+        match &entity.as_ref().unwrap() {
             RobustaEntity::Point(a) => {
                 if ui.selectable_label(false, format!("{a}")).clicked() {
                     let c = a.min_max();

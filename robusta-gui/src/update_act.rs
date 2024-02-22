@@ -38,9 +38,7 @@ pub fn update_act(
             Act::Inspect => ui_state.inspect(),
             Act::DeselectAll => ui_state.deselect_all(&mut deselections),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-            Act::DebugReMapSelection(entity) => {
-                ui_state.remap_selection(entity, &mut entity_mapping)
-            }
+            Act::DebugReMapSelection(entity) => ui_state.remap_selection(entity, &entity_mapping),
             Act::NewPoint => ui_state.new_point(&mut commands, &mut meshes, &mut materials),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(),

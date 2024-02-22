@@ -16,6 +16,6 @@ impl EntityMapping {
     }
 
     pub fn get(&self, entity: &Entity) -> Option<&RobustaEntity> {
-        return self.hash.get(entity);
+        self.hash.get(entity)
     }
 }

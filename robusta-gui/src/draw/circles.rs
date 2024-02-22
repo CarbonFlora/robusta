@@ -2,6 +2,8 @@ use robusta_core::circle::Circle;
 
 use crate::*;
 
+use self::rselection::Selection;
+
 pub fn draw_circles(
     entity_package: &mut (
         &mut Commands,
@@ -26,8 +28,8 @@ pub fn draw_circles(
                 ..default()
             },
             PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Select>>::send_event::<Selection>(),
+            On::<Pointer<Deselect>>::send_event::<Selection>(),
         ))
         .id();
     entity_mapping

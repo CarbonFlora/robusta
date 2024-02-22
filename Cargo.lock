@@ -3954,6 +3954,7 @@ dependencies = [
 name = "robusta-gui"
 version = "0.0.1"
 dependencies = [
+ "anyhow",
  "bevy",
  "bevy-inspector-egui",
  "bevy_asset",
@@ -3963,6 +3964,7 @@ dependencies = [
  "bevy_pancam",
  "bevy_reflect",
  "bevy_window",
+ "dxf",
  "egui 0.25.0",
  "egui_dock",
  "nalgebra",

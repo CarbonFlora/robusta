@@ -2,6 +2,8 @@ use robusta_core::arc::Arc;
 
 use crate::*;
 
+use self::rselection::Selection;
+
 pub fn draw_arcs(
     entity_package: &mut (
         &mut Commands,
@@ -22,9 +24,10 @@ pub fn draw_arcs(
                 transform: Transform::from_translation(Vec3::new(0., 0., index as f32)),
                 ..default()
             },
+            REntity::Arc(specific),
             PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Select>>::send_event::<Selection>(),
+            On::<Pointer<Deselect>>::send_event::<Selection>(),
         ))
         .id();
     entity_mapping

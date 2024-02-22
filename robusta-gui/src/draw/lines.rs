@@ -2,6 +2,8 @@ use robusta_core::line::Line;
 
 use crate::*;
 
+use self::rselection::Selection;
+
 pub fn draw_lines(
     entity_package: &mut (
         &mut Commands,
@@ -32,8 +34,8 @@ pub fn draw_lines(
                 ..default()
             },
             PickableBundle::default(),
-            On::<Pointer<Select>>::send_event::<SelectionInstance>(),
-            On::<Pointer<Deselect>>::send_event::<SelectionInstance>(),
+            On::<Pointer<Select>>::send_event::<Selection>(),
+            On::<Pointer<Deselect>>::send_event::<Selection>(),
         ))
         .id();
     entity_mapping
