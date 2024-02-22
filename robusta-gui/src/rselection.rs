@@ -15,7 +15,7 @@ use bevy_mod_picking::{
     PickableBundle,
 };
 
-use crate::{PhantomREntity, REntity};
+use crate::{PhantomPoint, REntity};
 
 #[derive(Debug, Component)]
 pub struct Selected;
@@ -45,7 +45,7 @@ pub fn update_selection(mut c: Commands, mut evs: EventReader<Selection>) {
     }
 }
 
-pub fn deselect_all(c: &mut Commands, es: Query<Entity, With<Selected>>) {
+pub fn deselect_all(c: &mut Commands, es: &Query<Entity, With<Selected>>) {
     for e in es.iter() {
         c.entity(e).remove::<Selected>();
     }
@@ -57,13 +57,13 @@ pub fn select_all(mut c: Commands, es: Query<Entity, With<REntity>>) {
     }
 }
 
-pub fn remove_phantoms(c: &mut Commands, ewp: Query<Entity, With<PhantomREntity>>) {
+pub fn remove_phantoms(c: &mut Commands, ewp: &Query<Entity, With<PhantomPoint>>) {
     for e in ewp.iter() {
         c.entity(e).despawn_recursive();
     }
 }
 
-pub fn canonize(c: &mut Commands, ewp: Query<Entity, With<PhantomREntity>>) {
+pub fn canonize(c: &mut Commands, ewp: &Query<Entity, With<PhantomPoint>>) {
     for e in ewp.iter() {
         normalize(c, e);
     }
@@ -75,5 +75,5 @@ fn normalize(c: &mut Commands, e: Entity) {
         On::<Pointer<Select>>::send_event::<Selection>(),
         On::<Pointer<Deselect>>::send_event::<Selection>(),
     ));
-    c.entity(e).remove::<PhantomREntity>();
+    c.entity(e).remove::<PhantomPoint>();
 }

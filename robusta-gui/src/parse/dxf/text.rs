@@ -4,8 +4,8 @@ use super::*;
 pub fn spawn_text(
     sp: &dxf::entities::Text,
     co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
+    _me: &mut ResMut<Assets<Mesh>>,
+    _ma: &mut ResMut<Assets<ColorMaterial>>,
     ix: usize,
 ) {
     let sp = to_rentity(sp);

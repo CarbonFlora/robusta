@@ -47,5 +47,6 @@ pub fn view_inspection(
                 }
             }
         }
+        ui.separator();
     }
 }

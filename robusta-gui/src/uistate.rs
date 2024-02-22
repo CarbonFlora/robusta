@@ -4,7 +4,7 @@ use robusta_dxf::open::InterchangeFormat;
 
 use crate::leaves::history::view_history;
 
-use self::rselection::remove_phantoms;
+use self::rselection::{remove_phantoms, Selected};
 
 use super::*;
 
@@ -18,10 +18,10 @@ pub struct UiState {
     pub dock_buffer: DockBuffer,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct DockBuffer {
     history: (Act, String),
-    selected: Vec<REntity>,
+    pub selected: Vec<REntity>,
 }
 
 impl DockBuffer {
@@ -89,7 +89,7 @@ pub enum Mode {
 
 /// This is a marker component to delineate a point entity in the process of being placed.
 #[derive(Debug, Component)]
-pub struct PhantomREntity;
+pub struct PhantomPoint;
 
 impl UiState {
     pub fn new(path: &Option<String>) -> Self {
@@ -104,6 +104,7 @@ impl UiState {
     pub fn ui(&mut self, ctx: &mut egui::Context, act_write: EventWriter<Act>) {
         let mut tab_viewer = TabViewer {
             act_write,
+            cad_state: &self.cad_state,
             dock_buffer: &self.dock_buffer,
         };
         DockArea::new(&mut self.dock_state)
@@ -133,11 +134,12 @@ impl UiState {
                 transform: Transform::from_translation(Vec3::new(0., 0., z_layer as f32)),
                 ..default()
             },
-            PhantomREntity,
+            REntity::Point(point::Point::new(0., 0., 0.)),
+            PhantomPoint,
         ));
     }
 
-    pub fn close_all(&mut self, c: &mut Commands, ewp: Query<Entity, With<PhantomREntity>>) {
+    pub fn close_all(&mut self, c: &mut Commands, ewp: &Query<Entity, With<PhantomPoint>>) {
         self.cad_state.cad_term = None;
         self.cad_state.mode = Mode::Normal;
         remove_phantoms(c, ewp)
@@ -202,9 +204,6 @@ fn ribbon_cadpanel() -> DockState<EguiWindow> {
     let tree = state.main_surface_mut();
     let [old, _new] = tree.split_above(NodeIndex::root(), 0.1, vec![EguiWindow::StateRibbon]);
     let [_old, _new] = tree.split_left(old, 0.22, vec![EguiWindow::Inspect, EguiWindow::Points]);
-    // let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspect]);
-    // let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
-    // let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Debug]);
 
     state
 }
@@ -234,9 +233,12 @@ pub struct CADPanel {}
 pub fn update_dock(
     act_write: EventWriter<Act>,
     mut ui_state: ResMut<UiState>,
-    egui_context_cadpanel: Query<&mut EguiContext, With<CADPanel>>,
+    qec: Query<&mut EguiContext, With<CADPanel>>,
+    qre: Query<&REntity, With<Selected>>,
 ) {
-    if let Ok(mut w) = egui_context_cadpanel.get_single().cloned() {
+    ui_state.dock_buffer.selected = qre.iter().cloned().collect::<Vec<REntity>>();
+
+    if let Ok(mut w) = qec.get_single().cloned() {
         ui_state.ui(w.get_mut(), act_write);
     }
 }
@@ -244,6 +246,7 @@ pub fn update_dock(
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     act_write: EventWriter<'a, Act>,
+    cad_state: &'a CADState,
     dock_buffer: &'a DockBuffer,
 }
 
@@ -261,7 +264,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Inspect => {
                 view_inspection(ui, &self.dock_buffer.selected, &mut self.act_write)
             }
-            EguiWindow::StateRibbon => (),
+            EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state),
         }
     }
 
@@ -274,6 +277,9 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 }
 
+fn view_stateribbon(ui: &mut egui::Ui, cad_state: &CADState) {
+    ui.label(format!("{:?}", cad_state.mode));
+}
 // Each viewport should have their own respective camera.
 // #[derive(Component)]
 // pub struct ViewportCamera {

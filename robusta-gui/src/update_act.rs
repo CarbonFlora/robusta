@@ -1,18 +1,17 @@
 use bevy::prelude::*;
-use bevy_mod_picking::{prelude::Pointer, selection::Deselect};
 
 use crate::{
     keystrokes::Act,
     rselection::{canonize, deselect_all, Selected},
     uistate::UiState,
-    PhantomREntity, REntity, Snaps,
+    PhantomPoint, REntity, Snaps,
 };
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(
     mut act_read: EventReader<Act>,
     re: Query<&REntity>,
-    ewp: Query<Entity, With<PhantomREntity>>,
+    ewp: Query<Entity, With<PhantomPoint>>,
     es: Query<Entity, With<Selected>>,
     mut ui_state: ResMut<UiState>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
@@ -40,15 +39,15 @@ pub fn update_act(
             Act::MoveCamera((x, y)) => camera_transform(x, y, &mut camera),
             Act::ZoomCamera(z) => camera_zoom(z, &mut camera),
             Act::PullCameraFocus(rect) => camera_movement(rect, &mut camera),
-            Act::FitView => camera_movement(&fit_view_rect(re), &mut camera),
+            Act::FitView => camera_movement(&fit_view_rect(&re), &mut camera),
             Act::Inspect => ui_state.inspect(),
-            Act::DeselectAll => deselect_all(&mut co, es),
+            Act::DeselectAll => deselect_all(&mut co, &es),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
             Act::NewPoint => ui_state.new_point(&mut co, &mut meshes, &mut materials),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(),
-            Act::Confirm => canonize(&mut co, ewp),
-            Act::Exit => ui_state.close_all(&mut co, ewp),
+            Act::Confirm => canonize(&mut co, &ewp),
+            Act::Exit => ui_state.close_all(&mut co, &ewp),
             Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
             _ => (),
         }
@@ -138,7 +137,7 @@ fn camera_zoom(
     }
 }
 
-fn fit_view_rect(re: Query<&REntity>) -> Rect {
+fn fit_view_rect(re: &Query<&REntity>) -> Rect {
     let mut a = Vec::new();
     for e in re.iter() {
         match e {

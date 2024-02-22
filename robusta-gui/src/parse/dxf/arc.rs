@@ -41,7 +41,7 @@ fn to_rentity(sp: &dxf::entities::Arc) -> robusta_core::arc::Arc {
         sp.center.x as f32 + sp.radius as f32 * p3_angle_rad.cos(),
         sp.center.y as f32 + sp.radius as f32 * p3_angle_rad.sin(),
     );
-    let lazy_point = Point::new(p3_x as f32, p3_y as f32, 0.);
+    let lazy_point = Point::new(p3_x, p3_y, 0.);
 
     robusta_core::arc::Arc::new([point1, point2, lazy_point])
 }

@@ -52,7 +52,7 @@ fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
         [None, Some(KeyCode::I)] => Act::ZoomCamera(-1.),
         [None, Some(KeyCode::O)] => Act::ZoomCamera(1.),
         [None, Some(KeyCode::Insert)] => Act::Confirm,
-        [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
+        [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Colon)] => {
             Act::OpenCADTerm
         }
         _ => Act::None,
@@ -69,8 +69,9 @@ fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
     }
 }
 
-#[derive(Event, Debug, PartialEq, Clone)]
+#[derive(Event, Debug, Default, PartialEq, Clone)]
 pub enum Act {
+    #[default]
     None,
     Exit,
     QuitWithoutSaving,
