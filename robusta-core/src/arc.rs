@@ -38,6 +38,19 @@ impl Arc {
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
         crate::min_max(self.definition.as_ref())
     }
+
+    pub fn endpoints(&self) -> Vec<Point> {
+        vec![self.definition[0].clone(), self.definition[1].clone()]
+    }
+
+    pub fn midpoints(&self) -> Vec<Point> {
+        todo!()
+    }
+
+    pub fn center(&self) -> Vec<Point> {
+        let (_radius, center) = circle_specs(&self.definition);
+        vec![center]
+    }
 }
 
 fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, Point) {

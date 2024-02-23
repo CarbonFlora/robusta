@@ -56,12 +56,12 @@ impl CADState {
 
 #[derive(Debug, Default)]
 pub struct SnapSettings {
-    endpoint: bool,
-    midpoint: bool,
-    center: bool,
-    intersection: bool,
-    perpendicular: bool,
-    tangent: bool,
+    pub endpoint: bool,
+    pub midpoint: bool,
+    pub center: bool,
+    pub intersection: bool,
+    pub perpendicular: bool,
+    pub tangent: bool,
 }
 
 pub fn flip(boolean: &mut bool) {

@@ -24,8 +24,8 @@ pub fn update_act(
         With<bevy_pancam::PanCam>,
     >,
     mut co: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut me: ResMut<Assets<Mesh>>,
+    mut ma: ResMut<Assets<ColorMaterial>>,
 ) {
     for act in act_read.read() {
         let mut binding = act.clone();
@@ -43,7 +43,7 @@ pub fn update_act(
             Act::Inspect => ui_state.inspect(),
             Act::DeselectAll => deselect_all(&mut co, &es),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-            Act::NewPoint => ui_state.new_point(&mut co, &mut meshes, &mut materials),
+            Act::NewPoint => ui_state.new_point(&mut co, &mut me, &mut ma),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(),
             Act::Confirm => canonize(&mut co, &ewp),
