@@ -10,7 +10,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
 
         builder = builder.add(RCADCorePlugin);
         builder = builder.add(RSelectionPlugin);
-        builder = builder.add(SnapPlugin);
+        // builder = builder.add(SnapPlugin);
 
         builder
     }
