@@ -5,7 +5,6 @@ members = [
   "robusta-core",
   "robusta-gui",
   "robusta_bevy_egui",
-  "robusta-dxf",
 ]
 
 default-members = ["robusta-term"]

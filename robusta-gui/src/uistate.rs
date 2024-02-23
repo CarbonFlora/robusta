@@ -1,10 +1,8 @@
-use bevy::utils::hashbrown::HashMap;
-// use robusta_core::RobustaEntity;
-use robusta_dxf::open::InterchangeFormat;
-
+use self::rselection::{remove_phantoms, PhantomPoint, Selected};
 use crate::leaves::history::view_history;
-
-use self::rselection::{remove_phantoms, Selected};
+use bevy::utils::hashbrown::HashMap;
+use dxf::Drawing;
+use std::path::PathBuf;
 
 use super::*;
 
@@ -86,10 +84,6 @@ pub enum Mode {
     Normal,
     Typing,
 }
-
-/// This is a marker component to delineate a point entity in the process of being placed.
-#[derive(Debug, Component)]
-pub struct PhantomPoint;
 
 impl UiState {
     pub fn new(path: &Option<String>) -> Self {
@@ -219,12 +213,32 @@ fn _debug_cadpanel() -> DockState<EguiWindow> {
 }
 
 fn load_files(path: &Option<String>) -> HashMap<Option<String>, InterchangeFormat> {
-    let loaded_file = robusta_dxf::open::parse_dxf(path);
+    let loaded_file = parse_dxf(path);
     let mut loaded_files = HashMap::new();
     loaded_files.insert(path.clone(), InterchangeFormat::DXF(loaded_file));
-    loaded_files.insert(None, InterchangeFormat::DXF(robusta_dxf::open::new_dxf()));
+    loaded_files.insert(None, InterchangeFormat::DXF(new_dxf()));
 
     loaded_files
+}
+
+pub fn open_from_path(path: PathBuf) -> Drawing {
+    let drawing = Drawing::load_file(path);
+    match drawing {
+        Ok(d) => d,
+        Err(_e) => Drawing::new(),
+    }
+}
+
+pub fn parse_dxf(path: &Option<String>) -> Drawing {
+    open_from_path(path.clone().unwrap_or_default().into())
+}
+
+pub fn new_dxf() -> Drawing {
+    Drawing::new()
+}
+
+pub enum InterchangeFormat {
+    DXF(Drawing),
 }
 
 #[derive(Component, Default)]
@@ -279,6 +293,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
 fn view_stateribbon(ui: &mut egui::Ui, cad_state: &CADState) {
     ui.label(format!("{:?}", cad_state.mode));
+    ui.label(format!("{:?}", cad_state.object_snapping));
 }
 // Each viewport should have their own respective camera.
 // #[derive(Component)]

@@ -3942,15 +3942,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "robusta-dxf"
-version = "0.0.1"
-dependencies = [
- "anyhow",
- "dxf",
- "robusta-core",
-]
-
-[[package]]
 name = "robusta-gui"
 version = "0.0.1"
 dependencies = [
@@ -3969,7 +3960,6 @@ dependencies = [
  "egui_dock",
  "nalgebra",
  "robusta-core",
- "robusta-dxf",
 ]
 
 [[package]]

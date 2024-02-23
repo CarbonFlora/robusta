@@ -1,3 +1,5 @@
+use self::rselection::{update_selection, Selected};
+use self::snap::SnapPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{prelude::*, window};
 use bevy_egui::EguiContext;
@@ -18,6 +20,7 @@ pub mod leaves;
 pub mod parse;
 pub mod rcadplugin;
 pub mod rselection;
+pub mod snap;
 pub mod uistate;
 pub mod update_act;
 pub mod viewport_ui;
@@ -47,9 +50,7 @@ pub fn draw_first(
 ) {
     for (_file_name, info) in &ui_state.loaded_files {
         match info {
-            robusta_dxf::open::InterchangeFormat::DXF(drawing) => {
-                spawn_from_dxf(&mut co, &mut me, &mut ma, drawing)
-            }
+            InterchangeFormat::DXF(drawing) => spawn_from_dxf(&mut co, &mut me, &mut ma, drawing),
         }
     }
 }

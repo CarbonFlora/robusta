@@ -2,9 +2,9 @@ use bevy::prelude::*;
 
 use crate::{
     keystrokes::Act,
-    rselection::{canonize, deselect_all, Selected},
+    rselection::{canonize, deselect_all, PhantomPoint, Selected},
     uistate::UiState,
-    PhantomPoint, REntity, Snaps,
+    REntity, Snaps,
 };
 
 #[allow(clippy::too_many_arguments)]

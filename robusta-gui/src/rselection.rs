@@ -15,7 +15,11 @@ use bevy_mod_picking::{
     PickableBundle,
 };
 
-use crate::{PhantomPoint, REntity};
+use crate::REntity;
+
+/// This is a marker component to delineate a point entity in the process of being placed.
+#[derive(Debug, Component)]
+pub struct PhantomPoint;
 
 #[derive(Debug, Component)]
 pub struct Selected;

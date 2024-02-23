@@ -1,4 +1,4 @@
-use self::rselection::update_selection;
+use self::rselection::PhantomPoint;
 
 use super::*;
 
@@ -10,6 +10,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
 
         builder = builder.add(RCADCorePlugin);
         builder = builder.add(RSelectionPlugin);
+        builder = builder.add(SnapPlugin);
 
         builder
     }
