@@ -43,14 +43,18 @@ pub enum REntity {
 }
 
 pub fn draw_first(
-    ui_state: Res<self::uistate::UiState>,
+    ui_state: Res<UiState>,
+    tzi: ResMut<TopZLayer>,
     mut co: Commands,
     mut me: ResMut<Assets<Mesh>>,
     mut ma: ResMut<Assets<ColorMaterial>>,
 ) {
+    let tzi = tzi.into_inner();
     for (_file_name, info) in &ui_state.loaded_files {
         match info {
-            InterchangeFormat::DXF(drawing) => spawn_from_dxf(&mut co, &mut me, &mut ma, drawing),
+            InterchangeFormat::DXF(drawing) => {
+                spawn_from_dxf(&mut co, &mut me, &mut ma, drawing, tzi)
+            }
         }
     }
 }
@@ -60,8 +64,9 @@ fn spawn_from_dxf(
     me: &mut ResMut<Assets<Mesh>>,
     ma: &mut ResMut<Assets<ColorMaterial>>,
     drawing: &dxf::Drawing,
+    ix: &mut TopZLayer,
 ) {
-    for (ix, e) in drawing.entities().enumerate() {
+    for e in drawing.entities() {
         match &e.specific {
             EntityType::Face3D(_) => todo!(),
             EntityType::Solid3D(_) => todo!(),
@@ -109,5 +114,6 @@ fn spawn_from_dxf(
             EntityType::Wipeout(_) => todo!(),
             EntityType::XLine(_) => todo!(),
         }
+        ix.0 += 1;
     }
 }

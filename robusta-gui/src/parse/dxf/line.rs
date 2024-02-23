@@ -5,7 +5,7 @@ pub fn spawn_line(
     co: &mut Commands,
     me: &mut ResMut<Assets<Mesh>>,
     ma: &mut ResMut<Assets<ColorMaterial>>,
-    ix: usize,
+    ix: &mut TopZLayer,
 ) {
     let lw = 0.3f32;
     let sp = to_rentity(sp);
@@ -17,7 +17,7 @@ pub fn spawn_line(
             transform: Transform::from_translation(Vec3::new(
                 sp.definition[0].coordinates.x,
                 sp.definition[0].coordinates.y,
-                ix as f32,
+                ix.0 as f32,
             )),
             ..default()
         },

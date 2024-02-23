@@ -54,6 +54,15 @@ impl CADState {
     }
 }
 
+#[derive(Resource, Default)]
+pub struct TopZLayer(pub usize);
+
+impl TopZLayer {
+    pub fn new() -> Self {
+        TopZLayer(0usize)
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct SnapSettings {
     pub endpoint: bool,
@@ -119,13 +128,13 @@ impl UiState {
         co: &mut Commands,
         me: &mut ResMut<Assets<Mesh>>,
         ma: &mut ResMut<Assets<ColorMaterial>>,
+        tzi: &mut TopZLayer,
     ) {
-        let z_layer = 1000000usize;
         co.spawn((
             MaterialMesh2dBundle {
                 mesh: me.add(shape::Circle::new(0.5).into()).into(),
-                material: ma.add(ColorMaterial::from(Color::WHITE)),
-                transform: Transform::from_translation(Vec3::new(0., 0., z_layer as f32)),
+                material: ma.add(ColorMaterial::from(Color::CYAN)),
+                transform: Transform::from_translation(Vec3::new(0., 0., tzi.0 as f32)),
                 ..default()
             },
             REntity::Point(point::Point::new(0., 0., 0.)),

@@ -4,7 +4,7 @@ use crate::{
     keystrokes::Act,
     rselection::{canonize, deselect_all, PhantomPoint, Selected},
     uistate::UiState,
-    REntity, Snaps,
+    REntity, Snaps, TopZLayer,
 };
 
 #[allow(clippy::too_many_arguments)]
@@ -14,6 +14,7 @@ pub fn update_act(
     ewp: Query<Entity, With<PhantomPoint>>,
     es: Query<Entity, With<Selected>>,
     mut ui_state: ResMut<UiState>,
+    mut tzi: ResMut<TopZLayer>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut camera: Query<
         (
@@ -43,7 +44,7 @@ pub fn update_act(
             Act::Inspect => ui_state.inspect(),
             Act::DeselectAll => deselect_all(&mut co, &es),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-            Act::NewPoint => ui_state.new_point(&mut co, &mut me, &mut ma),
+            Act::NewPoint => ui_state.new_point(&mut co, &mut me, &mut ma, &mut tzi),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(),
             Act::Confirm => canonize(&mut co, &ewp),

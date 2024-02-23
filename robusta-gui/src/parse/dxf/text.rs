@@ -6,7 +6,7 @@ pub fn spawn_text(
     co: &mut Commands,
     _me: &mut ResMut<Assets<Mesh>>,
     _ma: &mut ResMut<Assets<ColorMaterial>>,
-    ix: usize,
+    ix: &mut TopZLayer,
 ) {
     let sp = to_rentity(sp);
     let text_body = Text::from_section(sp.body.clone(), TextStyle::default());
@@ -15,7 +15,7 @@ pub fn spawn_text(
         Text2dBundle {
             text: text_body,
             text_anchor: bevy::sprite::Anchor::Center,
-            transform: Transform::from_translation(Vec3::new(origin[0], origin[1], ix as f32))
+            transform: Transform::from_translation(Vec3::new(origin[0], origin[1], ix.0 as f32))
                 .with_rotation(Quat::from_rotation_z(sp.rotation))
                 .with_scale(Vec3::new(sp.height / 5., sp.height / 5., 1.)),
             text_layout_info: bevy::text::TextLayoutInfo::default(),

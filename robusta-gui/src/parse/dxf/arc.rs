@@ -5,7 +5,7 @@ pub fn spawn_arc(
     co: &mut Commands,
     me: &mut ResMut<Assets<Mesh>>,
     ma: &mut ResMut<Assets<ColorMaterial>>,
-    ix: usize,
+    ix: &mut TopZLayer,
 ) {
     let lw = 0.3f32;
     let sp = to_rentity(sp);
@@ -13,7 +13,7 @@ pub fn spawn_arc(
         MaterialMesh2dBundle {
             mesh: me.add(arc_mesh(lw, &sp)).into(),
             material: ma.add(ColorMaterial::from(Color::WHITE)),
-            transform: Transform::from_translation(Vec3::new(0., 0., ix as f32)),
+            transform: Transform::from_translation(Vec3::new(0., 0., ix.0 as f32)),
             ..default()
         },
         REntity::Arc(sp),
