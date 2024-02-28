@@ -63,3 +63,7 @@ This is important, but for another day.
 
 - Fence System
 In addition to the constraint system, have it so arcs and lines must be between two points. This is called the fence system as of now.
+
+## Bugs
+- On startup, using keys: [win + arrow keys] messes with the bevy focus system and app functionality is impacted. This is an upstream issue.
+- With [select nothing deselect all] on, clicking on the cadpanel deselects all even though the settings are changed. 

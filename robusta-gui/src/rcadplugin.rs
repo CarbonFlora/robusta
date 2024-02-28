@@ -34,7 +34,7 @@ impl bevy::app::Plugin for RCADCorePlugin {
 }
 
 /// Spawn a new window with reasonable defaults.
-fn spawn_window(mut co: Commands, mut pw: Query<&mut Window, With<PrimaryWindow>>) {
+fn spawn_window(mut co: Commands) {
     co.spawn((
         window::Window {
             title: String::from("CADPanel"),
@@ -43,7 +43,6 @@ fn spawn_window(mut co: Commands, mut pw: Query<&mut Window, With<PrimaryWindow>
         },
         CADPanel::default(),
     ));
-    pw.single_mut().title = String::from("Viewport");
 }
 
 fn camera_startup(
