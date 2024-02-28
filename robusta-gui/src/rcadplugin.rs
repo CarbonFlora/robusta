@@ -1,4 +1,7 @@
-use self::rselection::PhantomPoint;
+use self::{
+    phantom::{update_phantom_point, PhantomPlugin},
+    rselection::RSelectionPlugin,
+};
 
 use super::*;
 
@@ -11,6 +14,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
         builder = builder.add(RCADCorePlugin);
         builder = builder.add(RSelectionPlugin);
         builder = builder.add(SnapPlugin);
+        builder = builder.add(PhantomPlugin);
 
         builder
     }
@@ -26,17 +30,7 @@ impl bevy::app::Plugin for RCADCorePlugin {
             .add_systems(PreUpdate, capture_keystrokes)
             .add_systems(Update, update_viewport_ui)
             .add_systems(Update, update_dock)
-            .add_systems(Update, update_phantom_point)
             .add_systems(PostUpdate, update_act);
-    }
-}
-
-/// This is a wrapper for bevy_mod_picking selection.
-pub struct RSelectionPlugin;
-impl bevy::app::Plugin for RSelectionPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_event::<rselection::Selection>()
-            .add_systems(PreUpdate, update_selection);
     }
 }
 
@@ -64,35 +58,7 @@ fn camera_startup(
     co.spawn(Camera2dBundle::default())
         .insert((bevy_pancam::PanCam {
             grab_buttons: vec![MouseButton::Middle, MouseButton::Right],
-            zoom_to_cursor: false,
+            // zoom_to_cursor: false,
             ..default()
         },));
-}
-
-#[allow(clippy::type_complexity)]
-fn update_phantom_point(
-    mut ewp: Query<
-        (&mut Transform, &mut REntity),
-        (With<PhantomPoint>, Without<bevy_pancam::PanCam>),
-    >,
-    window: Query<&Window, With<PrimaryWindow>>,
-    transform: Query<(&Camera, &GlobalTransform), With<bevy_pancam::PanCam>>,
-) {
-    let (ca, gt) = transform.single();
-    if let Ok((mut tr, re)) = ewp.get_single_mut() {
-        if let Some(cursor_world_pos) = window
-            .single()
-            .cursor_position()
-            .and_then(|cursor_pos| ca.viewport_to_world_2d(gt, cursor_pos))
-        {
-            match &mut re.into_inner() {
-                REntity::Point(sp) => {
-                    sp.xyz_mut(cursor_world_pos.x, cursor_world_pos.y, sp.coordinates.z);
-                }
-                _ => panic!("Non-point is a phantom entity."),
-            };
-
-            tr.translation = Vec3::new(cursor_world_pos.x, cursor_world_pos.y, tr.translation.z);
-        }
-    }
 }

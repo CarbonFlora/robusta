@@ -17,7 +17,7 @@ pub fn spawn_line(
             transform: Transform::from_translation(Vec3::new(
                 sp.definition[0].coordinates.x,
                 sp.definition[0].coordinates.y,
-                ix.0 as f32,
+                ix.top() as f32,
             )),
             ..default()
         },

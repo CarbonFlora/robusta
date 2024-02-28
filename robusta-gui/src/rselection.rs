@@ -1,4 +1,5 @@
 use bevy::{
+    app::PreUpdate,
     ecs::{
         component::Component,
         entity::Entity,
@@ -6,20 +7,23 @@ use bevy::{
         query::With,
         system::{Commands, Query},
     },
-    hierarchy::DespawnRecursiveExt,
 };
 use bevy_mod_picking::{
     events::Pointer,
-    prelude::{ListenerInput, On},
+    prelude::ListenerInput,
     selection::{Deselect, Select},
-    PickableBundle,
 };
 
 use crate::REntity;
 
-/// This is a marker component to delineate a point entity in the process of being placed.
-#[derive(Debug, Component)]
-pub struct PhantomPoint;
+/// This is a wrapper for bevy_mod_picking selection.
+pub struct RSelectionPlugin;
+impl bevy::app::Plugin for RSelectionPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_event::<Selection>()
+            .add_systems(PreUpdate, update_selection);
+    }
+}
 
 #[derive(Debug, Component)]
 pub struct Selected;
@@ -59,25 +63,4 @@ pub fn select_all(mut c: Commands, es: Query<Entity, With<REntity>>) {
     for e in es.iter() {
         c.entity(e).insert(Selected);
     }
-}
-
-pub fn remove_phantoms(c: &mut Commands, ewp: &Query<Entity, With<PhantomPoint>>) {
-    for e in ewp.iter() {
-        c.entity(e).despawn_recursive();
-    }
-}
-
-pub fn canonize(c: &mut Commands, ewp: &Query<Entity, With<PhantomPoint>>) {
-    for e in ewp.iter() {
-        normalize(c, e);
-    }
-}
-
-fn normalize(c: &mut Commands, e: Entity) {
-    c.entity(e).insert((
-        PickableBundle::default(),
-        On::<Pointer<Select>>::send_event::<Selection>(),
-        On::<Pointer<Deselect>>::send_event::<Selection>(),
-    ));
-    c.entity(e).remove::<PhantomPoint>();
 }

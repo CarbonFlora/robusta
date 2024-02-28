@@ -13,7 +13,7 @@ pub fn spawn_circle(
         MaterialMesh2dBundle {
             mesh: me.add(circle_mesh(lw, &sp)).into(),
             material: ma.add(ColorMaterial::from(Color::WHITE)),
-            transform: Transform::from_translation(Vec3::new(0., 0., ix.0 as f32)),
+            transform: Transform::from_translation(Vec3::new(0., 0., ix.top() as f32)),
             ..default()
         },
         REntity::Circle(sp),

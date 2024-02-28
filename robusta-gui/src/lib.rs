@@ -1,4 +1,4 @@
-use self::rselection::{update_selection, Selected};
+use self::rselection::Selected;
 use self::snap::SnapPlugin;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{prelude::*, window};
@@ -18,6 +18,7 @@ pub mod entitymapping;
 pub mod keystrokes;
 pub mod leaves;
 pub mod parse;
+pub mod phantom;
 pub mod rcadplugin;
 pub mod rselection;
 pub mod snap;
@@ -40,6 +41,22 @@ pub enum REntity {
     Line(line::Line),
     Point(point::Point),
     Text(text::Text),
+}
+
+impl REntity {
+    pub fn unwrap_point(&self) -> &point::Point {
+        match self {
+            REntity::Point(sp) => sp,
+            _ => panic!("Unwrapped a non-point using custom unwrap."),
+        }
+    }
+
+    pub fn unwrap_point_mut(&mut self) -> &mut point::Point {
+        match self {
+            REntity::Point(sp) => sp,
+            _ => panic!("Unwrapped a non-point using custom unwrap."),
+        }
+    }
 }
 
 pub fn draw_first(
@@ -114,6 +131,5 @@ fn spawn_from_dxf(
             EntityType::Wipeout(_) => todo!(),
             EntityType::XLine(_) => todo!(),
         }
-        ix.0 += 1;
     }
 }

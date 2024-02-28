@@ -2,7 +2,9 @@ use bevy::prelude::*;
 
 use crate::{
     keystrokes::Act,
-    rselection::{canonize, deselect_all, PhantomPoint, Selected},
+    phantom::{canonize, spawn_phantom_point, PhantomPoint},
+    rselection::{deselect_all, Selected},
+    snap::UpdateSnapPoints,
     uistate::UiState,
     REntity, Snaps, TopZLayer,
 };
@@ -10,6 +12,7 @@ use crate::{
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(
     mut act_read: EventReader<Act>,
+    mut ewrsp: EventWriter<UpdateSnapPoints>,
     re: Query<&REntity>,
     ewp: Query<Entity, With<PhantomPoint>>,
     es: Query<Entity, With<Selected>>,
@@ -44,11 +47,11 @@ pub fn update_act(
             Act::Inspect => ui_state.inspect(),
             Act::DeselectAll => deselect_all(&mut co, &es),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-            Act::NewPoint => ui_state.new_point(&mut co, &mut me, &mut ma, &mut tzi),
+            Act::NewPoint => spawn_phantom_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
-            Act::ToggleSnapOff => ui_state.toggle_snap_off(),
-            Act::Confirm => canonize(&mut co, &ewp),
-            Act::Exit => ui_state.close_all(&mut co, &ewp),
+            Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
+            Act::Confirm => canonize(&mut co, &ewp, &mut ewrsp),
+            Act::Exit => ui_state.close_all(&mut co, &ewp, &mut ewrsp),
             Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
             _ => (),
         }

@@ -1,4 +1,8 @@
-use self::rselection::{remove_phantoms, PhantomPoint, Selected};
+use self::{
+    phantom::{despawn_all_phantoms, PhantomPoint},
+    rselection::Selected,
+    snap::UpdateSnapPoints,
+};
 use crate::leaves::history::view_history;
 use bevy::utils::hashbrown::HashMap;
 use dxf::Drawing;
@@ -55,11 +59,16 @@ impl CADState {
 }
 
 #[derive(Resource, Default)]
-pub struct TopZLayer(pub usize);
+pub struct TopZLayer(usize);
 
 impl TopZLayer {
     pub fn new() -> Self {
         TopZLayer(0usize)
+    }
+
+    pub fn top(&mut self) -> usize {
+        self.0 += 1;
+        self.0
     }
 }
 
@@ -71,6 +80,17 @@ pub struct SnapSettings {
     pub intersection: bool,
     pub perpendicular: bool,
     pub tangent: bool,
+}
+
+impl SnapSettings {
+    pub fn any(&self) -> bool {
+        self.endpoint
+            || self.midpoint
+            || self.center
+            || self.intersection
+            || self.perpendicular
+            || self.tangent
+    }
 }
 
 pub fn flip(boolean: &mut bool) {
@@ -123,29 +143,16 @@ impl UiState {
         }
     }
 
-    pub fn new_point(
+    pub fn close_all(
         &mut self,
         co: &mut Commands,
-        me: &mut ResMut<Assets<Mesh>>,
-        ma: &mut ResMut<Assets<ColorMaterial>>,
-        tzi: &mut TopZLayer,
+        ewp: &Query<Entity, With<PhantomPoint>>,
+        ewrsp: &mut EventWriter<UpdateSnapPoints>,
     ) {
-        co.spawn((
-            MaterialMesh2dBundle {
-                mesh: me.add(shape::Circle::new(0.5).into()).into(),
-                material: ma.add(ColorMaterial::from(Color::CYAN)),
-                transform: Transform::from_translation(Vec3::new(0., 0., tzi.0 as f32)),
-                ..default()
-            },
-            REntity::Point(point::Point::new(0., 0., 0.)),
-            PhantomPoint,
-        ));
-    }
-
-    pub fn close_all(&mut self, c: &mut Commands, ewp: &Query<Entity, With<PhantomPoint>>) {
+        ewrsp.send(UpdateSnapPoints(false));
         self.cad_state.cad_term = None;
         self.cad_state.mode = Mode::Normal;
-        remove_phantoms(c, ewp)
+        despawn_all_phantoms(co, ewp);
     }
 
     pub fn push_history(&mut self, act: &Act) {
@@ -183,22 +190,6 @@ impl UiState {
         history.push('\n');
 
         self.dock_buffer.history.0 = act.clone();
-    }
-
-    pub fn toggle_snap(&mut self, snap: &Snaps) {
-        let snap_settings = &mut self.cad_state.object_snapping;
-        match snap {
-            Snaps::Endpoint => flip(&mut snap_settings.endpoint),
-            Snaps::Midpoint => flip(&mut snap_settings.midpoint),
-            Snaps::Center => flip(&mut snap_settings.center),
-            Snaps::Intersection => flip(&mut snap_settings.intersection),
-            Snaps::Perpendicular => flip(&mut snap_settings.perpendicular),
-            Snaps::Tangent => flip(&mut snap_settings.tangent),
-        }
-    }
-
-    pub fn toggle_snap_off(&mut self) {
-        self.cad_state.object_snapping = SnapSettings::default();
     }
 }
 

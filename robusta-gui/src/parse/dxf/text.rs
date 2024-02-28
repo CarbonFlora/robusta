@@ -15,9 +15,13 @@ pub fn spawn_text(
         Text2dBundle {
             text: text_body,
             text_anchor: bevy::sprite::Anchor::Center,
-            transform: Transform::from_translation(Vec3::new(origin[0], origin[1], ix.0 as f32))
-                .with_rotation(Quat::from_rotation_z(sp.rotation))
-                .with_scale(Vec3::new(sp.height / 5., sp.height / 5., 1.)),
+            transform: Transform::from_translation(Vec3::new(
+                origin[0],
+                origin[1],
+                ix.top() as f32,
+            ))
+            .with_rotation(Quat::from_rotation_z(sp.rotation))
+            .with_scale(Vec3::new(sp.height / 5., sp.height / 5., 1.)),
             text_layout_info: bevy::text::TextLayoutInfo::default(),
             ..default()
         },
