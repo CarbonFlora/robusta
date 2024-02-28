@@ -65,14 +65,16 @@ impl Arc {
     pub fn nthpoints(&self, div: usize) -> Vec<Point> {
         let mut points = Vec::new();
         let spec = self.specifications();
-        let mut start_angle = spec.start_angle_rad;
+        let mut end_angle = spec.end_angle_rad;
         if spec.start_angle_rad > spec.end_angle_rad {
-            start_angle += 2. * PI;
+            end_angle += 2. * PI;
         }
-        let angle_div = (start_angle + spec.end_angle_rad) / (div as f32 + 1.);
-        for n in .. {
-            let x = (n as f32 * angle_div).cos() * spec.radius + spec.center.coordinates.x;
-            let y = (n as f32 * angle_div).sin() * spec.radius + spec.center.coordinates.y;
+        let angle_div = (end_angle - spec.start_angle_rad) / (div as f32 + 1.);
+        for n in 1..=div {
+            let x = (n as f32 * angle_div + spec.start_angle_rad).cos() * spec.radius
+                + spec.center.coordinates.x;
+            let y = (n as f32 * angle_div + spec.start_angle_rad).sin() * spec.radius
+                + spec.center.coordinates.y;
             points.push(Point::new(x, y, 0.));
         }
 

@@ -91,6 +91,16 @@ impl SnapSettings {
             || self.perpendicular
             || self.tangent
     }
+
+    pub fn flip_nth(&mut self, div: &usize) {
+        flip(&mut self.nthpoint.0);
+        if div > &0usize {
+            self.nthpoint.1 = *div;
+            if !self.nthpoint.0 {
+                flip(&mut self.nthpoint.0);
+            }
+        }
+    }
 }
 
 pub fn flip(boolean: &mut bool) {

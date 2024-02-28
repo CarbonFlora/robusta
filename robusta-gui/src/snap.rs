@@ -38,12 +38,7 @@ impl UiState {
         match snap {
             Snaps::Endpoint => flip(&mut ss.endpoint),
             Snaps::Midpoint => flip(&mut ss.midpoint),
-            Snaps::Nthpoint(div) => {
-                flip(&mut ss.nthpoint.0);
-                if div > &0usize {
-                    ss.nthpoint.1 = *div;
-                }
-            }
+            Snaps::Nthpoint(div) => ss.flip_nth(div),
             Snaps::Intersection => flip(&mut ss.intersection),
             Snaps::Perpendicular => flip(&mut ss.perpendicular),
             Snaps::Tangent => flip(&mut ss.tangent),
@@ -144,6 +139,9 @@ fn arc_snaps(sp: &Arc, ss: &SnapSettings, vp: &mut Vec<Point>) {
 fn circle_snaps(sp: &Circle, ss: &SnapSettings, vp: &mut Vec<Point>) {
     if ss.midpoint {
         vp.extend(sp.center());
+    }
+    if ss.nthpoint.0 {
+        vp.extend(sp.nthpoints(ss.nthpoint.1));
     }
 }
 

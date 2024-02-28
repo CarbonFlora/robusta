@@ -1,6 +1,10 @@
 use std::str::SplitWhitespace;
 
 use bevy::prelude::*;
+use bevy_mod_picking::{
+    events::Pointer,
+    selection::{Deselect, Select},
+};
 
 use crate::{
     keystrokes::Act,
@@ -17,7 +21,7 @@ pub fn update_act(
     mut ewrsp: EventWriter<UpdateSnapPoints>,
     re: Query<&REntity>,
     ewp: Query<Entity, With<PhantomPoint>>,
-    es: Query<Entity, With<Selected>>,
+    es: Query<(Entity, &Selected), With<Selected>>,
     mut ui_state: ResMut<UiState>,
     mut tzi: ResMut<TopZLayer>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
@@ -32,6 +36,7 @@ pub fn update_act(
     mut co: Commands,
     mut me: ResMut<Assets<Mesh>>,
     mut ma: ResMut<Assets<ColorMaterial>>,
+    mut dsel: EventWriter<Pointer<Deselect>>,
 ) {
     for act in act_read.read() {
         let mut binding = act.clone();
@@ -47,7 +52,7 @@ pub fn update_act(
             Act::PullCameraFocus(rect) => camera_movement(rect, &mut camera),
             Act::FitView => camera_movement(&fit_view_rect(&re), &mut camera),
             Act::Inspect => ui_state.inspect(),
-            Act::DeselectAll => deselect_all(&mut co, &es),
+            Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
             Act::NewPoint => spawn_phantom_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),

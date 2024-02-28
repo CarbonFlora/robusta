@@ -14,6 +14,7 @@ use parse::dxf::text::spawn_text;
 use robusta_core::*;
 
 pub mod app;
+pub mod diagnostic;
 pub mod entitymapping;
 pub mod keystrokes;
 pub mod leaves;

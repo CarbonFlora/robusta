@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::point::Point;
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -22,6 +24,25 @@ impl Circle {
 
     pub fn center(&self) -> Vec<Point> {
         vec![self.definition[1].clone()]
+    }
+
+    pub fn nthpoints(&self, div: usize) -> Vec<Point> {
+        let mut vp = Vec::new();
+        let spec = self.specifications();
+        let angle_div = 2. * PI / (div as f32 + 1.);
+
+        vp.push(Point::new(
+            self.definition[0].coordinates.x,
+            self.definition[0].coordinates.y,
+            0.,
+        ));
+        for n in 1..=div {
+            let x = (angle_div * n as f32).cos() * spec.radius + self.definition[1].coordinates.x;
+            let y = (angle_div * n as f32).sin() * spec.radius + self.definition[1].coordinates.y;
+            vp.push(Point::new(x, y, 0.));
+        }
+
+        vp
     }
 }
 
