@@ -1,4 +1,4 @@
-use crate::angle_full_circle;
+use crate::{angle_full_circle, point::Point};
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Line {
@@ -26,6 +26,18 @@ impl Line {
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
         crate::min_max(self.definition.as_ref())
+    }
+
+    pub fn endpoints(&self) -> Vec<Point> {
+        vec![self.definition[0].clone(), self.definition[1].clone()]
+    }
+
+    pub fn midpoints(&self) -> Vec<Point> {
+        let p0 = self.definition[0].coordinates;
+        let p1 = self.definition[1].coordinates;
+        let x = p0.x + p1.x;
+        let y = p0.y + p1.y;
+        vec![Point::new(x, y, 0.)]
     }
 }
 

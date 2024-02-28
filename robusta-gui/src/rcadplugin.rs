@@ -1,7 +1,4 @@
-use self::{
-    phantom::{update_phantom_point, PhantomPlugin},
-    rselection::RSelectionPlugin,
-};
+use self::{phantom::PhantomPlugin, rselection::RSelectionPlugin};
 
 use super::*;
 
@@ -23,7 +20,8 @@ impl bevy::app::PluginGroup for RCADPlugins {
 pub struct RCADCorePlugin;
 impl bevy::app::Plugin for RCADCorePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_event::<Act>()
+        app.insert_resource(TopZLayer::new())
+            .add_event::<Act>()
             .add_systems(Startup, camera_startup)
             .add_systems(Startup, spawn_window)
             .add_systems(PostStartup, draw_first)

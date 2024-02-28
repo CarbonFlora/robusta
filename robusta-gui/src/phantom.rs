@@ -1,11 +1,10 @@
 use bevy::{
-    app::Update,
+    app::{PreUpdate, Update},
     ecs::{
         component::Component,
         entity::Entity,
         event::{EventReader, EventWriter},
         query::{With, Without},
-        schedule::IntoSystemConfigs,
         system::{Commands, Query, Res, ResMut, Resource},
     },
     math::{Vec2, Vec3},
@@ -38,7 +37,8 @@ pub struct PhantomPlugin;
 impl bevy::app::Plugin for PhantomPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(PhantomResources::new())
-            .add_systems(Update, update_phantom_snap.after(update_phantom_point));
+            .add_systems(PreUpdate, update_phantom_snap)
+            .add_systems(Update, update_phantom_point);
     }
 }
 

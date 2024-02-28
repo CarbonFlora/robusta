@@ -1,3 +1,5 @@
+use std::str::SplitWhitespace;
+
 use bevy::prelude::*;
 
 use crate::{
@@ -59,19 +61,39 @@ pub fn update_act(
 }
 
 fn to_act(input: &str) -> Act {
-    match input {
+    let mut text_buffer = input.split_whitespace();
+    match text_buffer
+        .next()
+        .unwrap_or_default()
+        .trim_start_matches(':')
+        .to_lowercase()
+        .as_str()
+    {
         "deselect" | "dsa" => Act::DeselectAll,
         "inspect" | "i" => Act::Inspect,
         "fitview" | "fv" => Act::FitView,
+        "snap" | "s" => snap_acts(text_buffer),
         "point" | "p" => Act::NewPoint,
-        "snap endpoint" | "s end" => Act::ToggleSnap(Snaps::Endpoint),
-        "snap midpoint" | "s mid" => Act::ToggleSnap(Snaps::Midpoint),
-        "snap center" | "s cen" => Act::ToggleSnap(Snaps::Center),
-        "snap intersection" | "s int" => Act::ToggleSnap(Snaps::Intersection),
-        "snap perpendicular" | "s per" => Act::ToggleSnap(Snaps::Perpendicular),
-        "snap tangent" | "s tan" => Act::ToggleSnap(Snaps::Tangent),
-        "snap off" | "s off" => Act::ToggleSnapOff,
         "q!" => Act::QuitWithoutSaving,
+        _ => Act::None,
+    }
+}
+
+fn snap_acts(mut text_buffer: SplitWhitespace) -> Act {
+    let text = text_buffer.next().unwrap_or_default();
+    let divisions = text_buffer
+        .next()
+        .unwrap_or_default()
+        .parse::<usize>()
+        .unwrap_or_default();
+    match text {
+        "endpoint" | "end" => Act::ToggleSnap(Snaps::Endpoint),
+        "midpoint" | "mid" => Act::ToggleSnap(Snaps::Midpoint),
+        "nthpoint" | "nth" => Act::ToggleSnap(Snaps::Nthpoint(divisions)),
+        "intersection" | "int" => Act::ToggleSnap(Snaps::Intersection),
+        "perpendicular" | "per" => Act::ToggleSnap(Snaps::Perpendicular),
+        "tangent" | "tan" => Act::ToggleSnap(Snaps::Tangent),
+        "off" => Act::ToggleSnapOff,
         _ => Act::None,
     }
 }

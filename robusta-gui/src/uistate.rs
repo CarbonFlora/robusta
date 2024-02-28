@@ -76,7 +76,7 @@ impl TopZLayer {
 pub struct SnapSettings {
     pub endpoint: bool,
     pub midpoint: bool,
-    pub center: bool,
+    pub nthpoint: (bool, usize),
     pub intersection: bool,
     pub perpendicular: bool,
     pub tangent: bool,
@@ -86,7 +86,7 @@ impl SnapSettings {
     pub fn any(&self) -> bool {
         self.endpoint
             || self.midpoint
-            || self.center
+            || self.nthpoint.0
             || self.intersection
             || self.perpendicular
             || self.tangent
@@ -101,7 +101,7 @@ pub fn flip(boolean: &mut bool) {
 pub enum Snaps {
     Endpoint,
     Midpoint,
-    Center,
+    Nthpoint(usize),
     Intersection,
     Perpendicular,
     Tangent,

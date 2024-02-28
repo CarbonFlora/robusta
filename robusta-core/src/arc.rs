@@ -44,12 +44,39 @@ impl Arc {
     }
 
     pub fn midpoints(&self) -> Vec<Point> {
-        todo!()
+        let spec = self.specifications();
+        let mut end_angle = spec.start_angle_rad;
+        if spec.start_angle_rad > spec.end_angle_rad {
+            end_angle += 2. * PI;
+        }
+        let mid_angle = (end_angle + spec.end_angle_rad) / 2.;
+        let x = mid_angle.cos() * spec.radius + spec.center.coordinates.x;
+        let y = mid_angle.sin() * spec.radius + spec.center.coordinates.y;
+        let mid_point = Point::new(x, y, 0.);
+
+        vec![mid_point]
     }
 
     pub fn center(&self) -> Vec<Point> {
         let (_radius, center) = circle_specs(&self.definition);
         vec![center]
+    }
+
+    pub fn nthpoints(&self, div: usize) -> Vec<Point> {
+        let mut points = Vec::new();
+        let spec = self.specifications();
+        let mut start_angle = spec.start_angle_rad;
+        if spec.start_angle_rad > spec.end_angle_rad {
+            start_angle += 2. * PI;
+        }
+        let angle_div = (start_angle + spec.end_angle_rad) / (div as f32 + 1.);
+        for n in .. {
+            let x = (n as f32 * angle_div).cos() * spec.radius + spec.center.coordinates.x;
+            let y = (n as f32 * angle_div).sin() * spec.radius + spec.center.coordinates.y;
+            points.push(Point::new(x, y, 0.));
+        }
+
+        points
     }
 }
 

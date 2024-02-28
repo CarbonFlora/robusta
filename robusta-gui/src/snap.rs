@@ -1,4 +1,4 @@
-use robusta_core::{arc::Arc, point::Point};
+use robusta_core::{arc::Arc, circle::Circle, line::Line, point::Point};
 
 use super::*;
 
@@ -38,7 +38,12 @@ impl UiState {
         match snap {
             Snaps::Endpoint => flip(&mut ss.endpoint),
             Snaps::Midpoint => flip(&mut ss.midpoint),
-            Snaps::Center => flip(&mut ss.center),
+            Snaps::Nthpoint(div) => {
+                flip(&mut ss.nthpoint.0);
+                if div > &0usize {
+                    ss.nthpoint.1 = *div;
+                }
+            }
             Snaps::Intersection => flip(&mut ss.intersection),
             Snaps::Perpendicular => flip(&mut ss.perpendicular),
             Snaps::Tangent => flip(&mut ss.tangent),
@@ -83,8 +88,8 @@ fn spawn_all_snap_points(
     for re in res.iter() {
         match re {
             REntity::Arc(sp) => arc_snaps(sp, ss, &mut vp),
-            REntity::Circle(sp) => (),
-            REntity::Line(sp) => (),
+            REntity::Circle(sp) => circle_snaps(sp, ss, &mut vp),
+            REntity::Line(sp) => line_snaps(sp, ss, &mut vp),
             REntity::Point(sp) => (),
             REntity::Text(sp) => (),
         }
@@ -117,7 +122,6 @@ fn ssp(
                 po.coordinates.y,
                 po.coordinates.z,
             )),
-            // PickableBundle::default(),
             On::<Pointer<Over>>::send_event::<Snap>(),
             On::<Pointer<Out>>::send_event::<Snap>(),
         ));
@@ -128,12 +132,28 @@ fn arc_snaps(sp: &Arc, ss: &SnapSettings, vp: &mut Vec<Point>) {
     if ss.endpoint {
         vp.extend(sp.endpoints());
     }
-    // if ss.midpoint {
-    //     spv.extend(sp.midpoints());
-    // }
-    // if ss.center {
-    //     spv.extend(sp.center());
-    // }
+    if ss.midpoint {
+        vp.extend(sp.midpoints());
+        vp.extend(sp.center());
+    }
+    if ss.nthpoint.0 {
+        vp.extend(sp.nthpoints(ss.nthpoint.1));
+    }
+}
+
+fn circle_snaps(sp: &Circle, ss: &SnapSettings, vp: &mut Vec<Point>) {
+    if ss.midpoint {
+        vp.extend(sp.center());
+    }
+}
+
+fn line_snaps(sp: &Line, ss: &SnapSettings, vp: &mut Vec<Point>) {
+    if ss.endpoint {
+        vp.extend(sp.endpoints());
+    }
+    if ss.midpoint {
+        vp.extend(sp.midpoints());
+    }
 }
 
 #[allow(clippy::complexity)]

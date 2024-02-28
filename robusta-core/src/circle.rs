@@ -1,3 +1,5 @@
+use crate::point::Point;
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Circle {
     pub definition: [crate::point::Point; 2], // [@ angle=0, center]
@@ -16,6 +18,10 @@ impl Circle {
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
         crate::min_max(self.definition.as_ref())
+    }
+
+    pub fn center(&self) -> Vec<Point> {
+        vec![self.definition[1].clone()]
     }
 }
 
