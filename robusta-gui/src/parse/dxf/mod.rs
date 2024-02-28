@@ -11,6 +11,8 @@ use std::f32::consts::PI;
 pub mod arc;
 pub mod circle;
 pub mod line;
+pub mod lwpolyline;
+pub mod polyline;
 pub mod text;
 
 use crate::rselection::Selection;

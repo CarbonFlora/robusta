@@ -1,10 +1,7 @@
 use std::str::SplitWhitespace;
 
 use bevy::prelude::*;
-use bevy_mod_picking::{
-    events::Pointer,
-    selection::{Deselect, Select},
-};
+use bevy_mod_picking::{events::Pointer, selection::Deselect};
 
 use crate::{
     keystrokes::Act,

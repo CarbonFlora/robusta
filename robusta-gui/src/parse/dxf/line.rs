@@ -34,7 +34,7 @@ fn to_rentity(sp: &dxf::entities::Line) -> robusta_core::line::Line {
     robusta_core::line::Line::new([point1, point2])
 }
 
-fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
+pub fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
     let lw_half = line_width / 2.0f32;
     Mesh::new(PrimitiveTopology::TriangleList)
         .with_inserted_attribute(

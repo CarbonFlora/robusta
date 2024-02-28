@@ -85,8 +85,8 @@ fn spawn_all_snap_points(
             REntity::Arc(sp) => arc_snaps(sp, ss, &mut vp),
             REntity::Circle(sp) => circle_snaps(sp, ss, &mut vp),
             REntity::Line(sp) => line_snaps(sp, ss, &mut vp),
-            REntity::Point(sp) => (),
-            REntity::Text(sp) => (),
+            REntity::Point(_) => (),
+            REntity::Text(_) => (),
         }
     }
     ssp(vp, co, me, ma, tzi);
@@ -151,6 +151,9 @@ fn line_snaps(sp: &Line, ss: &SnapSettings, vp: &mut Vec<Point>) {
     }
     if ss.midpoint {
         vp.extend(sp.midpoints());
+    }
+    if ss.nthpoint.0 {
+        vp.extend(sp.nthpoints(ss.nthpoint.1));
     }
 }
 

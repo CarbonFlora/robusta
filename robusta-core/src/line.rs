@@ -35,9 +35,25 @@ impl Line {
     pub fn midpoints(&self) -> Vec<Point> {
         let p0 = self.definition[0].coordinates;
         let p1 = self.definition[1].coordinates;
-        let x = p0.x + p1.x;
-        let y = p0.y + p1.y;
+        let x = (p0.x + p1.x) / 2.;
+        let y = (p0.y + p1.y) / 2.;
         vec![Point::new(x, y, 0.)]
+    }
+
+    pub fn nthpoints(&self, div: usize) -> Vec<Point> {
+        let mut vp = Vec::new();
+        let p0 = self.definition[0].coordinates;
+        let p1 = self.definition[1].coordinates;
+        let delta_x = (p1.x - p0.x) / (div as f32 + 1.);
+        let delta_y = (p1.y - p0.y) / (div as f32 + 1.);
+        for n in 1..=div {
+            vp.push(Point::new(
+                p0.x + delta_x * n as f32,
+                p0.y + delta_y * n as f32,
+                0.,
+            ));
+        }
+        vp
     }
 }
 

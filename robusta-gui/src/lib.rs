@@ -10,6 +10,8 @@ use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use parse::dxf::arc::spawn_arc;
 use parse::dxf::circle::spawn_circle;
 use parse::dxf::line::spawn_line;
+use parse::dxf::lwpolyline::spawn_lwpolyline;
+use parse::dxf::polyline::spawn_polyline;
 use parse::dxf::text::spawn_text;
 use robusta_core::*;
 
@@ -107,13 +109,13 @@ fn spawn_from_dxf(
             EntityType::Leader(_) => todo!(),
             EntityType::Light(_) => todo!(),
             EntityType::Line(sp) => spawn_line(sp, co, me, ma, ix),
-            EntityType::LwPolyline(_) => todo!(),
+            EntityType::LwPolyline(sp) => spawn_lwpolyline(sp, co, me, ma, ix),
             EntityType::MLine(_) => todo!(),
             EntityType::MText(_) => todo!(),
             EntityType::OleFrame(_) => todo!(),
             EntityType::Ole2Frame(_) => todo!(),
             EntityType::ModelPoint(_) => todo!(),
-            EntityType::Polyline(_) => todo!(),
+            EntityType::Polyline(sp) => spawn_polyline(sp, co, me, ma, ix),
             EntityType::Ray(_) => todo!(),
             EntityType::Region(_) => todo!(),
             EntityType::RText(_) => todo!(),
