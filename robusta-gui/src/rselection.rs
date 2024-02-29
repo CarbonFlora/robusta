@@ -1,5 +1,5 @@
 use bevy::{
-    app::PreUpdate,
+    app::{First, PreUpdate},
     ecs::{
         component::Component,
         entity::Entity,
@@ -10,10 +10,9 @@ use bevy::{
 };
 use bevy_mod_picking::{
     events::Pointer,
-    picking_core::PickingPluginsSettings,
     pointer::{Location, PointerId},
     prelude::ListenerInput,
-    selection::{Deselect, Select},
+    selection::{self, Deselect, Select},
 };
 use bevy_window::{PrimaryWindow, Window};
 
@@ -22,7 +21,7 @@ pub struct RSelectionPlugin;
 impl bevy::app::Plugin for RSelectionPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<Selection>()
-            // .add_systems(First, maintain_selection)
+            .add_systems(First, maintain_selection)
             .add_systems(PreUpdate, update_selection);
     }
 }
@@ -58,12 +57,11 @@ impl From<ListenerInput<Pointer<Deselect>>> for Selection {
     }
 }
 
-fn _maintain_selection(
+fn maintain_selection(
     sw: Query<&mut Window, Without<PrimaryWindow>>,
-    mut pps: ResMut<PickingPluginsSettings>,
+    mut ss: ResMut<selection::SelectionSettings>,
 ) {
-    pps.enable_input = !sw.single().focused;
-    pps.enable_interacting = !sw.single().focused;
+    ss.click_nothing_deselect_all = !sw.single().focused;
 }
 
 pub fn update_selection(mut c: Commands, mut evs: EventReader<Selection>) {

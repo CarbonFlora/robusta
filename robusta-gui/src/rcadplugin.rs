@@ -45,12 +45,7 @@ fn spawn_window(mut co: Commands) {
     ));
 }
 
-fn camera_startup(
-    mut co: Commands,
-    mut ss: ResMut<selection::SelectionSettings>,
-    dp: ResMut<State<bevy_mod_picking::debug::DebugPickingMode>>,
-) {
-    ss.click_nothing_deselect_all = false;
+fn camera_startup(mut co: Commands, dp: ResMut<State<bevy_mod_picking::debug::DebugPickingMode>>) {
     *dp.into_inner() = State::new(bevy_mod_picking::debug::DebugPickingMode::Disabled);
 
     co.spawn(Camera2dBundle::default())
