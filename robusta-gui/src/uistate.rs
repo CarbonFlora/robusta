@@ -1,5 +1,5 @@
 use self::{
-    phantom::{despawn_all_phantoms, RPhantom},
+    phantom::{despawn_all_phantoms, RPhantomPointer},
     rselection::Selected,
     snap::UpdateSnapPoints,
 };
@@ -156,7 +156,7 @@ impl UiState {
     pub fn close_all(
         &mut self,
         co: &mut Commands,
-        ewp: &Query<Entity, With<RPhantom>>,
+        ewp: &Query<Entity, With<RPhantomPointer>>,
         ewrsp: &mut EventWriter<UpdateSnapPoints>,
     ) {
         ewrsp.send(UpdateSnapPoints(false));
