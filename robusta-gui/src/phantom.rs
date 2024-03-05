@@ -1,30 +1,4 @@
-use bevy::{
-    app::{PreUpdate, Update},
-    ecs::{
-        component::Component,
-        entity::Entity,
-        event::{EventReader, EventWriter},
-        query::{With, Without},
-        system::{Commands, Query, Res, ResMut, Resource},
-    },
-    math::{Vec2, Vec3},
-    prelude::default,
-    render::{camera::Camera, color::Color, mesh::Mesh},
-    sprite::{ColorMaterial, MaterialMesh2dBundle},
-    transform::components::{GlobalTransform, Transform},
-};
-use bevy_asset::Assets;
-use bevy_mod_picking::{
-    events::Pointer,
-    prelude::On,
-    selection::{Deselect, Select},
-    PickableBundle,
-};
-use bevy_window::{PrimaryWindow, Window};
-use robusta_core::{
-    line::Line,
-    point::{self, Point},
-};
+use bevy::sprite::Mesh2dHandle;
 
 use crate::{
     parse::dxf::line::spawn_line_mesh,
@@ -33,13 +7,18 @@ use crate::{
     REntity, TopZLayer,
 };
 
+use self::parse::dxf::line::line_mesh;
+
+use super::*;
+
 pub struct PhantomPlugin;
 impl bevy::app::Plugin for PhantomPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(PhantomSnaps::new())
             .insert_resource(PhantomREntityGeo::new())
             .add_systems(PreUpdate, update_phantom_snap)
-            .add_systems(Update, update_rphantom);
+            .add_systems(Update, update_rphantom)
+            .add_systems(Update, update_rphantom_mesh);
     }
 }
 
@@ -126,7 +105,7 @@ pub fn spawn_phantom_line(
     ewrsp: &mut EventWriter<UpdateSnapPoints>,
 ) {
     ewrsp.send(UpdateSnapPoints(true));
-    let sp = Line::new([Point::new(0., 0., 0.), Point::new(0., 0., 0.)]);
+    let sp = Line::new([Point::new(0., 0., 0.), Point::new(1., 0., 0.)]);
     let id = spawn_line_mesh(sp, co, me, ma, tzi);
     co.entity(id).insert(RPhantom);
 }
@@ -171,11 +150,27 @@ pub fn update_rphantom(
     }
 }
 
+pub fn update_rphantom_mesh(
+    mut qmcre: Query<(&mut Mesh2dHandle, &REntity), With<RPhantom>>,
+    mut me: ResMut<Assets<Mesh>>,
+) {
+    let lw = 0.3f32;
+
+    for (m, re) in qmcre.iter_mut() {
+        match re {
+            REntity::Arc(_) => todo!(),
+            REntity::Circle(_) => todo!(),
+            REntity::Line(sp) => {
+                let spec = sp.specifications();
+                me.insert(&m.0, line_mesh(lw, spec.length, spec.h_angle));
+            }
+            REntity::Point(_) => (),
+            REntity::Text(_) => todo!(),
+        }
+    }
+}
+
 fn update_rphantom_definition(sp: &mut [Point], preg: &Res<PhantomREntityGeo>) {
-    todo!(); //Current phantom handling for points should be split to rphantom_pointer and rphantom_entities.
-             //RPPointer should follow the mouse.
-             //RPE behavior should depend on the context of what is going on.
-             //Depending on the max definition length of all RPE, ask for that many RPP or if exit.
     let mut a = preg.definition.iter();
     for p in sp {
         if let Some(c) = a.next() {

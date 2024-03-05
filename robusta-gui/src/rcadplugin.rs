@@ -12,6 +12,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
         builder = builder.add(RSelectionPlugin);
         builder = builder.add(SnapPlugin);
         builder = builder.add(PhantomPlugin);
+        // builder = builder.add(ActionQueuingPlugin);
         builder = builder.add(DiagnosticPlugin);
 
         builder
