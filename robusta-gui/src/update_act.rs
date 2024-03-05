@@ -4,8 +4,9 @@ use bevy::prelude::*;
 use bevy_mod_picking::{events::Pointer, selection::Deselect};
 
 use crate::{
+    construction::{construct_point, ConstructionBuffer, ConstructionInput},
     keystrokes::Act,
-    phantom::{spawn_phantom_point, RPhantomPointer},
+    phantom::{index_point, RPhantomPointer},
     rselection::{deselect_all, Selected},
     snap::UpdateSnapPoints,
     uistate::UiState,
@@ -14,10 +15,11 @@ use crate::{
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(
-    mut act_read: EventReader<Act>,
+    mut era: EventReader<Act>,
     mut ewrsp: EventWriter<UpdateSnapPoints>,
-    re: Query<&REntity>,
-    ewp: Query<Entity, With<RPhantomPointer>>,
+    qre: Query<&REntity>,
+    qerpp: Query<Entity, With<RPhantomPointer>>,
+    qrerpp: Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
     es: Query<(Entity, &Selected), With<Selected>>,
     mut ui_state: ResMut<UiState>,
     mut tzi: ResMut<TopZLayer>,
@@ -34,8 +36,10 @@ pub fn update_act(
     mut me: ResMut<Assets<Mesh>>,
     mut ma: ResMut<Assets<ColorMaterial>>,
     mut dsel: EventWriter<Pointer<Deselect>>,
+    mut ewci: EventWriter<ConstructionInput>,
+    mut rmcb: ResMut<ConstructionBuffer>,
 ) {
-    for act in act_read.read() {
+    for act in era.read() {
         let mut binding = act.clone();
         if let Act::TryAct(string) = act {
             binding = to_act(string);
@@ -47,16 +51,18 @@ pub fn update_act(
             Act::MoveCamera((x, y)) => camera_transform(x, y, &mut camera),
             Act::ZoomCamera(z) => camera_zoom(z, &mut camera),
             Act::PullCameraFocus(rect) => camera_movement(rect, &mut camera),
-            Act::FitView => camera_movement(&fit_view_rect(&re), &mut camera),
+            Act::FitView => camera_movement(&fit_view_rect(&qre), &mut camera),
             Act::Inspect => ui_state.inspect(),
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-            Act::NewPoint => spawn_phantom_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp),
+            Act::NewPoint => {
+                construct_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp, &mut rmcb)
+            }
             Act::NewLine => (),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
-            Act::Confirm => (),
-            Act::Exit => ui_state.close_all(&mut co, &ewp, &mut ewrsp),
+            Act::Confirm => index_point(&qrerpp, &mut ewci),
+            Act::Exit => ui_state.close_all(&mut co, &qerpp, &mut ewrsp),
             Act::QuitWithoutSaving => {
                 app_exit_events.send(bevy::app::AppExit);
             }

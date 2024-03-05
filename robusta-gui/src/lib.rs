@@ -1,5 +1,7 @@
+use self::phantom::spawn_phantom_point;
 use self::rselection::Selected;
 use self::snap::SnapPlugin;
+use self::snap::UpdateSnapPoints;
 use bevy::sprite::MaterialMesh2dBundle;
 use bevy::{prelude::*, window};
 use bevy_egui::EguiContext;

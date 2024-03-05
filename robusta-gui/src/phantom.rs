@@ -1,7 +1,9 @@
 use crate::{
-    snap::{Snap, SnapPoint, UpdateSnapPoints},
+    snap::{Snap, SnapPoint},
     REntity, TopZLayer,
 };
+
+use self::construction::ConstructionInput;
 
 use super::*;
 
@@ -41,9 +43,7 @@ pub fn spawn_phantom_point(
     me: &mut ResMut<Assets<Mesh>>,
     ma: &mut ResMut<Assets<ColorMaterial>>,
     tzi: &mut TopZLayer,
-    ewrsp: &mut EventWriter<UpdateSnapPoints>,
 ) {
-    ewrsp.send(UpdateSnapPoints(true));
     co.spawn((
         MaterialMesh2dBundle {
             mesh: me.add(bevy::math::primitives::Circle::new(0.5)).into(),
@@ -87,10 +87,7 @@ pub fn update_rphantom_pointer(
 ) {
     let (ca, gt) = transform.single();
     if let Ok((mut tr, re)) = ewp.get_single_mut() {
-        let sp = match re.into_inner() {
-            REntity::Point(sp) => sp,
-            _ => panic!("Phantom pointer marker assigned to non-point."),
-        };
+        let sp = re.into_inner().unwrap_point_mut();
         if let Some(cursor_world_pos) = w
             .single()
             .cursor_position()
@@ -105,6 +102,17 @@ pub fn update_rphantom_pointer(
             tr.translation.x = binding_xy.x;
             tr.translation.y = binding_xy.y;
         }
+    }
+}
+
+pub fn index_point(
+    qre: &Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
+    ewci: &mut EventWriter<ConstructionInput>,
+) {
+    if let Ok(re) = qre.get_single() {
+        let xyz = re.unwrap_point().coordinates;
+        let coords = Vec3::new(xyz.x, xyz.y, xyz.z);
+        ewci.send(ConstructionInput { coords });
     }
 }
 
