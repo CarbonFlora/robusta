@@ -34,6 +34,7 @@ pub struct RPhantomPointer;
 
 pub fn despawn_all_phantoms(c: &mut Commands, ewp: &Query<Entity, With<RPhantomPointer>>) {
     for e in ewp.iter() {
+        c.entity(e).remove::<RPhantomPointer>();
         c.entity(e).despawn();
     }
 }

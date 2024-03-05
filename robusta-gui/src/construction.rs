@@ -40,6 +40,11 @@ impl ConstructionBuffer {
     pub fn new() -> Self {
         self::default()
     }
+
+    pub fn reset(&mut self) {
+        self.buf = Vec::new();
+        self.build = None;
+    }
 }
 
 #[derive(Debug, Component)]
@@ -77,17 +82,12 @@ fn update_queue(
                 canonize_point(sp, &mut co, &mut me, &mut ma, &mut tzi);
                 ewrsp.send(UpdateSnapPoints(false));
                 despawn_all_phantoms(&mut co, &ewp);
+                rmcb.into_inner().reset();
             }
         }
         REntity::Text(_) => todo!(),
     }
 }
-
-// &mut self,
-//         co: &mut Commands,
-//         ewp: &Query<Entity, With<RPhantomPointer>>,
-//         ewrsp: &mut EventWriter<UpdateSnapPoints>,
-//     ) {
 
 fn canonize_point(
     sp: Point,
@@ -99,10 +99,10 @@ fn canonize_point(
     co.spawn((
         MaterialMesh2dBundle {
             mesh: me.add(bevy::math::primitives::Circle::new(0.5)).into(),
-            material: ma.add(ColorMaterial::from(Color::CYAN)),
+            material: ma.add(ColorMaterial::from(Color::WHITE)),
             transform: Transform::from_translation(Vec3::new(
                 sp.coordinates.x,
-                sp.coordinates.x,
+                sp.coordinates.y,
                 tzi.top() as f32,
             )),
             ..default()
@@ -113,15 +113,6 @@ fn canonize_point(
         On::<Pointer<Deselect>>::send_event::<Selection>(),
     ));
 }
-
-// fn update_construction(rcb: Res<ConstructionBuffer>) {
-//     if let Some(ci) = rcb.0.first() {
-//         match ci.input_type {
-//             InputType::Cursor => todo!(),
-//             InputType::Coordinates => todo!(),
-//         }
-//     }
-// }
 
 pub fn construct_point(
     co: &mut Commands,

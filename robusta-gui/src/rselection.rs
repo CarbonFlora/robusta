@@ -61,7 +61,7 @@ fn maintain_selection(
     sw: Query<&mut Window, Without<PrimaryWindow>>,
     mut ss: ResMut<selection::SelectionPluginSettings>,
 ) {
-    ss.click_nothing_deselect_all = !sw.single().focused;
+    ss.is_enabled = !sw.single().focused;
 }
 
 pub fn update_selection(mut c: Commands, mut evs: EventReader<Selection>) {
