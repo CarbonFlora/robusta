@@ -45,8 +45,8 @@ fn spawn_window(mut co: Commands) {
     ));
 }
 
-fn camera_startup(mut co: Commands, dp: ResMut<State<bevy_mod_picking::debug::DebugPickingMode>>) {
-    *dp.into_inner() = State::new(bevy_mod_picking::debug::DebugPickingMode::Disabled);
+fn camera_startup(mut co: Commands, dp: ResMut<bevy_mod_picking::debug::DebugPickingMode>) {
+    *dp.into_inner() = bevy_mod_picking::debug::DebugPickingMode::Disabled;
 
     co.spawn(Camera2dBundle::default())
         .insert((bevy_pancam::PanCam {

@@ -102,7 +102,7 @@ fn ssp(
     for po in vp {
         co.spawn((
             MaterialMesh2dBundle {
-                mesh: me.add(shape::Circle::new(0.2).into()).into(),
+                mesh: me.add(bevy::math::primitives::Circle::new(0.2)).into(),
                 material: ma.add(ColorMaterial::from(Color::ORANGE)),
                 transform: Transform::from_translation(Vec3::new(
                     po.coordinates.x,

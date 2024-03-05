@@ -12,22 +12,23 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy_egui = { path = "../robusta_bevy_egui", features = ["immutable_ctx"] }
+# bevy_egui = { path = "../robusta_bevy_egui", features = ["immutable_ctx"] }
 robusta-core = { path = "../robusta-core" }
 
-bevy = { version = "0.12.1", features = [
+bevy = { version = "0.13.0", features = [
     "dynamic_linking",
 ] } #todo!() when releasing officially, remove dynamic linking.
-bevy_window = { version = "0.12.1", features = ["serialize"] }
-bevy_asset = { version = "0.12.1", features = ["multi-threaded"] }
-bevy_reflect = "0.12.1"
-bevy_framepace = "0.14.1"
-bevy_mod_picking = { version = "0.17.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
-bevy_pancam = { version = "0.10.0", features = ["bevy_egui"] }
-bevy-inspector-egui = "0.22.1"
+bevy_window = { version = "0.13.0", features = ["serialize"] }
+bevy_asset = { version = "0.13.0", features = ["multi-threaded"] }
+bevy_reflect = "0.13.0"
+bevy_framepace = "0.15.0"
+bevy_mod_picking = { version = "0.18.0", features = ["backend_egui", "selection", "bevy_picking_raycast"] }
+bevy_pancam = { version = "0.11.0", features = ["bevy_egui"] }
+bevy-inspector-egui = "0.23.3"
+bevy_egui = { version = "0.25.0", features = ["immutable_ctx"] }
 
-egui = { version = "0.25.0", features = ["serde"] }
-egui_dock = { version = "0.10.0", features = ["serde"] }
+egui = { version = "0.26.2", features = ["serde"] }
+egui_dock = { version = "0.11.2", features = ["serde"] }
 nalgebra = "0.32.3"
 dxf = { git = "https://github.com/ixmilia/dxf-rs.git" }
 anyhow = "1.0.79"

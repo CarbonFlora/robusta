@@ -9,11 +9,7 @@ use bevy::{
     },
     math::{Vec2, Vec3},
     prelude::default,
-    render::{
-        camera::Camera,
-        color::Color,
-        mesh::{shape, Mesh},
-    },
+    render::{camera::Camera, color::Color, mesh::Mesh},
     sprite::{ColorMaterial, MaterialMesh2dBundle},
     transform::components::{GlobalTransform, Transform},
 };
@@ -41,6 +37,7 @@ pub struct PhantomPlugin;
 impl bevy::app::Plugin for PhantomPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(PhantomSnaps::new())
+            .insert_resource(PhantomREntityGeo::new())
             .add_systems(PreUpdate, update_phantom_snap)
             .add_systems(Update, update_rphantom);
     }
@@ -52,15 +49,21 @@ pub struct PhantomSnaps {
     snap_to: Option<Vec2>,
 }
 
+impl PhantomSnaps {
+    pub fn new() -> Self {
+        PhantomSnaps::default()
+    }
+}
+
 /// This is used to store coordinate data for building REnitities.
 #[derive(Debug, Resource, Default)]
 pub struct PhantomREntityGeo {
     definition: Vec<Vec2>,
 }
 
-impl PhantomSnaps {
+impl PhantomREntityGeo {
     pub fn new() -> Self {
-        PhantomSnaps::default()
+        PhantomREntityGeo::default()
     }
 }
 
@@ -104,7 +107,7 @@ pub fn spawn_phantom_point(
     ewrsp.send(UpdateSnapPoints(true));
     co.spawn((
         MaterialMesh2dBundle {
-            mesh: me.add(shape::Circle::new(0.5).into()).into(),
+            mesh: me.add(bevy::math::primitives::Circle::new(0.5)).into(),
             material: ma.add(ColorMaterial::from(Color::CYAN)),
             transform: Transform::from_translation(Vec3::new(0., 0., tzi.top() as f32)),
             ..default()

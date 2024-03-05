@@ -1,3 +1,5 @@
+use bevy::render::render_asset::RenderAssetUsages;
+
 use super::*;
 
 pub fn spawn_line(
@@ -49,32 +51,35 @@ fn to_rentity(sp: &dxf::entities::Line) -> robusta_core::line::Line {
 
 pub fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
     let lw_half = line_width / 2.0f32;
-    Mesh::new(PrimitiveTopology::TriangleList)
-        .with_inserted_attribute(
-            Mesh::ATTRIBUTE_POSITION,
-            vec![
-                [-lw_half * angle_rad.sin(), lw_half * angle_rad.cos(), 0.0],
-                [lw_half * angle_rad.sin(), -lw_half * angle_rad.cos(), 0.0],
-                [
-                    length * angle_rad.cos() + lw_half * angle_rad.sin(),
-                    length * angle_rad.sin() - lw_half * angle_rad.cos(),
-                    0.0,
-                ],
-                [
-                    length * angle_rad.cos() - lw_half * angle_rad.sin(),
-                    length * angle_rad.sin() + lw_half * angle_rad.cos(),
-                    0.0,
-                ],
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        vec![
+            [-lw_half * angle_rad.sin(), lw_half * angle_rad.cos(), 0.0],
+            [lw_half * angle_rad.sin(), -lw_half * angle_rad.cos(), 0.0],
+            [
+                length * angle_rad.cos() + lw_half * angle_rad.sin(),
+                length * angle_rad.sin() - lw_half * angle_rad.cos(),
+                0.0,
             ],
-        )
-        .with_inserted_attribute(
-            Mesh::ATTRIBUTE_NORMAL,
-            vec![
-                [0.0, 0.0, 1.0],
-                [0.0, 0.0, 1.0],
-                [0.0, 0.0, 1.0],
-                [0.0, 0.0, 1.0],
+            [
+                length * angle_rad.cos() - lw_half * angle_rad.sin(),
+                length * angle_rad.sin() + lw_half * angle_rad.cos(),
+                0.0,
             ],
-        )
-        .with_indices(Some(Indices::U32(vec![0, 3, 1, 1, 3, 2])))
+        ],
+    )
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_NORMAL,
+        vec![
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+        ],
+    )
+    .with_inserted_indices(Indices::U32(vec![0, 3, 1, 1, 3, 2]))
 }

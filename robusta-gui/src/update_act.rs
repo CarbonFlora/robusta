@@ -57,7 +57,9 @@ pub fn update_act(
             Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
             Act::Confirm => canonize(&mut co, &ewp, &mut ewrsp),
             Act::Exit => ui_state.close_all(&mut co, &ewp, &mut ewrsp),
-            Act::QuitWithoutSaving => app_exit_events.send(bevy::app::AppExit),
+            Act::QuitWithoutSaving => {
+                app_exit_events.send(bevy::app::AppExit);
+            }
             _ => (),
         }
     }

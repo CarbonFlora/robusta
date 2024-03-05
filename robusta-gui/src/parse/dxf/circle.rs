@@ -1,3 +1,5 @@
+use bevy::render::render_asset::RenderAssetUsages;
+
 use super::*;
 
 pub fn spawn_circle(
@@ -35,10 +37,13 @@ fn circle_mesh(line_width: f32, circle: &robusta_core::circle::Circle) -> Mesh {
     let vertexes: Vec<[f32; 3]> = circle_vertexes(num_segments, circle, lw_half);
     let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
 
-    Mesh::new(PrimitiveTopology::TriangleList)
-        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
-        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
-        .with_indices(Some(Indices::U32(triangle_indexes)))
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
+    .with_inserted_indices(Indices::U32(triangle_indexes))
 }
 
 fn arc_indexes(num_segments: u32) -> Vec<u32> {

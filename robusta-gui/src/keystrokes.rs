@@ -4,8 +4,8 @@ use crate::{Snaps, UiState};
 
 pub fn capture_keystrokes(
     ui_state: Res<UiState>,
-    keys: Res<Input<KeyCode>>,
-    mouse: Res<Input<MouseButton>>,
+    keys: Res<ButtonInput<KeyCode>>,
+    mouse: Res<ButtonInput<MouseButton>>,
     mut act_write: EventWriter<Act>,
 ) {
     let mut buffer = [None; 2];
@@ -45,14 +45,14 @@ pub fn capture_keystrokes(
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::H)] => Act::MoveCamera((-1., 0.)),
-        [None, Some(KeyCode::J)] => Act::MoveCamera((0., -1.)),
-        [None, Some(KeyCode::K)] => Act::MoveCamera((0., 1.)),
-        [None, Some(KeyCode::L)] => Act::MoveCamera((1., 0.)),
-        [None, Some(KeyCode::I)] => Act::ZoomCamera(-1.),
-        [None, Some(KeyCode::O)] => Act::ZoomCamera(1.),
+        [None, Some(KeyCode::KeyH)] => Act::MoveCamera((-1., 0.)),
+        [None, Some(KeyCode::KeyJ)] => Act::MoveCamera((0., -1.)),
+        [None, Some(KeyCode::KeyK)] => Act::MoveCamera((0., 1.)),
+        [None, Some(KeyCode::KeyL)] => Act::MoveCamera((1., 0.)),
+        [None, Some(KeyCode::KeyI)] => Act::ZoomCamera(-1.),
+        [None, Some(KeyCode::KeyO)] => Act::ZoomCamera(1.),
         [None, Some(KeyCode::Insert)] => Act::Confirm,
-        [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Colon)] => {
+        [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
             Act::OpenCADTerm
         }
         _ => Act::None,

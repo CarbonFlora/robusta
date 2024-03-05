@@ -59,7 +59,7 @@ impl From<ListenerInput<Pointer<Deselect>>> for Selection {
 
 fn maintain_selection(
     sw: Query<&mut Window, Without<PrimaryWindow>>,
-    mut ss: ResMut<selection::SelectionSettings>,
+    mut ss: ResMut<selection::SelectionPluginSettings>,
 ) {
     ss.click_nothing_deselect_all = !sw.single().focused;
 }
