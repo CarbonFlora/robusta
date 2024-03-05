@@ -1,4 +1,7 @@
-use self::{diagnostic::DiagnosticPlugin, phantom::PhantomPlugin, rselection::RSelectionPlugin};
+use self::{
+    construction::ConstructionPlugin, diagnostic::DiagnosticPlugin, phantom::PhantomPlugin,
+    rselection::RSelectionPlugin,
+};
 
 use super::*;
 
@@ -12,7 +15,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
         builder = builder.add(RSelectionPlugin);
         builder = builder.add(SnapPlugin);
         builder = builder.add(PhantomPlugin);
-        // builder = builder.add(ActionQueuingPlugin);
+        builder = builder.add(ConstructionPlugin);
         builder = builder.add(DiagnosticPlugin);
 
         builder

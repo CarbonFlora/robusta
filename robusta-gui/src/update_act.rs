@@ -5,7 +5,7 @@ use bevy_mod_picking::{events::Pointer, selection::Deselect};
 
 use crate::{
     keystrokes::Act,
-    phantom::{canonize, spawn_phantom_line, spawn_phantom_point, RPhantom},
+    phantom::{spawn_phantom_point, RPhantomPointer},
     rselection::{deselect_all, Selected},
     snap::UpdateSnapPoints,
     uistate::UiState,
@@ -17,7 +17,7 @@ pub fn update_act(
     mut act_read: EventReader<Act>,
     mut ewrsp: EventWriter<UpdateSnapPoints>,
     re: Query<&REntity>,
-    ewp: Query<Entity, With<RPhantom>>,
+    ewp: Query<Entity, With<RPhantomPointer>>,
     es: Query<(Entity, &Selected), With<Selected>>,
     mut ui_state: ResMut<UiState>,
     mut tzi: ResMut<TopZLayer>,
@@ -52,10 +52,10 @@ pub fn update_act(
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
             Act::NewPoint => spawn_phantom_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp),
-            Act::NewLine => spawn_phantom_line(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp),
+            Act::NewLine => (),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
-            Act::Confirm => canonize(&mut co, &ewp, &mut ewrsp),
+            Act::Confirm => (),
             Act::Exit => ui_state.close_all(&mut co, &ewp, &mut ewrsp),
             Act::QuitWithoutSaving => {
                 app_exit_events.send(bevy::app::AppExit);
