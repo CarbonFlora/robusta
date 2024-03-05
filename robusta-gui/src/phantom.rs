@@ -172,7 +172,10 @@ pub fn update_rphantom(
 }
 
 fn update_rphantom_definition(sp: &mut [Point], preg: &Res<PhantomREntityGeo>) {
-    todo!(); //Current phantom handling for points should be split to rphantom_pointer and rphantom_entities. RPPointer should follow the mouse. RPE behavior should depend on the context of what is going on. Depending on the max definition length of all RPE, ask for that many RPP or if exit.
+    todo!(); //Current phantom handling for points should be split to rphantom_pointer and rphantom_entities.
+             //RPPointer should follow the mouse.
+             //RPE behavior should depend on the context of what is going on.
+             //Depending on the max definition length of all RPE, ask for that many RPP or if exit.
     let mut a = preg.definition.iter();
     for p in sp {
         if let Some(c) = a.next() {

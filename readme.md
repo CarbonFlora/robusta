@@ -2,6 +2,21 @@
 ## Brief
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
+## Rewrite 2 Update
+- Take advantage of Bevy ECS change detection (https://docs.rs/bevy_ecs/latest/bevy_ecs/#change-detection). 
+- Constraints: add coincident & extension constriant type.
+- Entity behavior
+    click once: select the entity/place the point. bring up the constraints imposed on this entity. highlight the entity depending on if it's a fixed for floating entity. (entities that can have fixed and floating points use gradients.) 
+    click again on a definition point: If it's a fixed point, pick-up the point and move it to the mouse for dropping. If it's a float point, it bring up the constraints to be removed or converted to fixed point. 
+        Intersections:
+        fixed-fixed > pick-up the point belonging to the line/arc selected. No constraints can be added.
+        fixed-float > moving the fixed will also move the float, maintaining constraints. 
+        float-float > shouldn't be possible as it's underdefined. (untested)
+- Take into consideration the following:
+    - Component Storage type
+    - Component Bundles for organization
+- Phantom system is split into the pointer and the phantom entities. This is required for the function of multi-point definition entities. 
+
 ## Proposed Re-write 2
 - Term, dxf, core, bevy_egui are all fine. gui is the one that requires a re-write.
 - Use more of the ECS system by adding RobustaEntity into the entity itself via component. This way, Hashmap isn't required to correlate the two. 
@@ -64,6 +79,13 @@ This is important, but for another day.
 - Fence System
 In addition to the constraint system, have it so arcs and lines must be between two points. This is called the fence system as of now.
 
+---
+
 ## Bugs
 - On startup, using keys: [win + arrow keys] messes with the bevy focus system and app functionality is impacted. This is an upstream issue.
 - With [select nothing deselect all] on, clicking on the cadpanel deselects all even though the settings are changed. 
+
+## QOL Features
+- Impliment a fuzzy-finder to the RTerm and its dictionary.
+- Icons to the constraints on the ribbon.
+- Similar to how helix/vim gives context clues on what mode you are in, give clues to what you are doing. Might be a good design philosophy where you are able to determine what is going on based on a screenshot alone.
