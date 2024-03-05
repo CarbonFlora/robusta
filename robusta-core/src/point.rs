@@ -15,11 +15,14 @@ impl Point {
     }
 
     pub fn xy_mut(&mut self, x: f32, y: f32) {
-        self.coordinates = nalgebra::Point3::new(x, y, self.coordinates.z);
+        self.coordinates.x = x;
+        self.coordinates.y = y;
     }
 
     pub fn xyz_mut(&mut self, x: f32, y: f32, z: f32) {
-        self.coordinates = nalgebra::Point3::new(x, y, z);
+        self.coordinates.x = x;
+        self.coordinates.y = y;
+        self.coordinates.z = z;
     }
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {

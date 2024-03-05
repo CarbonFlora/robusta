@@ -1,5 +1,5 @@
 use self::{
-    phantom::{despawn_all_phantoms, PhantomPoint},
+    phantom::{despawn_all_phantoms, RPhantom},
     rselection::Selected,
     snap::UpdateSnapPoints,
 };
@@ -156,7 +156,7 @@ impl UiState {
     pub fn close_all(
         &mut self,
         co: &mut Commands,
-        ewp: &Query<Entity, With<PhantomPoint>>,
+        ewp: &Query<Entity, With<RPhantom>>,
         ewrsp: &mut EventWriter<UpdateSnapPoints>,
     ) {
         ewrsp.send(UpdateSnapPoints(false));
@@ -185,6 +185,7 @@ impl UiState {
                 "Terminal submitted: "
             }
             Act::NewPoint => "Point created.",
+            Act::NewLine => "Line created.",
             Act::ToggleSnap(a) => {
                 meta_data = format!("{a:?}");
                 "Snap configuration changed: "

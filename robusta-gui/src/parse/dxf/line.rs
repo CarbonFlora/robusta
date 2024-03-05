@@ -7,8 +7,23 @@ pub fn spawn_line(
     ma: &mut ResMut<Assets<ColorMaterial>>,
     ix: &mut TopZLayer,
 ) {
-    let lw = 0.3f32;
     let sp = to_rentity(sp);
+    let id = spawn_line_mesh(sp, co, me, ma, ix);
+    co.entity(id).insert((
+        PickableBundle::default(),
+        On::<Pointer<Select>>::send_event::<Selection>(),
+        On::<Pointer<Deselect>>::send_event::<Selection>(),
+    ));
+}
+
+pub fn spawn_line_mesh(
+    sp: robusta_core::line::Line,
+    co: &mut Commands,
+    me: &mut ResMut<Assets<Mesh>>,
+    ma: &mut ResMut<Assets<ColorMaterial>>,
+    ix: &mut TopZLayer,
+) -> Entity {
+    let lw = 0.3f32;
     let spec = sp.specifications();
     co.spawn((
         MaterialMesh2dBundle {
@@ -22,10 +37,8 @@ pub fn spawn_line(
             ..default()
         },
         REntity::Line(sp),
-        PickableBundle::default(),
-        On::<Pointer<Select>>::send_event::<Selection>(),
-        On::<Pointer<Deselect>>::send_event::<Selection>(),
-    ));
+    ))
+    .id()
 }
 
 fn to_rentity(sp: &dxf::entities::Line) -> robusta_core::line::Line {

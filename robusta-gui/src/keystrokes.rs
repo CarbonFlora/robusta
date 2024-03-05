@@ -80,6 +80,7 @@ pub enum Act {
     OpenCADTerm,
     TryAct(String),
     NewPoint,
+    NewLine,
     Inspect,
     PullCameraFocus(Rect),
     FitView,

@@ -5,7 +5,7 @@ use bevy_mod_picking::{events::Pointer, selection::Deselect};
 
 use crate::{
     keystrokes::Act,
-    phantom::{canonize, spawn_phantom_point, PhantomPoint},
+    phantom::{canonize, spawn_phantom_line, spawn_phantom_point, RPhantom},
     rselection::{deselect_all, Selected},
     snap::UpdateSnapPoints,
     uistate::UiState,
@@ -17,7 +17,7 @@ pub fn update_act(
     mut act_read: EventReader<Act>,
     mut ewrsp: EventWriter<UpdateSnapPoints>,
     re: Query<&REntity>,
-    ewp: Query<Entity, With<PhantomPoint>>,
+    ewp: Query<Entity, With<RPhantom>>,
     es: Query<(Entity, &Selected), With<Selected>>,
     mut ui_state: ResMut<UiState>,
     mut tzi: ResMut<TopZLayer>,
@@ -52,6 +52,7 @@ pub fn update_act(
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
             Act::NewPoint => spawn_phantom_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp),
+            Act::NewLine => spawn_phantom_line(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
             Act::Confirm => canonize(&mut co, &ewp, &mut ewrsp),
@@ -76,6 +77,7 @@ fn to_act(input: &str) -> Act {
         "fitview" | "fv" => Act::FitView,
         "snap" | "s" => snap_acts(text_buffer),
         "point" | "p" => Act::NewPoint,
+        "line" | "l" => Act::NewLine,
         "q!" => Act::QuitWithoutSaving,
         _ => Act::None,
     }
@@ -173,7 +175,7 @@ fn fit_view_rect(re: &Query<&REntity>) -> Rect {
             REntity::Circle(sp) => a.extend(&sp.definition),
             REntity::Line(sp) => a.extend(&sp.definition),
             REntity::Point(sp) => a.push(sp),
-            REntity::Text(sp) => a.push(&sp.coordinates),
+            REntity::Text(sp) => a.extend(&sp.definition),
         }
     }
 

@@ -10,7 +10,7 @@ pub fn spawn_text(
 ) {
     let sp = to_rentity(sp);
     let text_body = Text::from_section(sp.body.clone(), TextStyle::default());
-    let origin = sp.coordinates.xyz();
+    let origin = sp.definition[0].xyz();
     co.spawn((
         Text2dBundle {
             text: text_body,
@@ -36,7 +36,7 @@ fn to_rentity(sp: &dxf::entities::Text) -> robusta_core::text::Text {
     let origin = Point::new(sp.location.x as f32, sp.location.y as f32, 0.);
 
     robusta_core::text::Text {
-        coordinates: origin,
+        definition: [origin],
         body: sp.value.clone(),
         rotation: sp.rotation as f32,
         height: sp.text_height as f32,
