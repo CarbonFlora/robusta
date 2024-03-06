@@ -1,4 +1,5 @@
 use self::{
+    construction::ConstructionBuffer,
     phantom::{despawn_all_phantoms, RPhantomPointer},
     rselection::Selected,
     snap::UpdateSnapPoints,
@@ -158,8 +159,10 @@ impl UiState {
         co: &mut Commands,
         ewp: &Query<Entity, With<RPhantomPointer>>,
         ewrsp: &mut EventWriter<UpdateSnapPoints>,
+        rmcb: &mut ResMut<ConstructionBuffer>,
     ) {
         ewrsp.send(UpdateSnapPoints(false));
+        rmcb.as_mut().reset();
         self.cad_state.cad_term = None;
         self.cad_state.mode = Mode::Normal;
         despawn_all_phantoms(co, ewp);

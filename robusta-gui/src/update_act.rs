@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_mod_picking::{events::Pointer, selection::Deselect};
 
 use crate::{
-    construction::{construct_point, ConstructionBuffer, ConstructionInput},
+    construction::{construct_line, construct_point, ConstructionBuffer, ConstructionInput},
     keystrokes::Act,
     phantom::{index_point, RPhantomPointer},
     rselection::{deselect_all, Selected},
@@ -58,11 +58,13 @@ pub fn update_act(
             Act::NewPoint => {
                 construct_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp, &mut rmcb)
             }
-            Act::NewLine => (),
+            Act::NewLine => {
+                construct_line(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp, &mut rmcb)
+            }
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
             Act::Confirm => index_point(&qrerpp, &mut ewci),
-            Act::Exit => ui_state.close_all(&mut co, &qerpp, &mut ewrsp),
+            Act::Exit => ui_state.close_all(&mut co, &qerpp, &mut ewrsp, &mut rmcb),
             Act::QuitWithoutSaving => {
                 app_exit_events.send(bevy::app::AppExit);
             }

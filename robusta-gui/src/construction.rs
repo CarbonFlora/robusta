@@ -1,6 +1,7 @@
-use robusta_core::point::Point;
+use robusta_core::{line::Line, point::Point};
 
 use self::{
+    parse::dxf::line::spawn_line_mesh,
     phantom::{despawn_all_phantoms, RPhantomPointer},
     rselection::Selection,
 };
@@ -17,7 +18,7 @@ impl bevy::app::Plugin for ConstructionPlugin {
     }
 }
 
-#[derive(Debug, Event, Clone)]
+#[derive(Debug, Event, Clone, PartialEq)]
 pub struct ConstructionInput {
     pub coords: Vec3,
 }
@@ -65,8 +66,10 @@ fn update_queue(
     }
     for ci in erra.read() {
         rmcb.buf.push(ci.clone());
+        rmcb.buf.dedup();
     }
-    let mut rmcbi = rmcb.buf.iter();
+    erra.clear();
+
     match rmcb
         .build
         .as_ref()
@@ -74,10 +77,23 @@ fn update_queue(
     {
         REntity::Arc(_) => todo!(),
         REntity::Circle(_) => todo!(),
-        REntity::Line(_) => todo!(),
+        REntity::Line(_) => {
+            if rmcb.buf.len() == 2 {
+                let pt1 = rmcb.buf[0].coords;
+                let pt2 = rmcb.buf[1].coords;
+                let sp = Line::new([
+                    Point::new(pt1.x, pt1.y, pt1.z),
+                    Point::new(pt2.x, pt2.y, pt2.z),
+                ]);
+                canonize_line(sp, &mut co, &mut me, &mut ma, &mut tzi);
+                ewrsp.send(UpdateSnapPoints(false));
+                despawn_all_phantoms(&mut co, &ewp);
+                rmcb.into_inner().reset();
+            }
+        }
         REntity::Point(_) => {
             if rmcb.buf.len() == 1 {
-                let pt1 = rmcbi.next().unwrap().coords;
+                let pt1 = rmcb.buf[0].coords;
                 let sp = Point::new(pt1.x, pt1.y, pt1.z);
                 canonize_point(sp, &mut co, &mut me, &mut ma, &mut tzi);
                 ewrsp.send(UpdateSnapPoints(false));
@@ -114,6 +130,21 @@ fn canonize_point(
     ));
 }
 
+fn canonize_line(
+    sp: Line,
+    co: &mut Commands,
+    me: &mut ResMut<Assets<Mesh>>,
+    ma: &mut ResMut<Assets<ColorMaterial>>,
+    tzi: &mut TopZLayer,
+) {
+    let id = spawn_line_mesh(sp, co, me, ma, tzi);
+    co.entity(id).insert((
+        PickableBundle::default(),
+        On::<Pointer<Select>>::send_event::<Selection>(),
+        On::<Pointer<Deselect>>::send_event::<Selection>(),
+    ));
+}
+
 pub fn construct_point(
     co: &mut Commands,
     me: &mut ResMut<Assets<Mesh>>,
@@ -123,6 +154,22 @@ pub fn construct_point(
     rmcb: &mut ResMut<ConstructionBuffer>,
 ) {
     rmcb.build = Some(REntity::Point(Point::new(0., 0., 0.)));
+    ewrsp.send(UpdateSnapPoints(true));
+    spawn_phantom_point(co, me, ma, tzi);
+}
+
+pub fn construct_line(
+    co: &mut Commands,
+    me: &mut ResMut<Assets<Mesh>>,
+    ma: &mut ResMut<Assets<ColorMaterial>>,
+    tzi: &mut TopZLayer,
+    ewrsp: &mut EventWriter<UpdateSnapPoints>,
+    rmcb: &mut ResMut<ConstructionBuffer>,
+) {
+    rmcb.build = Some(REntity::Line(Line::new([
+        Point::new(0., 0., 0.),
+        Point::new(0., 0., 0.),
+    ])));
     ewrsp.send(UpdateSnapPoints(true));
     spawn_phantom_point(co, me, ma, tzi);
 }
