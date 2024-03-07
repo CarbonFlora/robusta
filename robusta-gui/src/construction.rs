@@ -34,7 +34,7 @@ pub enum InputType {
 #[derive(Debug, Resource, Default)]
 pub struct ConstructionBuffer {
     buf: Vec<ConstructionInput>,
-    build: Option<REntity>,
+    build: Option<ConstructType>,
 }
 
 impl ConstructionBuffer {
@@ -51,6 +51,16 @@ impl ConstructionBuffer {
 #[derive(Debug, Component)]
 pub struct RConstructionEntity;
 
+#[derive(Debug)]
+pub enum ConstructType {
+    Arc,
+    Circle,
+    Line,
+    Point,
+    Text,
+}
+
+#[allow(clippy::too_many_arguments)]
 fn update_queue(
     mut erra: EventReader<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
@@ -75,9 +85,9 @@ fn update_queue(
         .as_ref()
         .expect("Encountered construction with no build criteria.")
     {
-        REntity::Arc(_) => todo!(),
-        REntity::Circle(_) => todo!(),
-        REntity::Line(_) => {
+        ConstructType::Arc => todo!(),
+        ConstructType::Circle => todo!(),
+        ConstructType::Line => {
             if rmcb.buf.len() == 2 {
                 let pt1 = rmcb.buf[0].coords;
                 let pt2 = rmcb.buf[1].coords;
@@ -91,7 +101,7 @@ fn update_queue(
                 rmcb.into_inner().reset();
             }
         }
-        REntity::Point(_) => {
+        ConstructType::Point => {
             if rmcb.buf.len() == 1 {
                 let pt1 = rmcb.buf[0].coords;
                 let sp = Point::new(pt1.x, pt1.y, pt1.z);
@@ -101,7 +111,7 @@ fn update_queue(
                 rmcb.into_inner().reset();
             }
         }
-        REntity::Text(_) => todo!(),
+        ConstructType::Text => todo!(),
     }
 }
 
@@ -153,7 +163,7 @@ pub fn construct_point(
     ewrsp: &mut EventWriter<UpdateSnapPoints>,
     rmcb: &mut ResMut<ConstructionBuffer>,
 ) {
-    rmcb.build = Some(REntity::Point(Point::new(0., 0., 0.)));
+    rmcb.build = Some(ConstructType::Point);
     ewrsp.send(UpdateSnapPoints(true));
     spawn_phantom_point(co, me, ma, tzi);
 }
@@ -166,10 +176,7 @@ pub fn construct_line(
     ewrsp: &mut EventWriter<UpdateSnapPoints>,
     rmcb: &mut ResMut<ConstructionBuffer>,
 ) {
-    rmcb.build = Some(REntity::Line(Line::new([
-        Point::new(0., 0., 0.),
-        Point::new(0., 0., 0.),
-    ])));
+    rmcb.build = Some(ConstructType::Line);
     ewrsp.send(UpdateSnapPoints(true));
     spawn_phantom_point(co, me, ma, tzi);
 }
