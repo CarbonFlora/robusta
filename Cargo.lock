@@ -3931,6 +3931,7 @@ name = "robusta-core"
 version = "0.1.0"
 dependencies = [
  "approx",
+ "bevy_render",
  "nalgebra",
 ]
 

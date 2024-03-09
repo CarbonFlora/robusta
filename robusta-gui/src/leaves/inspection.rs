@@ -46,6 +46,7 @@ pub fn view_inspection(
                     act_write.send(Act::PullCameraFocus(Rect::new(c.0, c.1, c.2, c.3)));
                 }
             }
+            REntity::SnapPoint(_) => (),
         }
         ui.separator();
     }

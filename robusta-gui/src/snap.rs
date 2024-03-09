@@ -51,16 +51,19 @@ impl UiState {
     }
 
     pub fn reload_snap_point(
+        //Util
         &self,
         res: &Query<&REntity, With<Selected>>,
         esp: &Query<Entity, With<SnapPoint>>,
+        //Output
+        ewre: &mut EventWriter<REntity>,
         co: &mut Commands,
-        me: &mut ResMut<Assets<Mesh>>,
-        ma: &mut ResMut<Assets<ColorMaterial>>,
-        tzi: &mut ResMut<TopZLayer>,
+        // me: &mut ResMut<Assets<Mesh>>,
+        // ma: &mut ResMut<Assets<ColorMaterial>>,
+        // tzi: &mut ResMut<TopZLayer>,
     ) {
         despawn_all_snap_points(co, esp);
-        spawn_all_snap_points(self, res, co, me, ma, tzi);
+        spawn_all_snap_points(self, res, ewre);
     }
 }
 
@@ -73,10 +76,11 @@ pub fn despawn_all_snap_points(co: &mut Commands, esp: &Query<Entity, With<SnapP
 fn spawn_all_snap_points(
     us: &UiState,
     res: &Query<&REntity, With<Selected>>,
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    tzi: &mut ResMut<TopZLayer>,
+    ewre: &mut EventWriter<REntity>,
+    // co: &mut Commands,
+    // me: &mut ResMut<Assets<Mesh>>,
+    // ma: &mut ResMut<Assets<ColorMaterial>>,
+    // tzi: &mut ResMut<TopZLayer>,
 ) {
     let ss = &us.cad_state.object_snapping;
     let mut vp = Vec::new();
@@ -87,41 +91,42 @@ fn spawn_all_snap_points(
             REntity::Line(sp) => line_snaps(sp, ss, &mut vp),
             REntity::Point(_) => (),
             REntity::Text(_) => (),
+            REntity::SnapPoint(sp) => vp.push(sp.clone()),
         }
     }
-    ssp(vp, co, me, ma, tzi);
+    ewre.send_batch(vp.iter().map(|x| REntity::SnapPoint(x.clone())));
 }
 
-fn ssp(
-    vp: Vec<Point>,
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    xi: &mut ResMut<TopZLayer>,
-) {
-    for po in vp {
-        co.spawn((
-            MaterialMesh2dBundle {
-                mesh: me.add(bevy::math::primitives::Circle::new(0.2)).into(),
-                material: ma.add(ColorMaterial::from(Color::ORANGE)),
-                transform: Transform::from_translation(Vec3::new(
-                    po.coordinates.x,
-                    po.coordinates.y,
-                    xi.top() as f32,
-                )),
-                ..default()
-            },
-            SnapPoint,
-            REntity::Point(point::Point::new(
-                po.coordinates.x,
-                po.coordinates.y,
-                po.coordinates.z,
-            )),
-            On::<Pointer<Over>>::send_event::<Snap>(),
-            On::<Pointer<Out>>::send_event::<Snap>(),
-        ));
-    }
-}
+// fn ssp(
+//     vp: Vec<Point>,
+//     co: &mut Commands,
+//     me: &mut ResMut<Assets<Mesh>>,
+//     ma: &mut ResMut<Assets<ColorMaterial>>,
+//     xi: &mut ResMut<TopZLayer>,
+// ) {
+//     for po in vp {
+//         co.spawn((
+//             MaterialMesh2dBundle {
+//                 mesh: me.add(bevy::math::primitives::Circle::new(0.2)).into(),
+//                 material: ma.add(ColorMaterial::from(Color::ORANGE)),
+//                 transform: Transform::from_translation(Vec3::new(
+//                     po.coordinates.x,
+//                     po.coordinates.y,
+//                     xi.top() as f32,
+//                 )),
+//                 ..default()
+//             },
+//             SnapPoint,
+//             REntity::Point(point::Point::new(
+//                 po.coordinates.x,
+//                 po.coordinates.y,
+//                 po.coordinates.z,
+//             )),
+//             On::<Pointer<Over>>::send_event::<Snap>(),
+//             On::<Pointer<Out>>::send_event::<Snap>(),
+//         ));
+//     }
+// }
 
 fn arc_snaps(sp: &Arc, ss: &SnapSettings, vp: &mut Vec<Point>) {
     if ss.endpoint {
@@ -163,17 +168,19 @@ fn update_snap_points(
     us: Res<UiState>,
     res: Query<&REntity, With<Selected>>,
     esp: Query<Entity, With<SnapPoint>>,
+    mut ewre: EventWriter<REntity>,
     mut co: Commands,
-    mut me: ResMut<Assets<Mesh>>,
-    mut ma: ResMut<Assets<ColorMaterial>>,
-    mut tzi: ResMut<TopZLayer>,
+    // mut me: ResMut<Assets<Mesh>>,
+    // mut ma: ResMut<Assets<ColorMaterial>>,
+    // mut tzi: ResMut<TopZLayer>,
 ) {
     if errsp.is_empty() {
         return;
     }
     for temp in errsp.read() {
         match temp.0 {
-            true => us.reload_snap_point(&res, &esp, &mut co, &mut me, &mut ma, &mut tzi),
+            true => us.reload_snap_point(&res, &esp, &mut ewre, &mut co),
+            // true => us.reload_snap_point(&res, &esp, &mut co, &mut me, &mut ma, &mut tzi),
             false => despawn_all_snap_points(&mut co, &esp),
         }
     }

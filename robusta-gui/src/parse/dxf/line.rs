@@ -23,7 +23,7 @@ pub fn spawn_line_mesh(
     co: &mut Commands,
     me: &mut ResMut<Assets<Mesh>>,
     ma: &mut ResMut<Assets<ColorMaterial>>,
-    ix: &mut TopZLayer,
+    tz: &mut TopZLayer,
 ) -> Entity {
     let lw = 0.3f32;
     let spec = sp.specifications();
@@ -34,7 +34,7 @@ pub fn spawn_line_mesh(
             transform: Transform::from_translation(Vec3::new(
                 sp.definition[0].coordinates.x,
                 sp.definition[0].coordinates.y,
-                ix.top() as f32,
+                tz.top() as f32,
             )),
             ..default()
         },

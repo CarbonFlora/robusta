@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, PartialEq, Default, PartialOrd)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Text {
     pub definition: [crate::point::Point; 1],
     pub body: String,

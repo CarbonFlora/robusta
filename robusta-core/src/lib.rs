@@ -1,3 +1,4 @@
+use bevy_render::color::Color;
 use std::f32::consts::PI;
 
 pub mod arc;

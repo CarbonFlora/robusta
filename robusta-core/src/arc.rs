@@ -1,6 +1,6 @@
 use crate::{angle_full_circle, point::Point, PI};
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Arc {
     pub definition: [crate::point::Point; 3],
 }
@@ -146,7 +146,7 @@ fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, Point) {
     (radius, Point::new(x_center, y_center, 0.))
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ArcSpec {
     pub radius: f32,
     pub center: crate::point::Point,

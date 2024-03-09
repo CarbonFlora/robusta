@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 
 use crate::point::Point;
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Circle {
     pub definition: [crate::point::Point; 2], // [@ angle=0, center]
 }

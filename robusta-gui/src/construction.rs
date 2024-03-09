@@ -51,7 +51,7 @@ impl ConstructionBuffer {
 #[derive(Debug, Component)]
 pub struct RConstructionEntity;
 
-#[derive(Debug)]
+#[derive(Debug, Event, Clone, Copy)]
 pub enum ConstructType {
     Arc,
     Circle,
@@ -180,4 +180,29 @@ pub fn construct_line(
     rmcb.build = Some(ConstructType::Line);
     ewrsp.send(UpdateSnapPoints(true));
     spawn_phantom_point(co, me, ma, tzi);
+}
+
+pub fn construct(
+    // Input
+    mut erct: EventReader<ConstructType>,
+    // Util
+    co: &mut Commands,
+    me: &mut ResMut<Assets<Mesh>>,
+    ma: &mut ResMut<Assets<ColorMaterial>>,
+    tzi: &mut TopZLayer,
+    rmcb: &mut ResMut<ConstructionBuffer>,
+    // Output
+    ewrsp: &mut EventWriter<UpdateSnapPoints>,
+) {
+    if let Some(ct) = erct.read().next() {
+        rmcb.build = Some(*ct);
+        ewrsp.send(UpdateSnapPoints(true));
+        match ct {
+            ConstructType::Arc => todo!(),
+            ConstructType::Circle => todo!(),
+            ConstructType::Line => todo!(),
+            ConstructType::Point => spawn_phantom_point(co, me, ma, tzi),
+            ConstructType::Text => todo!(),
+        }
+    }
 }

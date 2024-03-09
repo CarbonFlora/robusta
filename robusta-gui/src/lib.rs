@@ -39,13 +39,14 @@ use crate::uistate::*;
 use crate::update_act::*;
 use crate::viewport_ui::*;
 
-#[derive(Component, Debug, Clone, PartialEq)]
+#[derive(Component, Debug, Clone, PartialEq, Event)]
 pub enum REntity {
     Arc(arc::Arc),
     Circle(circle::Circle),
     Line(line::Line),
     Point(point::Point),
     Text(text::Text),
+    SnapPoint(point::Point),
 }
 
 impl REntity {

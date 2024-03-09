@@ -22,7 +22,6 @@ pub fn update_act(
     qrerpp: Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
     es: Query<(Entity, &Selected), With<Selected>>,
     mut ui_state: ResMut<UiState>,
-    mut tzi: ResMut<TopZLayer>,
     // mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut camera: Query<
         (
@@ -35,6 +34,7 @@ pub fn update_act(
     mut co: Commands,
     mut me: ResMut<Assets<Mesh>>,
     mut ma: ResMut<Assets<ColorMaterial>>,
+    mut tzi: ResMut<TopZLayer>,
     mut dsel: EventWriter<Pointer<Deselect>>,
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
@@ -180,13 +180,14 @@ fn camera_zoom(
 
 fn fit_view_rect(re: &Query<&REntity>) -> Rect {
     let mut a = Vec::new();
-    for e in re.iter() {
-        match e {
+    for re in re.iter() {
+        match re {
             REntity::Arc(sp) => a.extend(&sp.definition),
             REntity::Circle(sp) => a.extend(&sp.definition),
             REntity::Line(sp) => a.extend(&sp.definition),
             REntity::Point(sp) => a.push(sp),
             REntity::Text(sp) => a.extend(&sp.definition),
+            REntity::SnapPoint(_) => (),
         }
     }
 
