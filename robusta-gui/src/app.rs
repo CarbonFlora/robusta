@@ -5,7 +5,8 @@ pub fn app2d(path: Option<String>) {
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Viewport".into(),
-                present_mode: bevy_window::PresentMode::Immediate,
+                // present_mode: bevy_window::PresentMode::Immediate,
+                present_mode: bevy_window::PresentMode::AutoNoVsync,
                 ..Default::default()
             }),
             ..default()

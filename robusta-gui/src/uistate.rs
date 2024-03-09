@@ -1,6 +1,6 @@
 use self::{
     construction::ConstructionBuffer,
-    phantom::{despawn_all_phantoms, RPhantomPointer},
+    phantom::{despawn_all_phantoms, PhantomSnaps, RPhantomPointer},
     rselection::Selected,
     snap::UpdateSnapPoints,
 };
@@ -160,12 +160,13 @@ impl UiState {
         ewp: &Query<Entity, With<RPhantomPointer>>,
         ewrsp: &mut EventWriter<UpdateSnapPoints>,
         rmcb: &mut ResMut<ConstructionBuffer>,
+        fs: &mut ResMut<PhantomSnaps>,
     ) {
         ewrsp.send(UpdateSnapPoints(false));
         rmcb.as_mut().reset();
         self.cad_state.cad_term = None;
         self.cad_state.mode = Mode::Normal;
-        despawn_all_phantoms(co, ewp);
+        despawn_all_phantoms(co, ewp, fs);
     }
 
     pub fn push_history(&mut self, act: &Act) {

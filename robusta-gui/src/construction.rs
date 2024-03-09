@@ -2,7 +2,7 @@ use robusta_core::{line::Line, point::Point};
 
 use self::{
     parse::dxf::line::spawn_line_mesh,
-    phantom::{despawn_all_phantoms, RPhantomPointer},
+    phantom::{despawn_all_phantoms, PhantomSnaps, RPhantomPointer},
     rselection::Selection,
 };
 
@@ -70,6 +70,7 @@ fn update_queue(
     mut tzi: ResMut<TopZLayer>,
     mut ewrsp: EventWriter<UpdateSnapPoints>,
     ewp: Query<Entity, With<RPhantomPointer>>,
+    mut fs: ResMut<PhantomSnaps>,
 ) {
     if erra.is_empty() {
         return;
@@ -97,7 +98,7 @@ fn update_queue(
                 ]);
                 canonize_line(sp, &mut co, &mut me, &mut ma, &mut tzi);
                 ewrsp.send(UpdateSnapPoints(false));
-                despawn_all_phantoms(&mut co, &ewp);
+                despawn_all_phantoms(&mut co, &ewp, &mut fs);
                 rmcb.into_inner().reset();
             }
         }
@@ -107,7 +108,7 @@ fn update_queue(
                 let sp = Point::new(pt1.x, pt1.y, pt1.z);
                 canonize_point(sp, &mut co, &mut me, &mut ma, &mut tzi);
                 ewrsp.send(UpdateSnapPoints(false));
-                despawn_all_phantoms(&mut co, &ewp);
+                despawn_all_phantoms(&mut co, &ewp, &mut fs);
                 rmcb.into_inner().reset();
             }
         }

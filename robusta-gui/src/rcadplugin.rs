@@ -33,7 +33,8 @@ impl bevy::app::Plugin for RCADCorePlugin {
             .add_systems(PreUpdate, capture_keystrokes)
             .add_systems(Update, update_viewport_ui)
             .add_systems(Update, update_dock)
-            .add_systems(PostUpdate, update_act);
+            // .add_systems(PostUpdate, update_act);
+            .add_systems(PreUpdate, update_act);
     }
 }
 
@@ -42,6 +43,7 @@ fn spawn_window(mut co: Commands) {
     co.spawn((
         window::Window {
             title: String::from("CADPanel"),
+            // present_mode: bevy_window::PresentMode::AutoNoVsync,
             focused: false,
             ..Default::default()
         },

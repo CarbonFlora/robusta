@@ -26,17 +26,26 @@ impl PhantomSnaps {
     pub fn new() -> Self {
         PhantomSnaps::default()
     }
+
+    pub fn reset(&mut self) {
+        self.snap_to = None;
+    }
 }
 
 /// This is a marker component to delineate a point entity in the process of being placed.
 #[derive(Debug, Component)]
 pub struct RPhantomPointer;
 
-pub fn despawn_all_phantoms(c: &mut Commands, ewp: &Query<Entity, With<RPhantomPointer>>) {
+pub fn despawn_all_phantoms(
+    c: &mut Commands,
+    ewp: &Query<Entity, With<RPhantomPointer>>,
+    fs: &mut ResMut<PhantomSnaps>,
+) {
     for e in ewp.iter() {
         c.entity(e).remove::<RPhantomPointer>();
         c.entity(e).despawn();
     }
+    fs.snap_to = None;
 }
 
 pub fn spawn_phantom_point(
@@ -87,8 +96,25 @@ pub fn update_rphantom_pointer(
     transform: Query<(&Camera, &GlobalTransform), With<bevy_pancam::PanCam>>,
 ) {
     let (ca, gt) = transform.single();
-    if let Ok((mut tr, re)) = ewp.get_single_mut() {
-        let sp = re.into_inner().unwrap_point_mut();
+    // if let Ok((mut tr, re)) = ewp.get_single_mut() {
+    //     let sp = re.into_inner().unwrap_point_mut();
+    //     if let Some(cursor_world_pos) = w
+    //         .single()
+    //         .cursor_position()
+    //         .and_then(|cursor_pos| ca.viewport_to_world_2d(gt, cursor_pos))
+    //     {
+    //         let binding_xy = match pr.snap_to {
+    //             Some(sv) => sv,
+    //             None => cursor_world_pos,
+    //         };
+
+    //         sp.xy_mut(binding_xy.x, binding_xy.y);
+    //         tr.translation.x = binding_xy.x;
+    //         tr.translation.y = binding_xy.y;
+    //     }
+    // }
+    for (mut tr, mut re) in ewp.iter_mut() {
+        let sp = re.unwrap_point_mut();
         if let Some(cursor_world_pos) = w
             .single()
             .cursor_position()

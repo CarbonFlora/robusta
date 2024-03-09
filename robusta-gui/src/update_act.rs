@@ -6,7 +6,7 @@ use bevy_mod_picking::{events::Pointer, selection::Deselect};
 use crate::{
     construction::{construct_line, construct_point, ConstructionBuffer, ConstructionInput},
     keystrokes::Act,
-    phantom::{index_point, RPhantomPointer},
+    phantom::{index_point, PhantomSnaps, RPhantomPointer},
     rselection::{deselect_all, Selected},
     snap::UpdateSnapPoints,
     uistate::UiState,
@@ -23,7 +23,7 @@ pub fn update_act(
     es: Query<(Entity, &Selected), With<Selected>>,
     mut ui_state: ResMut<UiState>,
     mut tzi: ResMut<TopZLayer>,
-    mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
+    // mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut camera: Query<
         (
             &mut Transform,
@@ -38,6 +38,7 @@ pub fn update_act(
     mut dsel: EventWriter<Pointer<Deselect>>,
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
+    mut fs: ResMut<PhantomSnaps>,
 ) {
     for act in era.read() {
         let mut binding = act.clone();
@@ -64,10 +65,10 @@ pub fn update_act(
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
             Act::Confirm => index_point(&qrerpp, &mut ewci),
-            Act::Exit => ui_state.close_all(&mut co, &qerpp, &mut ewrsp, &mut rmcb),
-            Act::QuitWithoutSaving => {
-                app_exit_events.send(bevy::app::AppExit);
-            }
+            Act::Exit => ui_state.close_all(&mut co, &qerpp, &mut ewrsp, &mut rmcb, &mut fs),
+            // Act::QuitWithoutSaving => {
+            //     app_exit_events.send(bevy::app::AppExit);
+            // }
             _ => (),
         }
     }
