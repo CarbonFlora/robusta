@@ -1,4 +1,4 @@
-use self::phantom::spawn_phantom_point;
+// use self::phantom::spawn_phantom_point;
 use self::rselection::Selected;
 use self::snap::SnapPlugin;
 use self::snap::UpdateSnapPoints;
@@ -46,6 +46,7 @@ pub enum REntity {
     Line(line::Line),
     Point(point::Point),
     Text(text::Text),
+    PhantomPoint,
     SnapPoint(point::Point),
 }
 

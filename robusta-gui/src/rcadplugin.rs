@@ -4,7 +4,7 @@ use self::{
     construction::ConstructionPlugin,
     diagnostic::DiagnosticPlugin,
     parse::dxf::line::spawn_line_mesh,
-    phantom::PhantomPlugin,
+    phantom::{PhantomPlugin, RPhantomPointer},
     rselection::RSelectionPlugin,
     snap::{Snap, SnapPoint},
 };
@@ -87,6 +87,7 @@ pub fn update_spawn_rentities(
             REntity::Line(sp) => spawn_line_mesh(sp.clone(), &mut co, &mut me, &mut ma, &mut tz),
             REntity::Point(_) => todo!(),
             REntity::Text(_) => todo!(),
+            REntity::PhantomPoint => spawn_phantom_bundle(&mut co, &mut me, &mut ma, &mut tz),
             REntity::SnapPoint(sp) => {
                 spawn_snap_bundle(sp.clone(), &mut co, &mut me, &mut ma, &mut tz)
             }
@@ -116,6 +117,25 @@ fn spawn_snap_bundle(
         REntity::Point(vp),
         On::<Pointer<Over>>::send_event::<Snap>(),
         On::<Pointer<Out>>::send_event::<Snap>(),
+    ))
+    .id()
+}
+
+fn spawn_phantom_bundle(
+    co: &mut Commands,
+    me: &mut ResMut<Assets<Mesh>>,
+    ma: &mut ResMut<Assets<ColorMaterial>>,
+    xi: &mut ResMut<TopZLayer>,
+) -> Entity {
+    co.spawn((
+        MaterialMesh2dBundle {
+            mesh: me.add(bevy::math::primitives::Circle::new(0.5)).into(),
+            material: ma.add(ColorMaterial::from(Color::CYAN)),
+            transform: Transform::from_translation(Vec3::new(0., 0., xi.top() as f32)),
+            ..default()
+        },
+        REntity::Point(point::Point::new(0., 0., 0.)),
+        RPhantomPointer,
     ))
     .id()
 }

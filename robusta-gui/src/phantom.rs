@@ -1,6 +1,6 @@
 use crate::{
     snap::{Snap, SnapPoint},
-    REntity, TopZLayer,
+    REntity,
 };
 
 use self::construction::ConstructionInput;
@@ -46,24 +46,6 @@ pub fn despawn_all_phantoms(
         c.entity(e).despawn();
     }
     fs.snap_to = None;
-}
-
-pub fn spawn_phantom_point(
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    tzi: &mut TopZLayer,
-) {
-    co.spawn((
-        MaterialMesh2dBundle {
-            mesh: me.add(bevy::math::primitives::Circle::new(0.5)).into(),
-            material: ma.add(ColorMaterial::from(Color::CYAN)),
-            transform: Transform::from_translation(Vec3::new(0., 0., tzi.top() as f32)),
-            ..default()
-        },
-        REntity::Point(point::Point::new(0., 0., 0.)),
-        RPhantomPointer,
-    ));
 }
 
 pub fn update_phantom_snap(

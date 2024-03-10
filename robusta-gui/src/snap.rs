@@ -91,6 +91,7 @@ fn spawn_all_snap_points(
             REntity::Line(sp) => line_snaps(sp, ss, &mut vp),
             REntity::Point(_) => (),
             REntity::Text(_) => (),
+            REntity::PhantomPoint => (),
             REntity::SnapPoint(sp) => vp.push(sp.clone()),
         }
     }

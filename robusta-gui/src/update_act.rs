@@ -10,7 +10,7 @@ use crate::{
     rselection::{deselect_all, Selected},
     snap::UpdateSnapPoints,
     uistate::UiState,
-    REntity, Snaps, TopZLayer,
+    REntity, Snaps,
 };
 
 #[allow(clippy::too_many_arguments)]
@@ -32,9 +32,7 @@ pub fn update_act(
         With<bevy_pancam::PanCam>,
     >,
     mut co: Commands,
-    mut me: ResMut<Assets<Mesh>>,
-    mut ma: ResMut<Assets<ColorMaterial>>,
-    mut tzi: ResMut<TopZLayer>,
+    mut erre: EventWriter<REntity>,
     mut dsel: EventWriter<Pointer<Deselect>>,
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
@@ -56,12 +54,8 @@ pub fn update_act(
             Act::Inspect => ui_state.inspect(),
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             Act::OpenCADTerm => ui_state.cad_state.cad_term = Some(String::new()),
-            Act::NewPoint => {
-                construct_point(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp, &mut rmcb)
-            }
-            Act::NewLine => {
-                construct_line(&mut co, &mut me, &mut ma, &mut tzi, &mut ewrsp, &mut rmcb)
-            }
+            Act::NewPoint => construct_point(&mut erre, &mut ewrsp, &mut rmcb),
+            Act::NewLine => construct_line(&mut erre, &mut ewrsp, &mut rmcb),
             Act::ToggleSnap(a) => ui_state.toggle_snap(a),
             Act::ToggleSnapOff => ui_state.toggle_snap_off(&mut ewrsp),
             Act::Confirm => index_point(&qrerpp, &mut ewci),
@@ -188,6 +182,7 @@ fn fit_view_rect(re: &Query<&REntity>) -> Rect {
             REntity::Point(sp) => a.push(sp),
             REntity::Text(sp) => a.extend(&sp.definition),
             REntity::SnapPoint(_) => (),
+            REntity::PhantomPoint => (),
         }
     }
 

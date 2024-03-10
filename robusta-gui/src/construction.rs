@@ -157,52 +157,46 @@ fn canonize_line(
 }
 
 pub fn construct_point(
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    tzi: &mut TopZLayer,
+    erre: &mut EventWriter<REntity>,
     ewrsp: &mut EventWriter<UpdateSnapPoints>,
     rmcb: &mut ResMut<ConstructionBuffer>,
 ) {
     rmcb.build = Some(ConstructType::Point);
     ewrsp.send(UpdateSnapPoints(true));
-    spawn_phantom_point(co, me, ma, tzi);
+    erre.send(REntity::PhantomPoint);
 }
 
 pub fn construct_line(
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    tzi: &mut TopZLayer,
+    erre: &mut EventWriter<REntity>,
     ewrsp: &mut EventWriter<UpdateSnapPoints>,
     rmcb: &mut ResMut<ConstructionBuffer>,
 ) {
     rmcb.build = Some(ConstructType::Line);
     ewrsp.send(UpdateSnapPoints(true));
-    spawn_phantom_point(co, me, ma, tzi);
+    erre.send(REntity::PhantomPoint);
 }
 
-pub fn construct(
-    // Input
-    mut erct: EventReader<ConstructType>,
-    // Util
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    tzi: &mut TopZLayer,
-    rmcb: &mut ResMut<ConstructionBuffer>,
-    // Output
-    ewrsp: &mut EventWriter<UpdateSnapPoints>,
-) {
-    if let Some(ct) = erct.read().next() {
-        rmcb.build = Some(*ct);
-        ewrsp.send(UpdateSnapPoints(true));
-        match ct {
-            ConstructType::Arc => todo!(),
-            ConstructType::Circle => todo!(),
-            ConstructType::Line => todo!(),
-            ConstructType::Point => spawn_phantom_point(co, me, ma, tzi),
-            ConstructType::Text => todo!(),
-        }
-    }
-}
+// pub fn construct(
+//     // Input
+//     mut erct: EventReader<ConstructType>,
+//     // Util
+//     co: &mut Commands,
+//     me: &mut ResMut<Assets<Mesh>>,
+//     ma: &mut ResMut<Assets<ColorMaterial>>,
+//     tzi: &mut TopZLayer,
+//     rmcb: &mut ResMut<ConstructionBuffer>,
+//     // Output
+//     ewrsp: &mut EventWriter<UpdateSnapPoints>,
+// ) {
+//     if let Some(ct) = erct.read().next() {
+//         rmcb.build = Some(*ct);
+//         ewrsp.send(UpdateSnapPoints(true));
+//         match ct {
+//             ConstructType::Arc => todo!(),
+//             ConstructType::Circle => todo!(),
+//             ConstructType::Line => todo!(),
+//             ConstructType::Point => spawn_phantom_point(co, me, ma, tzi),
+//             ConstructType::Text => todo!(),
+//         }
+//     }
+// }

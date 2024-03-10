@@ -47,6 +47,7 @@ pub fn view_inspection(
                 }
             }
             REntity::SnapPoint(_) => (),
+            REntity::PhantomPoint => (),
         }
         ui.separator();
     }
