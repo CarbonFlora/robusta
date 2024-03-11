@@ -1,4 +1,4 @@
-use robusta_core::{arc::Arc, circle::Circle, line::Line, point::Point};
+use self::selection::Selected;
 
 use super::*;
 
@@ -77,10 +77,6 @@ fn spawn_all_snap_points(
     us: &UiState,
     res: &Query<&REntity, With<Selected>>,
     ewre: &mut EventWriter<REntity>,
-    // co: &mut Commands,
-    // me: &mut ResMut<Assets<Mesh>>,
-    // ma: &mut ResMut<Assets<ColorMaterial>>,
-    // tzi: &mut ResMut<TopZLayer>,
 ) {
     let ss = &us.cad_state.object_snapping;
     let mut vp = Vec::new();
@@ -95,41 +91,10 @@ fn spawn_all_snap_points(
             REntity::SnapPoint(sp) => vp.push(sp.clone()),
         }
     }
-    ewre.send_batch(vp.iter().map(|x| REntity::SnapPoint(x.clone())));
+    ewre.send_batch(vp.iter().map(|p| REntity::SnapPoint(p.as_snap())));
 }
 
-// fn ssp(
-//     vp: Vec<Point>,
-//     co: &mut Commands,
-//     me: &mut ResMut<Assets<Mesh>>,
-//     ma: &mut ResMut<Assets<ColorMaterial>>,
-//     xi: &mut ResMut<TopZLayer>,
-// ) {
-//     for po in vp {
-//         co.spawn((
-//             MaterialMesh2dBundle {
-//                 mesh: me.add(bevy::math::primitives::Circle::new(0.2)).into(),
-//                 material: ma.add(ColorMaterial::from(Color::ORANGE)),
-//                 transform: Transform::from_translation(Vec3::new(
-//                     po.coordinates.x,
-//                     po.coordinates.y,
-//                     xi.top() as f32,
-//                 )),
-//                 ..default()
-//             },
-//             SnapPoint,
-//             REntity::Point(point::Point::new(
-//                 po.coordinates.x,
-//                 po.coordinates.y,
-//                 po.coordinates.z,
-//             )),
-//             On::<Pointer<Over>>::send_event::<Snap>(),
-//             On::<Pointer<Out>>::send_event::<Snap>(),
-//         ));
-//     }
-// }
-
-fn arc_snaps(sp: &Arc, ss: &SnapSettings, vp: &mut Vec<Point>) {
+fn arc_snaps(sp: &arc::Arc, ss: &SnapSettings, vp: &mut Vec<point::Point>) {
     if ss.endpoint {
         vp.extend(sp.endpoints());
     }
@@ -142,7 +107,7 @@ fn arc_snaps(sp: &Arc, ss: &SnapSettings, vp: &mut Vec<Point>) {
     }
 }
 
-fn circle_snaps(sp: &Circle, ss: &SnapSettings, vp: &mut Vec<Point>) {
+fn circle_snaps(sp: &circle::Circle, ss: &SnapSettings, vp: &mut Vec<point::Point>) {
     if ss.midpoint {
         vp.extend(sp.center());
     }
@@ -151,7 +116,7 @@ fn circle_snaps(sp: &Circle, ss: &SnapSettings, vp: &mut Vec<Point>) {
     }
 }
 
-fn line_snaps(sp: &Line, ss: &SnapSettings, vp: &mut Vec<Point>) {
+fn line_snaps(sp: &line::Line, ss: &SnapSettings, vp: &mut Vec<point::Point>) {
     if ss.endpoint {
         vp.extend(sp.endpoints());
     }
@@ -183,6 +148,22 @@ fn update_snap_points(
             true => us.reload_snap_point(&res, &esp, &mut ewre, &mut co),
             // true => us.reload_snap_point(&res, &esp, &mut co, &mut me, &mut ma, &mut tzi),
             false => despawn_all_snap_points(&mut co, &esp),
+        }
+    }
+}
+#[derive(Bundle)]
+pub struct SnapBundle {
+    a: SnapPoint,
+    b: On<Pointer<Over>>,
+    c: On<Pointer<Out>>,
+}
+
+impl Default for SnapBundle {
+    fn default() -> Self {
+        SnapBundle {
+            a: SnapPoint,
+            b: On::<Pointer<Over>>::send_event::<Snap>(),
+            c: On::<Pointer<Out>>::send_event::<Snap>(),
         }
     }
 }

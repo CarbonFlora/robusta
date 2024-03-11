@@ -1,4 +1,4 @@
-use crate::{angle_full_circle, point::Point, PI};
+use super::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Arc {
@@ -39,11 +39,11 @@ impl Arc {
         crate::min_max(self.definition.as_ref())
     }
 
-    pub fn endpoints(&self) -> Vec<Point> {
+    pub fn endpoints(&self) -> Vec<point::Point> {
         vec![self.definition[0].clone(), self.definition[1].clone()]
     }
 
-    pub fn midpoints(&self) -> Vec<Point> {
+    pub fn midpoints(&self) -> Vec<point::Point> {
         let spec = self.specifications();
         let mut end_angle = spec.start_angle_rad;
         if spec.start_angle_rad > spec.end_angle_rad {
@@ -52,17 +52,17 @@ impl Arc {
         let mid_angle = (end_angle + spec.end_angle_rad) / 2.;
         let x = mid_angle.cos() * spec.radius + spec.center.coordinates.x;
         let y = mid_angle.sin() * spec.radius + spec.center.coordinates.y;
-        let mid_point = Point::new(x, y, 0.);
+        let mid_point = point::Point::new(x, y, 0.);
 
         vec![mid_point]
     }
 
-    pub fn center(&self) -> Vec<Point> {
+    pub fn center(&self) -> Vec<point::Point> {
         let (_radius, center) = circle_specs(&self.definition);
         vec![center]
     }
 
-    pub fn nthpoints(&self, div: usize) -> Vec<Point> {
+    pub fn nthpoints(&self, div: usize) -> Vec<point::Point> {
         let mut points = Vec::new();
         let spec = self.specifications();
         let mut end_angle = spec.end_angle_rad;
@@ -75,14 +75,74 @@ impl Arc {
                 + spec.center.coordinates.x;
             let y = (n as f32 * angle_div + spec.start_angle_rad).sin() * spec.radius
                 + spec.center.coordinates.y;
-            points.push(Point::new(x, y, 0.));
+            points.push(point::Point::new(x, y, 0.));
         }
 
         points
     }
+
+    pub fn mesh(
+        &self,
+        me: &mut ResMut<Assets<Mesh>>,
+        ma: &mut ResMut<Assets<ColorMaterial>>,
+        tz: &mut TopZLayer,
+    ) -> MaterialMesh2dBundle<ColorMaterial> {
+        let lw = 0.3f32;
+        MaterialMesh2dBundle {
+            mesh: me.add(arc_mesh(lw, self)).into(),
+            material: ma.add(ColorMaterial::from(Color::WHITE)),
+            transform: Transform::from_translation(Vec3::new(0., 0., tz.top() as f32)),
+            ..default()
+        }
+    }
 }
 
-fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, Point) {
+fn arc_mesh(line_width: f32, arc: &arc::Arc) -> Mesh {
+    let lw_half = line_width / 2.0f32;
+    let num_segments = 30u32;
+    let vertexes: Vec<[f32; 3]> = arc_vertexes(num_segments, arc, lw_half);
+    let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
+
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
+    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
+    .with_inserted_indices(Indices::U32(triangle_indexes))
+}
+
+fn arc_vertexes(num_segments: u32, arc: &arc::Arc, lw_half: f32) -> Vec<[f32; 3]> {
+    let mut vertexes = Vec::new();
+    let spec = arc.specifications();
+    let angle_increment = spec.angle / num_segments as f32;
+
+    for i in 0..=num_segments {
+        let angle_offset = spec.start_angle_rad + angle_increment * i as f32;
+
+        let x_outer = spec.center.coordinates.x + (spec.radius + lw_half) * (angle_offset).cos();
+        let y_outer = spec.center.coordinates.y + (spec.radius + lw_half) * (angle_offset).sin();
+        let x_inner = spec.center.coordinates.x + (spec.radius - lw_half) * (angle_offset).cos();
+        let y_inner = spec.center.coordinates.y + (spec.radius - lw_half) * (angle_offset).sin();
+
+        vertexes.push([x_outer, y_outer, 0.]);
+        vertexes.push([x_inner, y_inner, 0.]);
+    }
+
+    vertexes
+}
+
+fn arc_indexes(num_segments: u32) -> Vec<u32> {
+    let mut a = Vec::new();
+
+    for i in 0..(num_segments * 2) {
+        a.extend(vec![i, i + 1, i + 2]);
+    }
+
+    a
+}
+
+fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, point::Point) {
     let i_11 = definition[0].coordinates.x.powi(2) + definition[0].coordinates.y.powi(2);
     let i_21 = definition[1].coordinates.x.powi(2) + definition[1].coordinates.y.powi(2);
     let i_31 = definition[2].coordinates.x.powi(2) + definition[2].coordinates.y.powi(2);
@@ -143,7 +203,7 @@ fn circle_specs(definition: &[crate::point::Point; 3]) -> (f32, Point) {
     let x_center = 1. / 2. * m_12 / m_11;
     let y_center = -1. / 2. * m_13 / m_11;
     let radius = (x_center.powi(2) + y_center.powi(2) + m_14 / m_11).sqrt();
-    (radius, Point::new(x_center, y_center, 0.))
+    (radius, point::Point::new(x_center, y_center, 0.))
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -172,5 +232,30 @@ impl std::fmt::Display for ArcSpec {
             "Center: {}\nRadius: {:.4}\nAngle: {:.4}\nStart Angle: {:.4}\nEnd Angle: {:.4}",
             self.center, self.radius, self.angle, self.start_angle_rad, self.end_angle_rad
         ))
+    }
+}
+
+impl From<&dxf::entities::Arc> for Arc {
+    fn from(sp: &dxf::entities::Arc) -> Self {
+        let x1 = sp.center.x + sp.start_angle.to_radians().cos() * sp.radius;
+        let y1 = sp.center.y + sp.start_angle.to_radians().sin() * sp.radius;
+        let point1 = point::Point::new(x1 as f32, y1 as f32, 0.);
+
+        let x2 = sp.center.x + sp.end_angle.to_radians().cos() * sp.radius;
+        let y2 = sp.center.y + sp.end_angle.to_radians().sin() * sp.radius;
+        let point2 = point::Point::new(x2 as f32, y2 as f32, 0.);
+
+        let mut p3_angle_rad = ((sp.start_angle + sp.end_angle) / 2.).to_radians() as f32;
+        if sp.start_angle > sp.end_angle {
+            p3_angle_rad -= PI;
+        }
+
+        let (p3_x, p3_y) = (
+            sp.center.x as f32 + sp.radius as f32 * p3_angle_rad.cos(),
+            sp.center.y as f32 + sp.radius as f32 * p3_angle_rad.sin(),
+        );
+        let lazy_point = point::Point::new(p3_x, p3_y, 0.);
+
+        arc::Arc::new([point1, point2, lazy_point])
     }
 }

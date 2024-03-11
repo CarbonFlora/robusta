@@ -1,14 +1,3 @@
-use self::{
-    construction::ConstructionBuffer,
-    phantom::{despawn_all_phantoms, PhantomSnaps, RPhantomPointer},
-    rselection::Selected,
-    snap::UpdateSnapPoints,
-};
-use crate::leaves::history::view_history;
-use bevy::utils::hashbrown::HashMap;
-use dxf::Drawing;
-use std::path::PathBuf;
-
 use super::*;
 
 type LoadedFiles = HashMap<Option<String>, InterchangeFormat>;

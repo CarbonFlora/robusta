@@ -18,7 +18,6 @@ name = "arcs_circles"
 name = "circles"
 
 [dependencies]
-robusta-core = { path = "../robusta-core" }
 robusta-gui = { path = "../robusta-gui" }
 
 anyhow = "1.0.79"

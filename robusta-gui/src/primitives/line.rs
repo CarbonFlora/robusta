@@ -1,3 +1,6 @@
+use super::*;
+// use bevy_render::mesh::{Mesh, PrimitiveTopology};
+
 use crate::{angle_full_circle, point::Point};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -59,6 +62,61 @@ impl Line {
         }
         vp
     }
+
+    pub fn mesh(
+        &self,
+        me: &mut ResMut<Assets<Mesh>>,
+        ma: &mut ResMut<Assets<ColorMaterial>>,
+        tz: &mut TopZLayer,
+    ) -> MaterialMesh2dBundle<ColorMaterial> {
+        let lw = 0.3f32;
+        let spec = self.specifications();
+        MaterialMesh2dBundle {
+            mesh: me.add(line_mesh(lw, spec.length, spec.h_angle)).into(),
+            material: ma.add(ColorMaterial::from(Color::WHITE)),
+            transform: Transform::from_translation(Vec3::new(
+                self.definition[0].coordinates.x,
+                self.definition[0].coordinates.y,
+                tz.top() as f32,
+            )),
+            ..default()
+        }
+    }
+}
+
+fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
+    let lw_half = line_width / 2.0f32;
+    Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::default(),
+    )
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        vec![
+            [-lw_half * angle_rad.sin(), lw_half * angle_rad.cos(), 0.0],
+            [lw_half * angle_rad.sin(), -lw_half * angle_rad.cos(), 0.0],
+            [
+                length * angle_rad.cos() + lw_half * angle_rad.sin(),
+                length * angle_rad.sin() - lw_half * angle_rad.cos(),
+                0.0,
+            ],
+            [
+                length * angle_rad.cos() - lw_half * angle_rad.sin(),
+                length * angle_rad.sin() + lw_half * angle_rad.cos(),
+                0.0,
+            ],
+        ],
+    )
+    .with_inserted_attribute(
+        Mesh::ATTRIBUTE_NORMAL,
+        vec![
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+            [0.0, 0.0, 1.0],
+        ],
+    )
+    .with_inserted_indices(Indices::U32(vec![0, 3, 1, 1, 3, 2]))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
@@ -93,5 +151,13 @@ impl std::fmt::Display for LineSpec {
             "Slope: {}{}\nRadians: {}\nLength: {:.4}",
             slope, slope_real, self.h_angle, self.length
         ))
+    }
+}
+
+impl From<&dxf::entities::Line> for Line {
+    fn from(sp: &dxf::entities::Line) -> Self {
+        let point1 = Point::new(sp.p1.x as f32, sp.p1.y as f32, 0.);
+        let point2 = Point::new(sp.p2.x as f32, sp.p2.y as f32, 0.);
+        Line::new([point1, point2])
     }
 }

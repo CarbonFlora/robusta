@@ -1,9 +1,9 @@
-use robusta_core::{line::Line, point::Point};
-
 use self::{
-    parse::dxf::line::spawn_line_mesh,
+    line::Line,
     phantom::{despawn_all_phantoms, PhantomSnaps, RPhantomPointer},
-    rselection::Selection,
+    point::Point,
+    selection::Selection,
+    snap::UpdateSnapPoints,
 };
 
 use super::*;
@@ -69,6 +69,7 @@ fn update_queue(
     mut ma: ResMut<Assets<ColorMaterial>>,
     mut tzi: ResMut<TopZLayer>,
     mut ewrsp: EventWriter<UpdateSnapPoints>,
+    mut ewre: EventWriter<REntity>,
     ewp: Query<Entity, With<RPhantomPointer>>,
     mut fs: ResMut<PhantomSnaps>,
 ) {
@@ -96,7 +97,7 @@ fn update_queue(
                     Point::new(pt1.x, pt1.y, pt1.z),
                     Point::new(pt2.x, pt2.y, pt2.z),
                 ]);
-                canonize_line(sp, &mut co, &mut me, &mut ma, &mut tzi);
+                canonize_line(sp, &mut ewre);
                 ewrsp.send(UpdateSnapPoints(false));
                 despawn_all_phantoms(&mut co, &ewp, &mut fs);
                 rmcb.into_inner().reset();
@@ -142,18 +143,12 @@ fn canonize_point(
 }
 
 fn canonize_line(
+    //Input
     sp: Line,
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    tzi: &mut TopZLayer,
+    //Output
+    ewre: &mut EventWriter<REntity>,
 ) {
-    let id = spawn_line_mesh(sp, co, me, ma, tzi);
-    co.entity(id).insert((
-        PickableBundle::default(),
-        On::<Pointer<Select>>::send_event::<Selection>(),
-        On::<Pointer<Deselect>>::send_event::<Selection>(),
-    ));
+    ewre.send(sp.into());
 }
 
 pub fn construct_point(

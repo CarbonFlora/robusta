@@ -3927,19 +3927,11 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "216080ab382b992234dda86873c18d4c48358f5cfcb70fd693d7f6f2131b628b"
 
 [[package]]
-name = "robusta-core"
-version = "0.1.0"
-dependencies = [
- "approx",
- "bevy_render",
- "nalgebra",
-]
-
-[[package]]
 name = "robusta-gui"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "approx",
  "bevy",
  "bevy-inspector-egui",
  "bevy_asset",
@@ -3948,12 +3940,12 @@ dependencies = [
  "bevy_mod_picking",
  "bevy_pancam",
  "bevy_reflect",
+ "bevy_render",
  "bevy_window",
  "dxf",
  "egui",
  "egui_dock",
  "nalgebra",
- "robusta-core",
 ]
 
 [[package]]
@@ -3963,7 +3955,6 @@ dependencies = [
  "anyhow",
  "clap",
  "clap_complete",
- "robusta-core",
  "robusta-gui",
 ]
 

@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
   "robusta-term",
-  "robusta-core",
   "robusta-gui",
 ]
 

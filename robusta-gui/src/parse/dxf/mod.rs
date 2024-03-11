@@ -15,6 +15,5 @@ pub mod lwpolyline;
 pub mod polyline;
 pub mod text;
 
-use crate::rselection::Selection;
 use crate::REntity;
 use crate::TopZLayer;

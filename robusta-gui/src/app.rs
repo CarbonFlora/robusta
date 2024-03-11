@@ -16,6 +16,6 @@ pub fn app2d(path: Option<String>) {
         .add_plugins(bevy_mod_picking::DefaultPickingPlugins)
         .add_plugins(bevy_pancam::PanCamPlugin)
         .insert_resource(UiState::new(&path))
-        .add_plugins(self::rcadplugin::RCADPlugins)
+        .add_plugins(RCADPlugins)
         .run();
 }

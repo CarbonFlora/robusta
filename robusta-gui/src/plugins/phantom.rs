@@ -1,9 +1,9 @@
-use crate::{
-    snap::{Snap, SnapPoint},
-    REntity,
-};
+use crate::REntity;
 
-use self::construction::ConstructionInput;
+use self::{
+    construction::ConstructionInput,
+    snap::{Snap, SnapPoint},
+};
 
 use super::*;
 
@@ -33,7 +33,7 @@ impl PhantomSnaps {
 }
 
 /// This is a marker component to delineate a point entity in the process of being placed.
-#[derive(Debug, Component)]
+#[derive(Debug, Component, Default)]
 pub struct RPhantomPointer;
 
 pub fn despawn_all_phantoms(

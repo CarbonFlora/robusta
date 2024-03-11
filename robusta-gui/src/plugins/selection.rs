@@ -1,6 +1,7 @@
 use bevy::{
     app::{First, PreUpdate},
     ecs::{
+        bundle::Bundle,
         component::Component,
         entity::Entity,
         event::{Event, EventReader, EventWriter},
@@ -11,8 +12,9 @@ use bevy::{
 use bevy_mod_picking::{
     events::Pointer,
     pointer::{Location, PointerId},
-    prelude::ListenerInput,
+    prelude::{ListenerInput, On},
     selection::{self, Deselect, Select},
+    PickableBundle,
 };
 use bevy_window::{PrimaryWindow, Window};
 
@@ -90,5 +92,30 @@ pub fn deselect_all(
             Deselect,
         ));
         c.entity(e.0).remove::<Selected>();
+    }
+}
+
+// pub fn selection_bundle(id: Entity, co: &mut Commands) {
+//     co.entity(id).insert((
+//         PickableBundle::default(),
+//         On::<Pointer<Select>>::send_event::<Selection>(),
+//         On::<Pointer<Deselect>>::send_event::<Selection>(),
+//     ));
+// }
+
+#[derive(Bundle)]
+pub struct PickableSelectionBundle {
+    a: PickableBundle,
+    b: On<Pointer<Select>>,
+    c: On<Pointer<Deselect>>,
+}
+
+impl Default for PickableSelectionBundle {
+    fn default() -> Self {
+        PickableSelectionBundle {
+            a: PickableBundle::default(),
+            b: On::<Pointer<Select>>::send_event::<Selection>(),
+            c: On::<Pointer<Deselect>>::send_event::<Selection>(),
+        }
     }
 }

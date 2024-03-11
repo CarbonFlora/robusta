@@ -1,17 +1,4 @@
-use std::str::SplitWhitespace;
-
-use bevy::prelude::*;
-use bevy_mod_picking::{events::Pointer, selection::Deselect};
-
-use crate::{
-    construction::{construct_line, construct_point, ConstructionBuffer, ConstructionInput},
-    keystrokes::Act,
-    phantom::{index_point, PhantomSnaps, RPhantomPointer},
-    rselection::{deselect_all, Selected},
-    snap::UpdateSnapPoints,
-    uistate::UiState,
-    REntity, Snaps,
-};
+use super::*;
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(

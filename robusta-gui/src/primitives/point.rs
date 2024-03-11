@@ -18,7 +18,7 @@ impl Point {
             coordinates: nalgebra::Point3::new(x, y, z),
             appearance: PointAppearance {
                 color: Color::WHITE,
-                relative_size: 1.0f32,
+                relative_size: 0.5f32,
             },
         }
     }
@@ -47,15 +47,37 @@ impl Point {
         )
     }
 
-    // pub fn to_snap_type(&self) -> Point {
-    //     Point {
-    //         coordinates: self.coordinates,
-    //         appearance: PointAppearance {
-    //             color: Color::ORANGE,
-    //             relative_size: 0.2,
-    //         },
-    //     }
-    // }
+    pub fn mesh(
+        &self,
+        me: &mut ResMut<Assets<Mesh>>,
+        ma: &mut ResMut<Assets<ColorMaterial>>,
+        tz: &mut TopZLayer,
+    ) -> MaterialMesh2dBundle<ColorMaterial> {
+        MaterialMesh2dBundle {
+            mesh: me
+                .add(bevy::math::primitives::Circle::new(
+                    self.appearance.relative_size,
+                ))
+                .into(),
+            material: ma.add(ColorMaterial::from(self.appearance.color)),
+            transform: Transform::from_translation(Vec3::new(
+                self.coordinates.x,
+                self.coordinates.y,
+                tz.top() as f32,
+            )),
+            ..default()
+        }
+    }
+
+    pub fn as_snap(&self) -> Self {
+        Self {
+            coordinates: self.coordinates,
+            appearance: PointAppearance {
+                color: Color::ORANGE,
+                relative_size: 0.2,
+            },
+        }
+    }
 }
 
 impl std::fmt::Display for Point {

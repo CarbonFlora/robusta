@@ -1,3 +1,4 @@
+use super::*;
 use bevy_render::color::Color;
 use std::f32::consts::PI;
 
@@ -6,15 +7,6 @@ pub mod circle;
 pub mod line;
 pub mod point;
 pub mod text;
-
-// #[derive(Debug, Clone, PartialEq)]
-// pub enum RobustaEntity {
-//     Arc(arc::Arc),
-//     Circle(circle::Circle),
-//     Line(line::Line),
-//     Point(point::Point),
-//     Text(text::Text),
-// }
 
 pub fn angle_full_circle(delta_x: f32, delta_y: f32) -> f32 {
     if delta_x == 0. && delta_y == 0. {
