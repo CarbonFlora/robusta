@@ -153,11 +153,3 @@ impl std::fmt::Display for LineSpec {
         ))
     }
 }
-
-impl From<&dxf::entities::Line> for Line {
-    fn from(sp: &dxf::entities::Line) -> Self {
-        let point1 = Point::new(sp.p1.x as f32, sp.p1.y as f32, 0.);
-        let point2 = Point::new(sp.p2.x as f32, sp.p2.y as f32, 0.);
-        Line::new([point1, point2])
-    }
-}

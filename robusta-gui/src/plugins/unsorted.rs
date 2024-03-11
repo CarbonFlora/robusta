@@ -17,7 +17,6 @@ impl bevy::app::Plugin for UnsortedPlugin {
             .add_systems(Update, update_viewport_ui)
             .add_systems(Update, update_dock)
             .add_systems(Update, update_spawn_rentities)
-            // .add_systems(PostUpdate, update_act);
             .add_systems(PreUpdate, update_act);
     }
 }
@@ -63,7 +62,11 @@ pub fn update_spawn_rentities(
                 sp.mesh(&mut me, &mut ma, &mut tz),
                 PickableSelectionBundle::default(),
             )),
-            REntity::Circle(sp) => todo!(),
+            REntity::Circle(sp) => co.spawn((
+                REntity::Circle(sp.clone()),
+                sp.mesh(&mut me, &mut ma, &mut tz),
+                PickableSelectionBundle::default(),
+            )),
             REntity::Line(sp) => co.spawn((
                 REntity::Line(sp.clone()),
                 sp.mesh(&mut me, &mut ma, &mut tz),
@@ -74,7 +77,12 @@ pub fn update_spawn_rentities(
                 sp.mesh(&mut me, &mut ma, &mut tz),
                 PickableSelectionBundle::default(),
             )),
-            REntity::Text(sp) => todo!(),
+            REntity::Text(sp) => co.spawn((
+                REntity::Text(sp.clone()),
+                // sp.mesh(&mut me, &mut ma, &mut tz),
+                sp.text_mesh(&mut tz),
+                PickableSelectionBundle::default(),
+            )),
             REntity::PhantomPoint => co.spawn((
                 REntity::Point(Point::new(0., 0., 0.)),
                 Point::new(0., 0., 0.).mesh(&mut me, &mut ma, &mut tz),

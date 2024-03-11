@@ -25,6 +25,7 @@ use bevy_window::PrimaryWindow;
 use dxf::entities::EntityType;
 use dxf::Drawing;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
+use parsedxf::{lwp_to_lines, pl_to_lines};
 use primitives::*;
 use std::path::PathBuf;
 use std::str::SplitWhitespace;
@@ -34,6 +35,7 @@ use crate::{keystrokes::Act, uistate::UiState, Snaps};
 pub mod app;
 pub mod keystrokes;
 pub mod leaves;
+pub mod parsedxf;
 pub mod plugins;
 pub mod primitives;
 pub mod uistate;
@@ -59,21 +61,9 @@ pub enum REntity {
     SnapPoint(primitives::point::Point),
 }
 
-impl From<&dxf::entities::Line> for REntity {
-    fn from(value: &dxf::entities::Line) -> Self {
-        REntity::Line(value.into())
-    }
-}
-
 impl From<primitives::line::Line> for REntity {
     fn from(value: primitives::line::Line) -> Self {
         REntity::Line(value)
-    }
-}
-
-impl From<&dxf::entities::Arc> for REntity {
-    fn from(value: &dxf::entities::Arc) -> Self {
-        REntity::Arc(value.into())
     }
 }
 
@@ -83,55 +73,15 @@ impl From<primitives::arc::Arc> for REntity {
     }
 }
 
-impl From<&dxf::entities::Entity> for REntity {
-    fn from(value: &dxf::entities::Entity) -> Self {
-        match &value.specific {
-            EntityType::Face3D(_) => todo!(),
-            EntityType::Solid3D(_) => todo!(),
-            EntityType::ProxyEntity(_) => todo!(),
-            EntityType::Arc(sp) => sp.into(),
-            EntityType::ArcAlignedText(_) => todo!(),
-            EntityType::AttributeDefinition(_) => todo!(),
-            EntityType::Attribute(_) => todo!(),
-            EntityType::Body(_) => todo!(),
-            EntityType::Circle(sp) => todo!(),
-            EntityType::RotatedDimension(_) => todo!(),
-            EntityType::RadialDimension(_) => todo!(),
-            EntityType::DiameterDimension(_) => todo!(),
-            EntityType::AngularThreePointDimension(_) => todo!(),
-            EntityType::OrdinateDimension(_) => todo!(),
-            EntityType::Ellipse(_) => todo!(),
-            EntityType::Helix(_) => todo!(),
-            EntityType::Image(_) => todo!(),
-            EntityType::Insert(_) => todo!(),
-            EntityType::Leader(_) => todo!(),
-            EntityType::Light(_) => todo!(),
-            EntityType::Line(sp) => sp.into(),
-            EntityType::LwPolyline(sp) => todo!(),
-            EntityType::MLine(_) => todo!(),
-            EntityType::MText(_) => todo!(),
-            EntityType::OleFrame(_) => todo!(),
-            EntityType::Ole2Frame(_) => todo!(),
-            EntityType::ModelPoint(_) => todo!(),
-            EntityType::Polyline(sp) => todo!(),
-            EntityType::Ray(_) => todo!(),
-            EntityType::Region(_) => todo!(),
-            EntityType::RText(_) => todo!(),
-            EntityType::Section(_) => todo!(),
-            EntityType::Seqend(_) => todo!(),
-            EntityType::Shape(_) => todo!(),
-            EntityType::Solid(_) => todo!(),
-            EntityType::Spline(_) => todo!(),
-            EntityType::Text(_) => todo!(),
-            EntityType::Tolerance(_) => todo!(),
-            EntityType::Trace(_) => todo!(),
-            EntityType::DgnUnderlay(_) => todo!(),
-            EntityType::DwfUnderlay(_) => todo!(),
-            EntityType::PdfUnderlay(_) => todo!(),
-            EntityType::Vertex(_) => todo!(),
-            EntityType::Wipeout(_) => todo!(),
-            EntityType::XLine(_) => todo!(),
-        }
+impl From<primitives::circle::Circle> for REntity {
+    fn from(value: primitives::circle::Circle) -> Self {
+        REntity::Circle(value)
+    }
+}
+
+impl From<primitives::text::Text> for REntity {
+    fn from(value: primitives::text::Text) -> Self {
+        REntity::Text(value)
     }
 }
 
@@ -165,10 +115,56 @@ fn spawn_from_dxf(
     //Output
     ewre: &mut EventWriter<REntity>,
 ) {
-    let mut vre = Vec::new();
+    let mut vre: Vec<REntity> = Vec::new();
 
     for e in drawing.entities() {
-        vre.push(e.into());
+        match &e.specific {
+            EntityType::Face3D(_) => todo!(),
+            EntityType::Solid3D(_) => todo!(),
+            EntityType::ProxyEntity(_) => todo!(),
+            EntityType::Arc(sp) => vre.push(sp.into()),
+            EntityType::ArcAlignedText(_) => todo!(),
+            EntityType::AttributeDefinition(_) => todo!(),
+            EntityType::Attribute(_) => todo!(),
+            EntityType::Body(_) => todo!(),
+            EntityType::Circle(sp) => vre.push(sp.into()),
+            EntityType::RotatedDimension(_) => todo!(),
+            EntityType::RadialDimension(_) => todo!(),
+            EntityType::DiameterDimension(_) => todo!(),
+            EntityType::AngularThreePointDimension(_) => todo!(),
+            EntityType::OrdinateDimension(_) => todo!(),
+            EntityType::Ellipse(_) => todo!(),
+            EntityType::Helix(_) => todo!(),
+            EntityType::Image(_) => todo!(),
+            EntityType::Insert(_) => todo!(),
+            EntityType::Leader(_) => todo!(),
+            EntityType::Light(_) => todo!(),
+            EntityType::Line(sp) => vre.push(sp.into()),
+            EntityType::LwPolyline(sp) => vre.extend(lwp_to_lines(sp)),
+            EntityType::MLine(_) => todo!(),
+            EntityType::MText(sp) => vre.push(sp.into()),
+            EntityType::OleFrame(_) => todo!(),
+            EntityType::Ole2Frame(_) => todo!(),
+            EntityType::ModelPoint(_) => todo!(),
+            EntityType::Polyline(sp) => vre.extend(pl_to_lines(sp)),
+            EntityType::Ray(_) => todo!(),
+            EntityType::Region(_) => todo!(),
+            EntityType::RText(_) => todo!(),
+            EntityType::Section(_) => todo!(),
+            EntityType::Seqend(_) => todo!(),
+            EntityType::Shape(_) => todo!(),
+            EntityType::Solid(_) => todo!(),
+            EntityType::Spline(_) => todo!(),
+            EntityType::Text(sp) => vre.push(sp.into()),
+            EntityType::Tolerance(_) => todo!(),
+            EntityType::Trace(_) => todo!(),
+            EntityType::DgnUnderlay(_) => todo!(),
+            EntityType::DwfUnderlay(_) => todo!(),
+            EntityType::PdfUnderlay(_) => todo!(),
+            EntityType::Vertex(_) => todo!(),
+            EntityType::Wipeout(_) => todo!(),
+            EntityType::XLine(_) => todo!(),
+        }
     }
 
     ewre.send_batch(vre);

@@ -1,3 +1,5 @@
+use super::*;
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Text {
     pub definition: [crate::point::Point; 1],
@@ -19,6 +21,34 @@ impl Text {
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
         // This is temp as text is not implimented.
         crate::min_max(&self.definition.clone())
+    }
+
+    pub fn mesh(
+        &self,
+        me: &mut ResMut<Assets<Mesh>>,
+        ma: &mut ResMut<Assets<ColorMaterial>>,
+        tz: &mut TopZLayer,
+    ) -> MaterialMesh2dBundle<ColorMaterial> {
+        todo!()
+    }
+
+    pub fn text_mesh(&self, tz: &mut TopZLayer) -> Text2dBundle {
+        let text_body = bevy::text::Text::from_section(self.body.clone(), TextStyle::default());
+        let origin = self.definition[0].xyz();
+
+        Text2dBundle {
+            text: text_body,
+            text_anchor: bevy::sprite::Anchor::Center,
+            transform: Transform::from_translation(Vec3::new(
+                origin[0],
+                origin[1],
+                tz.top() as f32,
+            ))
+            .with_rotation(Quat::from_rotation_z(self.rotation))
+            .with_scale(Vec3::new(self.height / 5., self.height / 5., 1.)),
+            text_layout_info: bevy::text::TextLayoutInfo::default(),
+            ..default()
+        }
     }
 }
 

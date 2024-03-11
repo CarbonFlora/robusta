@@ -234,28 +234,3 @@ impl std::fmt::Display for ArcSpec {
         ))
     }
 }
-
-impl From<&dxf::entities::Arc> for Arc {
-    fn from(sp: &dxf::entities::Arc) -> Self {
-        let x1 = sp.center.x + sp.start_angle.to_radians().cos() * sp.radius;
-        let y1 = sp.center.y + sp.start_angle.to_radians().sin() * sp.radius;
-        let point1 = point::Point::new(x1 as f32, y1 as f32, 0.);
-
-        let x2 = sp.center.x + sp.end_angle.to_radians().cos() * sp.radius;
-        let y2 = sp.center.y + sp.end_angle.to_radians().sin() * sp.radius;
-        let point2 = point::Point::new(x2 as f32, y2 as f32, 0.);
-
-        let mut p3_angle_rad = ((sp.start_angle + sp.end_angle) / 2.).to_radians() as f32;
-        if sp.start_angle > sp.end_angle {
-            p3_angle_rad -= PI;
-        }
-
-        let (p3_x, p3_y) = (
-            sp.center.x as f32 + sp.radius as f32 * p3_angle_rad.cos(),
-            sp.center.y as f32 + sp.radius as f32 * p3_angle_rad.sin(),
-        );
-        let lazy_point = point::Point::new(p3_x, p3_y, 0.);
-
-        arc::Arc::new([point1, point2, lazy_point])
-    }
-}
