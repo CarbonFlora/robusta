@@ -10,7 +10,6 @@ impl bevy::app::Plugin for UnsortedPlugin {
         app.insert_resource(TopZLayer::new())
             .add_event::<Act>()
             .add_event::<REntity>()
-            .add_systems(Startup, camera_startup)
             .add_systems(Startup, spawn_window)
             .add_systems(PostStartup, draw_first)
             .add_systems(PreUpdate, capture_keystrokes)
@@ -32,17 +31,6 @@ fn spawn_window(mut co: Commands) {
         },
         CADPanel::default(),
     ));
-}
-
-fn camera_startup(mut co: Commands, dp: ResMut<bevy_mod_picking::debug::DebugPickingMode>) {
-    *dp.into_inner() = bevy_mod_picking::debug::DebugPickingMode::Disabled;
-
-    co.spawn(Camera2dBundle::default())
-        .insert((bevy_pancam::PanCam {
-            grab_buttons: vec![MouseButton::Middle, MouseButton::Right],
-            // zoom_to_cursor: false,
-            ..default()
-        },));
 }
 
 pub fn update_spawn_rentities(
@@ -96,48 +84,3 @@ pub fn update_spawn_rentities(
         };
     }
 }
-
-// fn spawn_snap_bundle(
-//     vp: point::Point,
-//     co: &mut Commands,
-//     me: &mut ResMut<Assets<Mesh>>,
-//     ma: &mut ResMut<Assets<ColorMaterial>>,
-//     xi: &mut ResMut<TopZLayer>,
-// ) -> Entity {
-//     co.spawn((
-//         MaterialMesh2dBundle {
-//             mesh: me.add(bevy::math::primitives::Circle::new(0.2)).into(),
-//             material: ma.add(ColorMaterial::from(Color::ORANGE)),
-//             transform: Transform::from_translation(Vec3::new(
-//                 vp.coordinates.x,
-//                 vp.coordinates.y,
-//                 xi.top() as f32,
-//             )),
-//             ..default()
-//         },
-//         SnapPoint,
-//         REntity::Point(vp),
-//         On::<Pointer<Over>>::send_event::<Snap>(),
-//         On::<Pointer<Out>>::send_event::<Snap>(),
-//     ))
-//     .id()
-// }
-
-// fn spawn_phantom_bundle(
-//     co: &mut Commands,
-//     me: &mut ResMut<Assets<Mesh>>,
-//     ma: &mut ResMut<Assets<ColorMaterial>>,
-//     xi: &mut ResMut<TopZLayer>,
-// ) -> Entity {
-//     co.spawn((
-//         MaterialMesh2dBundle {
-//             mesh: me.add(bevy::math::primitives::Circle::new(0.5)).into(),
-//             material: ma.add(ColorMaterial::from(Color::CYAN)),
-//             transform: Transform::from_translation(Vec3::new(0., 0., xi.top() as f32)),
-//             ..default()
-//         },
-//         REntity::Point(point::Point::new(0., 0., 0.)),
-//         RPhantomPointer,
-//     ))
-//     .id()
-// }

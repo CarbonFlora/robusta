@@ -2,25 +2,34 @@ use super::*;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Text {
-    pub definition: [crate::point::Point; 1],
+    pub bud_pos: [crate::point::Point; 1],
     pub body: String,
     pub rotation: f32,
     pub height: f32,
+    pub leader: Option<Leader>,
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
+pub struct Leader {
+    pub seed_pos: [crate::point::Point; 1],
+    pub length: f32,
+    pub rotation: f32,
 }
 
 impl Text {
     pub fn new(origin: crate::point::Point) -> Self {
         Text {
-            definition: [origin],
+            bud_pos: [origin],
             body: String::new(),
             rotation: 0.,
             height: 10.,
+            leader: None,
         }
     }
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
         // This is temp as text is not implimented.
-        crate::min_max(&self.definition.clone())
+        crate::min_max(&self.bud_pos.clone())
     }
 
     pub fn mesh(
@@ -34,7 +43,7 @@ impl Text {
 
     pub fn text_mesh(&self, tz: &mut TopZLayer) -> Text2dBundle {
         let text_body = bevy::text::Text::from_section(self.body.clone(), TextStyle::default());
-        let origin = self.definition[0].xyz();
+        let origin = self.bud_pos[0].xyz();
 
         Text2dBundle {
             text: text_body,
@@ -54,6 +63,6 @@ impl Text {
 
 impl std::fmt::Display for Text {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("Origin: {}", self.definition[0]))
+        f.write_fmt(format_args!("Origin: {}", self.bud_pos[0]))
     }
 }

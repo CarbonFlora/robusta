@@ -1,3 +1,5 @@
+use self::plugins::construction::ConstructType;
+
 use super::*;
 
 type LoadedFiles = HashMap<Option<String>, InterchangeFormat>;
@@ -40,6 +42,7 @@ pub struct CADState {
     pub object_snapping: SnapSettings,
     pub mode: Mode,
     pub cad_term: Option<String>,
+    pub insert_menu: Option<ConstructType>,
 }
 
 impl CADState {
@@ -179,16 +182,18 @@ impl UiState {
             }
             Act::NewPoint => "Point created.",
             Act::NewLine => "Line created.",
+            Act::NewText => "Text created.",
             Act::ToggleSnap(a) => {
                 meta_data = format!("{a:?}");
                 "Snap configuration changed: "
             }
             Act::ToggleSnapOff => "All object snaps turned off.",
             Act::Inspect => "Inspecting.",
+            Act::Insert => "Opened insert menu.",
             Act::PullCameraFocus(_) => "Camera moved.",
             Act::FitView => "Fit view to all entities.",
-            Act::MoveCamera(_) => "Camera moved.",
-            Act::ZoomCamera(_) => "Camera zoomed.",
+            Act::MoveCamera(_) => return,
+            Act::ZoomCamera(_) => return,
         });
         history.push_str(&meta_data);
         history.push('\n');
@@ -299,49 +304,3 @@ fn view_stateribbon(ui: &mut egui::Ui, cad_state: &CADState) {
     ui.label(format!("{:?}", cad_state.mode));
     ui.label(format!("{:?}", cad_state.object_snapping));
 }
-// Each viewport should have their own respective camera.
-// #[derive(Component)]
-// pub struct ViewportCamera {
-//     pub id: bevy::utils::Uuid,
-// }
-
-// impl ViewportCamera {
-//     pub fn new(viewport_id: Uuid) -> Self {
-//         ViewportCamera { id: viewport_id }
-//     }
-// }
-
-// Turn off panning and zooming [`bevy_pancam`] when interacting with [`egui`].
-// pub fn unfreeze_camera_viewport(
-//     mut ui_state: ResMut<UiState>,
-//     mut cameras: Query<&mut bevy_pancam::PanCam>,
-// ) {
-//     let focused_tab = ui_state.dock_state.find_active_focused();
-//     match focused_tab {
-//         None => (),
-//         Some(tab) => cameras.for_each_mut(|mut x| {
-//             x.enabled = match tab.1 {
-//                 EguiWindow::CADView(_) => true,
-//                 _ => false,
-//             }
-//         }),
-//     }
-// }
-
-// /// This is the `Bevy` resource containing all the custom GUI elements.
-// #[derive(Resource, Debug, PartialEq, Eq)]
-// pub struct ViewportState {
-//     pub viewport_id: Uuid,
-//     pub opened_file_path: Option<String>,
-//     // pub points: Vec<robusta_core::point::Point>,
-// }
-
-// impl ViewportState {
-//     pub fn new(path: &Option<String>) -> Self {
-//         ViewportState {
-//             viewport_id: Uuid::new_v4(),
-//             opened_file_path: path.clone(),
-//             // points: loaded_file.points,
-//         }
-//     }
-// }

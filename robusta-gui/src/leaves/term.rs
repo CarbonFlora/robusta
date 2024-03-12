@@ -1,13 +1,9 @@
-use egui::{Align2, TextEdit, Vec2};
-
-use crate::*;
-
-use self::uistate::UiState;
+use super::*;
 
 pub fn update_terminal_egui(
-    mut act_write: EventWriter<Act>,
+    act_write: &mut EventWriter<Act>,
     ui_state: &mut UiState,
-    context: Query<&mut EguiContext, With<PrimaryWindow>>,
+    context: &mut Query<&mut EguiContext, With<PrimaryWindow>>,
 ) {
     if let Ok(w) = context.get_single() {
         ui_state.cad_state.mode = Mode::Typing;

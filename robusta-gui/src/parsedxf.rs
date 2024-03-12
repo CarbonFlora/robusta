@@ -79,10 +79,11 @@ impl From<&dxf::entities::Text> for text::Text {
         let origin = point::Point::new(sp.location.x as f32, sp.location.y as f32, 0.);
 
         text::Text {
-            definition: [origin],
+            bud_pos: [origin],
             body: sp.value.clone(),
             rotation: sp.rotation as f32,
             height: sp.text_height as f32,
+            leader: None,
         }
     }
 }
@@ -93,10 +94,11 @@ impl From<&dxf::entities::MText> for text::Text {
             point::Point::new(sp.insertion_point.x as f32, sp.insertion_point.y as f32, 0.);
 
         text::Text {
-            definition: [origin],
+            bud_pos: [origin],
             body: sp.text.clone(),
             rotation: sp.rotation_angle as f32,
             height: sp.initial_text_height as f32,
+            leader: None,
         }
     }
 }
