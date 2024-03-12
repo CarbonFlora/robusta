@@ -57,7 +57,8 @@ pub fn reload_snap_point(
     co: &mut Commands,
 ) {
     despawn_all_snap_points(co, esp);
-    spawn_all_snap_points(&ss, res, ewre);
+    spawn_simple_snap_points(&ss, res, ewre);
+    spawn_shared_snap_points(&ss, res, ewre);
 }
 
 pub fn despawn_all_snap_points(co: &mut Commands, esp: &Query<Entity, With<SnapPoint>>) {
@@ -66,7 +67,22 @@ pub fn despawn_all_snap_points(co: &mut Commands, esp: &Query<Entity, With<SnapP
     }
 }
 
-fn spawn_all_snap_points(
+fn spawn_shared_snap_points(
+    ss: &Res<SnapSettings>,
+    res: &Query<&REntity, With<Selected>>,
+    ewre: &mut EventWriter<REntity>,
+) {
+    //Implement intersection functions
+    // point x line
+    // line x line
+    // line x arc
+    // arc x arc
+    // arc x point
+    // circle x everything
+    // Text is ignored.
+}
+
+fn spawn_simple_snap_points(
     ss: &Res<SnapSettings>,
     res: &Query<&REntity, With<Selected>>,
     ewre: &mut EventWriter<REntity>,
@@ -77,7 +93,7 @@ fn spawn_all_snap_points(
             REntity::Arc(sp) => arc_snaps(sp, ss, &mut vp),
             REntity::Circle(sp) => circle_snaps(sp, ss, &mut vp),
             REntity::Line(sp) => line_snaps(sp, ss, &mut vp),
-            REntity::Point(_) => (),
+            REntity::Point(sp) => point_snap(sp, ss, &mut vp),
             REntity::Text(_) => (),
             REntity::PhantomPoint => (),
             REntity::SnapPoint(sp) => vp.push(sp.clone()),
@@ -117,6 +133,12 @@ fn line_snaps(sp: &line::Line, ss: &SnapSettings, vp: &mut Vec<point::Point>) {
     }
     if ss.nthpoint.0 {
         vp.extend(sp.nthpoints(ss.nthpoint.1));
+    }
+}
+
+fn point_snap(sp: &point::Point, ss: &SnapSettings, vp: &mut Vec<point::Point>) {
+    if ss.endpoint || ss.midpoint {
+        vp.push(sp.clone());
     }
 }
 
