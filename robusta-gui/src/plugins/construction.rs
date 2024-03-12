@@ -76,11 +76,14 @@ fn update_queue(
     if erra.is_empty() {
         return;
     }
-    for ci in erra.read() {
-        rmcb.buf.push(ci.clone());
+    // for ci in erra.read() {
+    //     rmcb.buf.push(ci.clone());
+    //     rmcb.buf.dedup();
+    // }
+    if let Some(w) = erra.read().next() {
+        rmcb.buf.push(w.clone());
         rmcb.buf.dedup();
     }
-    erra.clear();
 
     match rmcb
         .build

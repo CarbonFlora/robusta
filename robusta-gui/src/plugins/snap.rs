@@ -5,7 +5,8 @@ use super::*;
 pub struct SnapPlugin;
 impl bevy::app::Plugin for SnapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_event::<UpdateSnapPoints>()
+        app.insert_resource(SnapSettings::default())
+            .add_event::<UpdateSnapPoints>()
             .add_event::<Snap>()
             .add_systems(Update, update_snap_points);
     }
@@ -20,51 +21,43 @@ pub struct Snap(pub Entity, pub bool);
 #[derive(Event, Clone, Debug, PartialEq)]
 pub struct UpdateSnapPoints(pub bool);
 
-impl From<ListenerInput<Pointer<Out>>> for Snap {
-    fn from(event: ListenerInput<Pointer<Out>>) -> Self {
-        Snap(event.target, false)
-    }
-}
+pub fn toggle_snap(
+    ss: &mut ResMut<SnapSettings>,
+    ost: &Option<SnapType>,
+    uis: &mut UiState,
+    ewrsp: &mut EventWriter<UpdateSnapPoints>,
+) {
+    match ost {
+        None => {
+            uis.cad_state.snap_menu = Some(*ost);
+            uis.cad_state.mode = Mode::Snap;
+        }
+        Some(st) => {
+            match st {
+                SnapType::Endpoint => flip(&mut ss.endpoint),
+                SnapType::Midpoint => flip(&mut ss.midpoint),
+                SnapType::Nthpoint(div) => ss.flip_nth(div),
 
-impl From<ListenerInput<Pointer<Over>>> for Snap {
-    fn from(event: ListenerInput<Pointer<Over>>) -> Self {
-        Snap(event.target, true)
-    }
-}
-
-impl UiState {
-    pub fn toggle_snap(&mut self, snap: &Snaps) {
-        let ss = &mut self.cad_state.object_snapping;
-        match snap {
-            Snaps::Endpoint => flip(&mut ss.endpoint),
-            Snaps::Midpoint => flip(&mut ss.midpoint),
-            Snaps::Nthpoint(div) => ss.flip_nth(div),
-            Snaps::Intersection => flip(&mut ss.intersection),
-            Snaps::Perpendicular => flip(&mut ss.perpendicular),
-            Snaps::Tangent => flip(&mut ss.tangent),
+                SnapType::Intersection => flip(&mut ss.intersection),
+                SnapType::Perpendicular => flip(&mut ss.perpendicular),
+                SnapType::Tangent => flip(&mut ss.tangent),
+            };
         }
     }
+    ewrsp.send(UpdateSnapPoints(true));
+}
 
-    pub fn toggle_snap_off(&mut self, ewrsp: &mut EventWriter<UpdateSnapPoints>) {
-        ewrsp.send(UpdateSnapPoints(false));
-        self.cad_state.object_snapping = SnapSettings::default();
-    }
-
-    pub fn reload_snap_point(
-        //Util
-        &self,
-        res: &Query<&REntity, With<Selected>>,
-        esp: &Query<Entity, With<SnapPoint>>,
-        //Output
-        ewre: &mut EventWriter<REntity>,
-        co: &mut Commands,
-        // me: &mut ResMut<Assets<Mesh>>,
-        // ma: &mut ResMut<Assets<ColorMaterial>>,
-        // tzi: &mut ResMut<TopZLayer>,
-    ) {
-        despawn_all_snap_points(co, esp);
-        spawn_all_snap_points(self, res, ewre);
-    }
+pub fn reload_snap_point(
+    //Util
+    ss: &Res<SnapSettings>,
+    res: &Query<&REntity, With<Selected>>,
+    esp: &Query<Entity, With<SnapPoint>>,
+    //Output
+    ewre: &mut EventWriter<REntity>,
+    co: &mut Commands,
+) {
+    despawn_all_snap_points(co, esp);
+    spawn_all_snap_points(&ss, res, ewre);
 }
 
 pub fn despawn_all_snap_points(co: &mut Commands, esp: &Query<Entity, With<SnapPoint>>) {
@@ -74,11 +67,10 @@ pub fn despawn_all_snap_points(co: &mut Commands, esp: &Query<Entity, With<SnapP
 }
 
 fn spawn_all_snap_points(
-    us: &UiState,
+    ss: &Res<SnapSettings>,
     res: &Query<&REntity, With<Selected>>,
     ewre: &mut EventWriter<REntity>,
 ) {
-    let ss = &us.cad_state.object_snapping;
     let mut vp = Vec::new();
     for re in res.iter() {
         match re {
@@ -131,21 +123,15 @@ fn line_snaps(sp: &line::Line, ss: &SnapSettings, vp: &mut Vec<point::Point>) {
 #[allow(clippy::complexity)]
 fn update_snap_points(
     mut errsp: EventReader<UpdateSnapPoints>,
-    us: Res<UiState>,
+    ss: Res<SnapSettings>,
     res: Query<&REntity, With<Selected>>,
     esp: Query<Entity, With<SnapPoint>>,
     mut ewre: EventWriter<REntity>,
     mut co: Commands,
-    // mut me: ResMut<Assets<Mesh>>,
-    // mut ma: ResMut<Assets<ColorMaterial>>,
-    // mut tzi: ResMut<TopZLayer>,
 ) {
-    if errsp.is_empty() {
-        return;
-    }
     for temp in errsp.read() {
         match temp.0 {
-            true => us.reload_snap_point(&res, &esp, &mut ewre, &mut co),
+            true => reload_snap_point(&ss, &res, &esp, &mut ewre, &mut co),
             // true => us.reload_snap_point(&res, &esp, &mut co, &mut me, &mut ma, &mut tzi),
             false => despawn_all_snap_points(&mut co, &esp),
         }
@@ -165,5 +151,31 @@ impl Default for SnapBundle {
             b: On::<Pointer<Over>>::send_event::<Snap>(),
             c: On::<Pointer<Out>>::send_event::<Snap>(),
         }
+    }
+}
+
+impl std::fmt::Display for SnapType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let a = match self {
+            SnapType::Endpoint => "Endpoint",
+            SnapType::Midpoint => "Midpoint",
+            SnapType::Nthpoint(_) => "Nthpoint",
+            SnapType::Intersection => "Intersection",
+            SnapType::Perpendicular => "Perpendicular",
+            SnapType::Tangent => "Tangent",
+        };
+        f.write_fmt(format_args!("{}", a))
+    }
+}
+
+impl From<ListenerInput<Pointer<Out>>> for Snap {
+    fn from(event: ListenerInput<Pointer<Out>>) -> Self {
+        Snap(event.target, false)
+    }
+}
+
+impl From<ListenerInput<Pointer<Over>>> for Snap {
+    fn from(event: ListenerInput<Pointer<Over>>) -> Self {
+        Snap(event.target, true)
     }
 }

@@ -15,6 +15,8 @@ pub fn update_act(
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
     mut fs: ResMut<PhantomSnaps>,
+    mut ss: ResMut<SnapSettings>,
+    mut db: ResMut<DockBuffer>,
 ) {
     for act in era.read() {
         let mut binding = act.clone();
@@ -22,15 +24,14 @@ pub fn update_act(
             binding = to_act(string);
         }
 
-        uis.push_history(act);
+        uis.push_history(act, &mut db);
 
         match &binding {
             Act::Inspect => uis.inspect(),
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             Act::OpenCADTerm => uis.cad_state.cad_term = Some(String::new()),
             Act::Insert(sp) => insert(sp, &mut uis, &mut rmcb, &mut erre, &mut ewrsp),
-            Act::ToggleSnap(a) => uis.toggle_snap(a),
-            Act::ToggleSnapOff => uis.toggle_snap_off(&mut ewrsp),
+            Act::ToggleSnap(a) => toggle_snap(&mut ss, a, &mut uis, &mut ewrsp),
             Act::Confirm => index_point(&qrerpp, &mut ewci),
             Act::Exit => uis.close_all(&mut co, &qerpp, &mut ewrsp, &mut rmcb, &mut fs),
             Act::QuitWithoutSaving => {
@@ -67,13 +68,12 @@ fn snap_acts(mut text_buffer: SplitWhitespace) -> Act {
         .parse::<usize>()
         .unwrap_or_default();
     match text {
-        "endpoint" | "end" => Act::ToggleSnap(Snaps::Endpoint),
-        "midpoint" | "mid" => Act::ToggleSnap(Snaps::Midpoint),
-        "nthpoint" | "nth" => Act::ToggleSnap(Snaps::Nthpoint(divisions)),
-        "intersection" | "int" => Act::ToggleSnap(Snaps::Intersection),
-        "perpendicular" | "per" => Act::ToggleSnap(Snaps::Perpendicular),
-        "tangent" | "tan" => Act::ToggleSnap(Snaps::Tangent),
-        "off" => Act::ToggleSnapOff,
+        "endpoint" | "end" => Act::ToggleSnap(Some(SnapType::Endpoint)),
+        "midpoint" | "mid" => Act::ToggleSnap(Some(SnapType::Midpoint)),
+        "nthpoint" | "nth" => Act::ToggleSnap(Some(SnapType::Nthpoint(Some(divisions)))),
+        "intersection" | "int" => Act::ToggleSnap(Some(SnapType::Intersection)),
+        "perpendicular" | "per" => Act::ToggleSnap(Some(SnapType::Perpendicular)),
+        "tangent" | "tan" => Act::ToggleSnap(Some(SnapType::Tangent)),
         _ => Act::None,
     }
 }

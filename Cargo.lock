@@ -948,7 +948,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34aafade13645f67b973c54ec62dce68a1051faff4f47580ad76f800d26d1de1"
 dependencies = [
  "bevy",
- "bevy_egui",
 ]
 
 [[package]]

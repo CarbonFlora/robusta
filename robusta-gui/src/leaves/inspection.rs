@@ -1,7 +1,4 @@
-use bevy::prelude::{EventWriter, Rect};
-// use robusta_core::RobustaEntity;
-
-use crate::{keystrokes::Act, REntity};
+use super::*;
 
 pub fn view_inspection(
     ui: &mut egui::Ui,
@@ -15,40 +12,41 @@ pub fn view_inspection(
     }
 
     for re in selected_entities {
+        let mut c: Option<(f32, f32, f32, f32)> = None;
+
         match re {
             REntity::Arc(sp) => {
                 if ui.selectable_label(false, format!("{sp}")).clicked() {
-                    let c = sp.min_max();
-                    act_write.send(Act::PullCameraFocus(Rect::new(c.0, c.1, c.2, c.3)));
+                    c = Some(sp.min_max());
                 }
             }
             REntity::Circle(sp) => {
                 if ui.selectable_label(false, format!("{sp}")).clicked() {
-                    let c = sp.min_max();
-                    act_write.send(Act::PullCameraFocus(Rect::new(c.0, c.1, c.2, c.3)));
+                    c = Some(sp.min_max());
                 }
             }
             REntity::Line(sp) => {
                 if ui.selectable_label(false, format!("{sp}")).clicked() {
-                    let c = sp.min_max();
-                    act_write.send(Act::PullCameraFocus(Rect::new(c.0, c.1, c.2, c.3)));
+                    c = Some(sp.min_max());
                 }
             }
             REntity::Point(sp) => {
                 if ui.selectable_label(false, format!("{sp}")).clicked() {
-                    let c = sp.min_max();
-                    act_write.send(Act::PullCameraFocus(Rect::new(c.0, c.1, c.2, c.3)));
+                    c = Some(sp.min_max());
                 }
             }
             REntity::Text(sp) => {
                 if ui.selectable_label(false, format!("{sp}")).clicked() {
-                    let c = sp.min_max();
-                    act_write.send(Act::PullCameraFocus(Rect::new(c.0, c.1, c.2, c.3)));
+                    c = Some(sp.min_max());
                 }
             }
             REntity::SnapPoint(_) => (),
             REntity::PhantomPoint => (),
         }
         ui.separator();
+
+        if let Some(c) = c {
+            act_write.send(Act::PullCameraFocus(Rect::new(c.0, c.1, c.2, c.3)));
+        }
     }
 }

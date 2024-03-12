@@ -9,13 +9,13 @@ pub struct UiState {
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
-    pub dock_buffer: DockBuffer,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Resource)]
 pub struct DockBuffer {
     history: (Act, String),
     pub selected: Vec<REntity>,
+    pub nth_n: String,
 }
 
 impl DockBuffer {
@@ -23,6 +23,7 @@ impl DockBuffer {
         DockBuffer {
             history: (Act::None, String::new()),
             selected: Vec::new(),
+            nth_n: String::new(),
         }
     }
 }
@@ -39,10 +40,11 @@ pub enum EguiWindow {
 
 #[derive(Debug, Default)]
 pub struct CADState {
-    pub object_snapping: SnapSettings,
+    // pub object_snapping: SnapSettings,
     pub mode: Mode,
     pub cad_term: Option<String>,
     pub insert_menu: Option<Option<ConstructType>>,
+    pub snap_menu: Option<Option<SnapType>>,
 }
 
 impl CADState {
@@ -65,7 +67,7 @@ impl TopZLayer {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Resource)]
 pub struct SnapSettings {
     pub endpoint: bool,
     pub midpoint: bool,
@@ -85,14 +87,25 @@ impl SnapSettings {
             || self.tangent
     }
 
-    pub fn flip_nth(&mut self, div: &usize) {
+    pub fn flip_nth(&mut self, div: &Option<usize>) {
         flip(&mut self.nthpoint.0);
-        if div > &0usize {
-            self.nthpoint.1 = *div;
-            if !self.nthpoint.0 {
-                flip(&mut self.nthpoint.0);
+        if let Some(a) = div {
+            if a > &0usize {
+                self.nthpoint.1 = *a;
+                if !self.nthpoint.0 {
+                    flip(&mut self.nthpoint.0);
+                }
             }
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.endpoint = false;
+        self.midpoint = false;
+        self.nthpoint = (false, self.nthpoint.1);
+        self.intersection = false;
+        self.perpendicular = false;
+        self.tangent = false;
     }
 }
 
@@ -100,11 +113,11 @@ pub fn flip(boolean: &mut bool) {
     *boolean = !(*boolean);
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Snaps {
+#[derive(Debug, Clone, PartialEq, Copy)]
+pub enum SnapType {
     Endpoint,
     Midpoint,
-    Nthpoint(usize),
+    Nthpoint(Option<usize>),
     Intersection,
     Perpendicular,
     Tangent,
@@ -116,6 +129,7 @@ pub enum Mode {
     Normal,
     Typing,
     Insert,
+    Snap,
 }
 
 impl UiState {
@@ -124,15 +138,21 @@ impl UiState {
             cad_state: CADState::new(),
             loaded_files: load_files(path),
             dock_state: ribbon_cadpanel(),
-            dock_buffer: DockBuffer::new(),
         }
     }
 
-    pub fn ui(&mut self, ctx: &mut egui::Context, act_write: EventWriter<Act>) {
+    pub fn ui(
+        &mut self,
+        ctx: &mut egui::Context,
+        act_write: EventWriter<Act>,
+        dock_buffer: &DockBuffer,
+        ss: &SnapSettings,
+    ) {
         let mut tab_viewer = TabViewer {
             act_write,
             cad_state: &self.cad_state,
-            dock_buffer: &self.dock_buffer,
+            db: dock_buffer,
+            ss,
         };
         DockArea::new(&mut self.dock_state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -159,12 +179,13 @@ impl UiState {
         rmcb.as_mut().reset();
         self.cad_state.cad_term = None;
         self.cad_state.insert_menu = None;
+        self.cad_state.snap_menu = None;
         self.cad_state.mode = Mode::Normal;
         despawn_all_phantoms(co, ewp, fs);
     }
 
-    pub fn push_history(&mut self, act: &Act) {
-        let (latest, history) = &mut self.dock_buffer.history;
+    pub fn push_history(&mut self, act: &Act, db: &mut ResMut<DockBuffer>) {
+        let (latest, history) = &mut db.history;
         let mut meta_data = String::new();
 
         if act == latest {
@@ -182,11 +203,13 @@ impl UiState {
                 meta_data = format!("{a:?}");
                 "Terminal submitted: "
             }
-            Act::ToggleSnap(a) => {
-                meta_data = format!("{a:?}");
-                "Snap configuration changed: "
-            }
-            Act::ToggleSnapOff => "All object snaps turned off.",
+            Act::ToggleSnap(a) => match a {
+                Some(b) => {
+                    meta_data = format!("{b}");
+                    "Snap configuration changed: "
+                }
+                None => "Turned off all snaps.",
+            },
             Act::Inspect => "Inspecting.",
             Act::Insert(a) => match a {
                 Some(b) => {
@@ -203,7 +226,7 @@ impl UiState {
         history.push_str(&meta_data);
         history.push('\n');
 
-        self.dock_buffer.history.0 = act.clone();
+        db.history.0 = act.clone();
     }
 }
 
@@ -261,13 +284,15 @@ pub struct CADPanel {}
 pub fn update_dock(
     act_write: EventWriter<Act>,
     mut ui_state: ResMut<UiState>,
+    ss: Res<SnapSettings>,
     qec: Query<&mut EguiContext, With<CADPanel>>,
     qre: Query<&REntity, With<Selected>>,
+    mut db: ResMut<DockBuffer>,
 ) {
-    ui_state.dock_buffer.selected = qre.iter().cloned().collect::<Vec<REntity>>();
+    db.selected = qre.iter().cloned().collect::<Vec<REntity>>();
 
     if let Ok(mut w) = qec.get_single().cloned() {
-        ui_state.ui(w.get_mut(), act_write);
+        ui_state.ui(w.get_mut(), act_write, &db, &ss);
     }
 }
 
@@ -275,7 +300,8 @@ pub fn update_dock(
 struct TabViewer<'a> {
     act_write: EventWriter<'a, Act>,
     cad_state: &'a CADState,
-    dock_buffer: &'a DockBuffer,
+    ss: &'a SnapSettings,
+    db: &'a DockBuffer,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -287,12 +313,10 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 
         match window {
             EguiWindow::Empty => (),
-            EguiWindow::History => view_history(ui, &self.dock_buffer.history),
+            EguiWindow::History => view_history(ui, &self.db.history),
             EguiWindow::Points => (),
-            EguiWindow::Inspect => {
-                view_inspection(ui, &self.dock_buffer.selected, &mut self.act_write)
-            }
-            EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state),
+            EguiWindow::Inspect => view_inspection(ui, &self.db.selected, &mut self.act_write),
+            EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state, self.ss),
         }
     }
 
@@ -305,7 +329,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 }
 
-fn view_stateribbon(ui: &mut egui::Ui, cad_state: &CADState) {
+fn view_stateribbon(ui: &mut egui::Ui, cad_state: &CADState, ss: &SnapSettings) {
     ui.label(format!("{:?}", cad_state.mode));
-    ui.label(format!("{:?}", cad_state.object_snapping));
+    ui.label(format!("{:?}", ss));
 }

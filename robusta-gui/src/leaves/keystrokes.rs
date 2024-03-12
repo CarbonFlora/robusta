@@ -1,6 +1,4 @@
-use bevy::prelude::KeyCode;
-
-use crate::keystrokes::Act;
+use super::*;
 
 pub fn view_pressed_keys(ui: &mut egui::Ui, pressed_keys: &[Option<KeyCode>; 2], acts: Vec<&Act>) {
     let mut text = String::new();

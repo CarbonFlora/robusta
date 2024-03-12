@@ -1,33 +1,41 @@
-use bevy::prelude::*;
+use bevy::{
+    input::{keyboard::KeyboardInput, mouse::MouseButtonInput, ButtonState},
+    prelude::*,
+};
 
-use crate::{plugins::construction::ConstructType, Snaps, UiState};
+use crate::{plugins::construction::ConstructType, SnapType, UiState};
+
+pub struct KeyStrokePlugin;
+impl bevy::app::Plugin for KeyStrokePlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.add_systems(PreUpdate, capture_keystrokes);
+    }
+}
 
 pub fn capture_keystrokes(
     ui_state: Res<UiState>,
-    keys: Res<ButtonInput<KeyCode>>,
-    mouse: Res<ButtonInput<MouseButton>>,
+    mut kb: EventReader<KeyboardInput>,
+    mut mb: EventReader<MouseButtonInput>,
     mut act_write: EventWriter<Act>,
 ) {
     let mut buffer = [None; 2];
 
-    for keycode in keys.get_pressed() {
-        match keycode {
+    for k in kb.read().filter(|x| x.state == ButtonState::Pressed) {
+        match k.key_code {
             KeyCode::ControlLeft | KeyCode::ControlRight => buffer[0] = Some(KeyCode::ControlLeft),
             KeyCode::ShiftLeft | KeyCode::ShiftRight => buffer[0] = Some(KeyCode::ShiftLeft),
             KeyCode::AltLeft | KeyCode::AltRight => buffer[0] = Some(KeyCode::AltLeft),
-            _ => buffer[1] = Some(*keycode),
+            _ => buffer[1] = Some(k.key_code),
         };
     }
 
-    for mousekey in mouse.get_pressed() {
-        match mousekey {
+    for m in mb.read().filter(|x| x.state == ButtonState::Pressed) {
+        match m.button {
             MouseButton::Left => buffer[1] = Some(KeyCode::Insert),
             MouseButton::Right => {
                 buffer[0] = Some(KeyCode::AltLeft);
                 buffer[1] = Some(KeyCode::Insert)
             }
-            // MouseButton::Middle => todo!(),
-            // MouseButton::Other(_) => todo!(),
             _ => (),
         }
     }
@@ -36,6 +44,7 @@ pub fn capture_keystrokes(
         crate::Mode::Normal => normal_act(buffer),
         crate::Mode::Typing => typing_act(buffer),
         crate::Mode::Insert => insert_act(buffer),
+        crate::Mode::Snap => snap_act(buffer),
     };
 
     if act != Act::None {
@@ -47,13 +56,15 @@ fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::KeyI)] => Act::Insert(None),
-        [None, Some(KeyCode::KeyH)] => Act::MoveCamera((-1., 0.)),
-        [None, Some(KeyCode::KeyJ)] => Act::MoveCamera((0., -1.)),
-        [None, Some(KeyCode::KeyK)] => Act::MoveCamera((0., 1.)),
-        [None, Some(KeyCode::KeyL)] => Act::MoveCamera((1., 0.)),
+        [None, Some(KeyCode::KeyS)] => Act::ToggleSnap(None),
+        [None, Some(KeyCode::ArrowLeft)] => Act::MoveCamera((-1., 0.)),
+        [None, Some(KeyCode::ArrowDown)] => Act::MoveCamera((0., -1.)),
+        [None, Some(KeyCode::ArrowUp)] => Act::MoveCamera((0., 1.)),
+        [None, Some(KeyCode::ArrowRight)] => Act::MoveCamera((1., 0.)),
+        [None, Some(KeyCode::KeyF)] => Act::FitView,
         [Some(KeyCode::ControlLeft), Some(KeyCode::KeyI)] => Act::ZoomCamera(-1.),
         [Some(KeyCode::ControlLeft), Some(KeyCode::KeyO)] => Act::ZoomCamera(1.),
-        [None, Some(KeyCode::Insert)] => Act::Confirm,
+        [_, Some(KeyCode::Insert)] => Act::Confirm,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
             Act::OpenCADTerm
         }
@@ -83,6 +94,20 @@ fn insert_act(buffer: [Option<KeyCode>; 2]) -> Act {
     }
 }
 
+fn snap_act(buffer: [Option<KeyCode>; 2]) -> Act {
+    match buffer {
+        [None, Some(KeyCode::Escape)] => Act::Exit,
+        [None, Some(KeyCode::KeyC)] => Act::ToggleSnap(None),
+        [None, Some(KeyCode::KeyE)] => Act::ToggleSnap(Some(SnapType::Endpoint)),
+        [None, Some(KeyCode::KeyM)] => Act::ToggleSnap(Some(SnapType::Midpoint)),
+        [None, Some(KeyCode::KeyN)] => Act::ToggleSnap(Some(SnapType::Nthpoint(None))),
+        [None, Some(KeyCode::KeyI)] => Act::ToggleSnap(Some(SnapType::Intersection)),
+        [None, Some(KeyCode::KeyP)] => Act::ToggleSnap(Some(SnapType::Perpendicular)),
+        [None, Some(KeyCode::KeyT)] => Act::ToggleSnap(Some(SnapType::Tangent)),
+        _ => Act::None,
+    }
+}
+
 #[derive(Event, Debug, Default, PartialEq, Clone)]
 pub enum Act {
     #[default]
@@ -99,6 +124,5 @@ pub enum Act {
     FitView,
     MoveCamera((f32, f32)),
     ZoomCamera(f32),
-    ToggleSnap(Snaps),
-    ToggleSnapOff,
+    ToggleSnap(Option<SnapType>),
 }

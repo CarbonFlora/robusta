@@ -1,3 +1,4 @@
+use self::plugins::snap::toggle_snap;
 use self::plugins::RCADPlugins;
 use self::plugins::{
     construction::ConstructionBuffer,
@@ -9,6 +10,7 @@ use self::plugins::{
     construction::ConstructionInput, phantom::index_point, selection::deselect_all,
 };
 use crate::plugins::construction::ConstructType;
+use crate::plugins::keystroke::Act;
 use ::bevy::render::{
     mesh::{Indices, PrimitiveTopology},
     render_asset::RenderAssetUsages,
@@ -29,10 +31,9 @@ use primitives::*;
 use std::path::PathBuf;
 use std::str::SplitWhitespace;
 
-use crate::{keystrokes::Act, uistate::UiState, Snaps};
+use crate::{uistate::UiState, SnapType};
 
 pub mod app;
-pub mod keystrokes;
 pub mod leaves;
 pub mod parsedxf;
 pub mod plugins;
@@ -41,7 +42,6 @@ pub mod uistate;
 pub mod update_act;
 pub mod viewport_ui;
 
-use crate::keystrokes::*;
 use crate::leaves::history::view_history;
 use crate::leaves::inspection::view_inspection;
 use crate::leaves::term::update_terminal_egui;

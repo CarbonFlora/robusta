@@ -118,11 +118,13 @@ pub fn index_point(
     qre: &Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
     ewci: &mut EventWriter<ConstructionInput>,
 ) {
-    if let Ok(re) = qre.get_single() {
-        let xyz = re.unwrap_point().coordinates;
-        let coords = Vec3::new(xyz.x, xyz.y, xyz.z);
-        ewci.send(ConstructionInput { coords });
-    }
+    let re = match qre.get_single() {
+        Ok(w) => w,
+        Err(_) => return,
+    };
+    let xyz = re.unwrap_point().coordinates;
+    let coords = Vec3::new(xyz.x, xyz.y, xyz.z);
+    ewci.send(ConstructionInput { coords });
 }
 
 // #[allow(clippy::type_complexity)]

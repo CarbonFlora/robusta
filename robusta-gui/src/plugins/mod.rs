@@ -1,6 +1,7 @@
 pub mod camera;
 pub mod construction;
 pub mod diagnostic;
+pub mod keystroke;
 pub mod phantom;
 pub mod selection;
 pub mod snap;
@@ -8,8 +9,8 @@ pub mod unsorted;
 
 use self::{
     camera::RCameraPlugin, construction::ConstructionPlugin, diagnostic::DiagnosticPlugin,
-    phantom::PhantomPlugin, selection::RSelectionPlugin, snap::SnapPlugin,
-    unsorted::UnsortedPlugin,
+    keystroke::KeyStrokePlugin, phantom::PhantomPlugin, selection::RSelectionPlugin,
+    snap::SnapPlugin, unsorted::UnsortedPlugin,
 };
 
 use super::*;
@@ -24,6 +25,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
         builder = builder.add(RCameraPlugin);
         builder = builder.add(RSelectionPlugin);
         builder = builder.add(SnapPlugin);
+        builder = builder.add(KeyStrokePlugin);
         builder = builder.add(PhantomPlugin);
         builder = builder.add(ConstructionPlugin);
         builder = builder.add(DiagnosticPlugin);
