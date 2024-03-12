@@ -6,10 +6,9 @@ use self::plugins::{
     snap::UpdateSnapPoints,
 };
 use self::plugins::{
-    construction::{construct_line, construct_point, ConstructionInput},
-    phantom::index_point,
-    selection::deselect_all,
+    construction::ConstructionInput, phantom::index_point, selection::deselect_all,
 };
+use crate::plugins::construction::ConstructType;
 use ::bevy::render::{
     mesh::{Indices, PrimitiveTopology},
     render_asset::RenderAssetUsages,

@@ -16,6 +16,6 @@ pub fn update_viewport_ui(
         update_terminal_egui(&mut aw, &mut uis, &mut ecp);
     }
     if uis.cad_state.insert_menu.is_some() {
-        update_insert_egui(&mut aw, &mut uis, &mut ecp);
+        update_insert_egui(&mut aw, &mut ecp);
     }
 }

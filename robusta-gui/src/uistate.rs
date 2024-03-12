@@ -42,7 +42,7 @@ pub struct CADState {
     pub object_snapping: SnapSettings,
     pub mode: Mode,
     pub cad_term: Option<String>,
-    pub insert_menu: Option<ConstructType>,
+    pub insert_menu: Option<Option<ConstructType>>,
 }
 
 impl CADState {
@@ -115,6 +115,7 @@ pub enum Mode {
     #[default]
     Normal,
     Typing,
+    Insert,
 }
 
 impl UiState {
@@ -157,6 +158,7 @@ impl UiState {
         ewrsp.send(UpdateSnapPoints(false));
         rmcb.as_mut().reset();
         self.cad_state.cad_term = None;
+        self.cad_state.insert_menu = None;
         self.cad_state.mode = Mode::Normal;
         despawn_all_phantoms(co, ewp, fs);
     }
@@ -174,22 +176,25 @@ impl UiState {
             Act::Exit => "Cleaning up.",
             Act::QuitWithoutSaving => "Quit without saving.",
             Act::DeselectAll => "Deselecting everything.",
-            Act::Confirm => "Action Confirmed.",
+            Act::Confirm => "Action confirmed.",
             Act::OpenCADTerm => "Terminal opened.",
             Act::TryAct(a) => {
                 meta_data = format!("{a:?}");
                 "Terminal submitted: "
             }
-            Act::NewPoint => "Point created.",
-            Act::NewLine => "Line created.",
-            Act::NewText => "Text created.",
             Act::ToggleSnap(a) => {
                 meta_data = format!("{a:?}");
                 "Snap configuration changed: "
             }
             Act::ToggleSnapOff => "All object snaps turned off.",
             Act::Inspect => "Inspecting.",
-            Act::Insert => "Opened insert menu.",
+            Act::Insert(a) => match a {
+                Some(b) => {
+                    meta_data = format!("{b}");
+                    "Insert: "
+                }
+                None => "Opened insert menu.",
+            },
             Act::PullCameraFocus(_) => "Camera moved.",
             Act::FitView => "Fit view to all entities.",
             Act::MoveCamera(_) => return,

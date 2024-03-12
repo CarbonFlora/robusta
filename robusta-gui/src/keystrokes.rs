@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{Snaps, UiState};
+use crate::{plugins::construction::ConstructType, Snaps, UiState};
 
 pub fn capture_keystrokes(
     ui_state: Res<UiState>,
@@ -35,6 +35,7 @@ pub fn capture_keystrokes(
     let act = match ui_state.cad_state.mode {
         crate::Mode::Normal => normal_act(buffer),
         crate::Mode::Typing => typing_act(buffer),
+        crate::Mode::Insert => insert_act(buffer),
     };
 
     if act != Act::None {
@@ -45,7 +46,7 @@ pub fn capture_keystrokes(
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::KeyI)] => Act::Insert,
+        [None, Some(KeyCode::KeyI)] => Act::Insert(None),
         [None, Some(KeyCode::KeyH)] => Act::MoveCamera((-1., 0.)),
         [None, Some(KeyCode::KeyJ)] => Act::MoveCamera((0., -1.)),
         [None, Some(KeyCode::KeyK)] => Act::MoveCamera((0., 1.)),
@@ -70,6 +71,18 @@ fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
     }
 }
 
+fn insert_act(buffer: [Option<KeyCode>; 2]) -> Act {
+    match buffer {
+        [None, Some(KeyCode::Escape)] => Act::Exit,
+        [None, Some(KeyCode::KeyP)] => Act::Insert(Some(ConstructType::Point)),
+        [None, Some(KeyCode::KeyL)] => Act::Insert(Some(ConstructType::Line)),
+        [None, Some(KeyCode::KeyA)] => Act::Insert(Some(ConstructType::Arc)),
+        [None, Some(KeyCode::KeyC)] => Act::Insert(Some(ConstructType::Circle)),
+        [None, Some(KeyCode::KeyT)] => Act::Insert(Some(ConstructType::Text)),
+        _ => Act::None,
+    }
+}
+
 #[derive(Event, Debug, Default, PartialEq, Clone)]
 pub enum Act {
     #[default]
@@ -80,11 +93,8 @@ pub enum Act {
     Confirm,
     OpenCADTerm,
     TryAct(String),
-    NewPoint,
-    NewLine,
-    NewText,
     Inspect,
-    Insert,
+    Insert(Option<ConstructType>),
     PullCameraFocus(Rect),
     FitView,
     MoveCamera((f32, f32)),

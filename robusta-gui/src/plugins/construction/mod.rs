@@ -34,7 +34,7 @@ pub enum InputType {
 #[derive(Debug, Resource, Default)]
 pub struct ConstructionBuffer {
     buf: Vec<ConstructionInput>,
-    build: Option<ConstructType>,
+    pub build: Option<ConstructType>,
 }
 
 impl ConstructionBuffer {
@@ -51,7 +51,7 @@ impl ConstructionBuffer {
 #[derive(Debug, Component)]
 pub struct RConstructionEntity;
 
-#[derive(Debug, Event, Clone, Copy)]
+#[derive(Debug, Event, Clone, Copy, PartialEq)]
 pub enum ConstructType {
     Arc,
     Circle,
@@ -151,32 +151,15 @@ fn canonize_line(
     ewre.send(sp.into());
 }
 
-pub fn construct_point(
-    erre: &mut EventWriter<REntity>,
-    ewrsp: &mut EventWriter<UpdateSnapPoints>,
-    rmcb: &mut ResMut<ConstructionBuffer>,
-) {
-    rmcb.build = Some(ConstructType::Point);
-    ewrsp.send(UpdateSnapPoints(true));
-    erre.send(REntity::PhantomPoint);
-}
-
-pub fn construct_line(
-    erre: &mut EventWriter<REntity>,
-    ewrsp: &mut EventWriter<UpdateSnapPoints>,
-    rmcb: &mut ResMut<ConstructionBuffer>,
-) {
-    rmcb.build = Some(ConstructType::Line);
-    ewrsp.send(UpdateSnapPoints(true));
-    erre.send(REntity::PhantomPoint);
-}
-
-pub fn construct_text(
-    erre: &mut EventWriter<REntity>,
-    ewrsp: &mut EventWriter<UpdateSnapPoints>,
-    rmcb: &mut ResMut<ConstructionBuffer>,
-) {
-    rmcb.build = Some(ConstructType::Text);
-    ewrsp.send(UpdateSnapPoints(true));
-    erre.send(REntity::PhantomPoint);
+impl std::fmt::Display for ConstructType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let a = match self {
+            ConstructType::Arc => "Arc",
+            ConstructType::Circle => "Circle",
+            ConstructType::Line => "Line",
+            ConstructType::Point => "Point",
+            ConstructType::Text => "Text",
+        };
+        f.write_fmt(format_args!("{}", a))
+    }
 }
