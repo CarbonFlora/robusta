@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use super::*;
 
+//Arc
 impl From<&dxf::entities::Arc> for REntity {
     fn from(value: &dxf::entities::Arc) -> Self {
         REntity::Arc(value.into())
@@ -33,6 +34,7 @@ impl From<&dxf::entities::Arc> for arc::Arc {
     }
 }
 
+//Line
 impl From<&dxf::entities::Line> for REntity {
     fn from(value: &dxf::entities::Line) -> Self {
         REntity::Line(value.into())
@@ -47,6 +49,7 @@ impl From<&dxf::entities::Line> for line::Line {
     }
 }
 
+//Circle
 impl From<&dxf::entities::Circle> for REntity {
     fn from(value: &dxf::entities::Circle) -> Self {
         REntity::Circle(value.into())
@@ -62,14 +65,9 @@ impl From<&dxf::entities::Circle> for circle::Circle {
     }
 }
 
+//Text
 impl From<&dxf::entities::Text> for REntity {
     fn from(value: &dxf::entities::Text) -> Self {
-        REntity::Text(value.into())
-    }
-}
-
-impl From<&dxf::entities::MText> for REntity {
-    fn from(value: &dxf::entities::MText) -> Self {
         REntity::Text(value.into())
     }
 }
@@ -88,6 +86,34 @@ impl From<&dxf::entities::Text> for text::Text {
     }
 }
 
+//Insert
+impl From<&dxf::entities::Insert> for REntity {
+    fn from(value: &dxf::entities::Insert) -> Self {
+        REntity::Text(value.into())
+    }
+}
+
+impl From<&dxf::entities::Insert> for text::Text {
+    fn from(sp: &dxf::entities::Insert) -> Self {
+        let origin = point::Point::new(sp.location.x as f32, sp.location.y as f32, 0.);
+
+        text::Text {
+            bud_pos: [origin],
+            body: sp.name.clone(),
+            // rotation: sp.rotation as f32,
+            rotation: 0.0,
+            height: 1.0,
+            leader: None,
+        }
+    }
+}
+
+impl From<&dxf::entities::MText> for REntity {
+    fn from(value: &dxf::entities::MText) -> Self {
+        REntity::Text(value.into())
+    }
+}
+
 impl From<&dxf::entities::MText> for text::Text {
     fn from(sp: &dxf::entities::MText) -> Self {
         let origin =
@@ -97,12 +123,13 @@ impl From<&dxf::entities::MText> for text::Text {
             bud_pos: [origin],
             body: sp.text.clone(),
             rotation: sp.rotation_angle as f32,
-            height: sp.initial_text_height as f32,
+            height: 1.0,
             leader: None,
         }
     }
 }
 
+//Other
 pub fn lwp_to_lines(sp: &dxf::entities::LwPolyline) -> Vec<REntity> {
     let mut lv = Vec::new();
     let mut spviter = sp.vertices.iter();

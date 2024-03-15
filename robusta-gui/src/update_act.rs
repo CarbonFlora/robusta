@@ -27,7 +27,7 @@ pub fn update_act(
         uis.push_history(act, &mut db);
 
         match &binding {
-            Act::Inspect => uis.inspect(),
+            Act::EguiFocus(ew) => uis.new_focus(ew),
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             Act::OpenCADTerm => uis.cad_state.cad_term = Some(String::new()),
             Act::Insert(sp) => insert(sp, &mut uis, &mut rmcb, &mut erre, &mut ewrsp),
@@ -52,7 +52,7 @@ fn to_act(input: &str) -> Act {
         .as_str()
     {
         "deselect" | "dsa" => Act::DeselectAll,
-        "inspect" | "i" => Act::Inspect,
+        "inspect" => Act::EguiFocus(EguiWindow::Inspect),
         "fitview" | "fv" => Act::FitView,
         "snap" | "s" => snap_acts(text_buffer),
         "q!" => Act::QuitWithoutSaving,

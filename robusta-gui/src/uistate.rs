@@ -29,7 +29,7 @@ impl DockBuffer {
 }
 
 /// This is all available tabs to be accessed.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum EguiWindow {
     Empty,
     Points,
@@ -159,11 +159,11 @@ impl UiState {
             .show(ctx, &mut tab_viewer);
     }
 
-    pub fn inspect(&mut self) {
-        if let Some(b) = self.dock_state.find_tab(&EguiWindow::Inspect) {
+    pub fn new_focus(&mut self, ew: &EguiWindow) {
+        if let Some(b) = self.dock_state.find_tab(ew) {
             self.dock_state.set_active_tab(b);
         } else {
-            self.dock_state.add_window(vec![EguiWindow::Inspect]);
+            self.dock_state.add_window(vec![ew.clone()]);
         }
     }
 
@@ -210,7 +210,11 @@ impl UiState {
                 }
                 None => "Turned off all snaps.",
             },
-            Act::Inspect => "Inspecting.",
+            Act::EguiFocus(a) => {
+                meta_data = format!("{a:?}");
+                "Focusing tab: "
+            }
+
             Act::Insert(a) => match a {
                 Some(b) => {
                     meta_data = format!("{b}");

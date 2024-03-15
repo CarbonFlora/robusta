@@ -135,7 +135,7 @@ fn spawn_from_dxf(
             EntityType::Ellipse(_) => todo!(),
             EntityType::Helix(_) => todo!(),
             EntityType::Image(_) => todo!(),
-            EntityType::Insert(_) => todo!(),
+            EntityType::Insert(sp) => vre.push(sp.into()),
             EntityType::Leader(_) => todo!(),
             EntityType::Light(_) => todo!(),
             EntityType::Line(sp) => vre.push(sp.into()),

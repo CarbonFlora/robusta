@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{plugins::construction::ConstructType, SnapType, UiState};
+use crate::{plugins::construction::ConstructType, EguiWindow, SnapType, UiState};
 
 pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
@@ -118,7 +118,7 @@ pub enum Act {
     Confirm,
     OpenCADTerm,
     TryAct(String),
-    Inspect,
+    EguiFocus(EguiWindow),
     Insert(Option<ConstructType>),
     PullCameraFocus(Rect),
     FitView,

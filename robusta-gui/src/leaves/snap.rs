@@ -27,7 +27,7 @@ pub fn update_snap_egui(
                 build_type_button(ui, ewa, SnapType::Perpendicular);
                 build_type_button(ui, ewa, SnapType::Tangent);
 
-                if w.get().input(|x| x.key_pressed(egui::Key::N)) && !ss.nthpoint.0 {
+                if w.get().input(|x| x.key_pressed(egui::Key::N)) && db.nth_n.is_empty() {
                     nth_n.request_focus();
                 }
                 if let Ok(a) = db.nth_n.parse::<usize>() {

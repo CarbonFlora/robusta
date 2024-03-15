@@ -57,8 +57,8 @@ pub fn reload_snap_point(
     co: &mut Commands,
 ) {
     despawn_all_snap_points(co, esp);
-    spawn_simple_snap_points(&ss, res, ewre);
-    spawn_shared_snap_points(&ss, res, ewre);
+    spawn_simple_snap_points(ss, res, ewre);
+    spawn_shared_snap_points(ss, res, ewre);
 }
 
 pub fn despawn_all_snap_points(co: &mut Commands, esp: &Query<Entity, With<SnapPoint>>) {
