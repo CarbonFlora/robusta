@@ -2,7 +2,7 @@ use super::*;
 
 pub fn view_inspection(
     ui: &mut egui::Ui,
-    selected_entities: &Vec<REntity>,
+    selected_entities: &Vec<(REntity, Tags)>,
     act_write: &mut EventWriter<Act>,
 ) {
     ui.separator();
@@ -14,7 +14,7 @@ pub fn view_inspection(
     for re in selected_entities {
         let mut c: Option<(f32, f32, f32, f32)> = None;
 
-        match re {
+        match &re.0 {
             REntity::Arc(sp) => {
                 if ui.selectable_label(false, format!("{sp}")).clicked() {
                     c = Some(sp.min_max());
@@ -42,6 +42,10 @@ pub fn view_inspection(
             }
             REntity::SnapPoint(_) => (),
             REntity::PhantomPoint => (),
+        }
+
+        for t in &re.1.taglist {
+            let _ = ui.small_button(t.name.to_string());
         }
         ui.separator();
 

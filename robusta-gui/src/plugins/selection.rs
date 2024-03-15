@@ -18,6 +18,8 @@ use bevy_mod_picking::{
 };
 use bevy_window::{PrimaryWindow, Window};
 
+use super::tag::Tags;
+
 /// This is a wrapper for bevy_mod_picking selection.
 pub struct RSelectionPlugin;
 impl bevy::app::Plugin for RSelectionPlugin {
@@ -108,6 +110,7 @@ pub struct PickableSelectionBundle {
     a: PickableBundle,
     b: On<Pointer<Select>>,
     c: On<Pointer<Deselect>>,
+    d: Tags,
 }
 
 impl Default for PickableSelectionBundle {
@@ -116,6 +119,7 @@ impl Default for PickableSelectionBundle {
             a: PickableBundle::default(),
             b: On::<Pointer<Select>>::send_event::<Selection>(),
             c: On::<Pointer<Deselect>>::send_event::<Selection>(),
+            d: Tags::default(),
         }
     }
 }

@@ -1,4 +1,5 @@
 use self::plugins::snap::toggle_snap;
+use self::plugins::tag::Tags;
 use self::plugins::RCADPlugins;
 use self::plugins::{
     construction::ConstructionBuffer,

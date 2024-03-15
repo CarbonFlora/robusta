@@ -1,5 +1,3 @@
-use bevy::utils::HashMap;
-
 use super::*;
 
 pub struct TagPlugin;
@@ -9,14 +7,20 @@ impl bevy::app::Plugin for TagPlugin {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
 pub struct Tag {
-    name: String,
+    pub name: String,
 }
 
-#[derive(Debug, Component, Default)]
+impl Tag {
+    pub fn new(name: String) -> Self {
+        Self { name }
+    }
+}
+
+#[derive(Debug, Component, Default, Clone)]
 pub struct Tags {
-    taglist: Vec<Tag>,
+    pub taglist: Vec<Tag>,
 }
 
 #[derive(Debug)]
@@ -32,9 +36,17 @@ pub struct TagCharacteristics {
 
 impl TagCharacteristics {
     pub fn new() -> Self {
-        Self {
-            tag_flags: HashMap::new(),
+        let mut tag_flags = HashMap::new();
+        tag_flags.insert(Tag::new("Default".to_string()), TagFlags::default());
+
+        Self { tag_flags }
+    }
+
+    pub fn flags(&mut self, t: &Tag) -> &TagFlags {
+        if !self.tag_flags.contains_key(t) {
+            self.tag_flags.insert(t.clone(), TagFlags::default());
         }
+        self.tag_flags.get(t).unwrap()
     }
 }
 

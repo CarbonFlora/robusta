@@ -1,4 +1,4 @@
-use self::plugins::construction::ConstructType;
+use self::plugins::{construction::ConstructType, tag::Tags};
 
 use super::*;
 
@@ -14,7 +14,7 @@ pub struct UiState {
 #[derive(Debug, Default, Resource)]
 pub struct DockBuffer {
     history: (Act, String),
-    pub selected: Vec<REntity>,
+    pub selected: Vec<(REntity, Tags)>,
     pub nth_n: String,
 }
 
@@ -290,10 +290,14 @@ pub fn update_dock(
     mut ui_state: ResMut<UiState>,
     ss: Res<SnapSettings>,
     qec: Query<&mut EguiContext, With<CADPanel>>,
-    qre: Query<&REntity, With<Selected>>,
+    qre: Query<(&REntity, &Tags), With<Selected>>,
     mut db: ResMut<DockBuffer>,
 ) {
-    db.selected = qre.iter().cloned().collect::<Vec<REntity>>();
+    let mut binding = Vec::new();
+    for a in qre.iter() {
+        binding.push((a.0.clone(), a.1.clone()));
+    }
+    db.selected = binding;
 
     if let Ok(mut w) = qec.get_single().cloned() {
         ui_state.ui(w.get_mut(), act_write, &db, &ss);
