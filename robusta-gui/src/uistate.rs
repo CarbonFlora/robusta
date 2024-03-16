@@ -226,6 +226,10 @@ impl UiState {
             Act::FitView => "Fit view to all entities.",
             Act::MoveCamera(_) => return,
             Act::ZoomCamera(_) => return,
+            Act::ModifyTag(_a, b) => {
+                meta_data = format!("{b}");
+                "Tag modification: "
+            }
         });
         history.push_str(&meta_data);
         history.push('\n');

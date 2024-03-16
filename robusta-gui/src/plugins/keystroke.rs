@@ -3,7 +3,9 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{plugins::construction::ConstructType, EguiWindow, SnapType, UiState};
+use crate::{plugins::construction::ConstructType, EguiWindow, REntity, SnapType, UiState};
+
+use super::tag::TagModify;
 
 pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
@@ -125,4 +127,5 @@ pub enum Act {
     MoveCamera((f32, f32)),
     ZoomCamera(f32),
     ToggleSnap(Option<SnapType>),
+    ModifyTag(REntity, TagModify),
 }

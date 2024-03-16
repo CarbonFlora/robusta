@@ -31,3 +31,4 @@ anyhow = "1.0.79"
 approx = "0.5.1"
 bevy_render = "0.13.0"
 nalgebra = { version = "0.32.3", features = ["serde"] }
+thiserror = "1.0.58"
