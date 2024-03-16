@@ -2,6 +2,9 @@
 ## Brief
 Given station, bearing, line data information on plan, if a program can reconstruct the line work then it should be proof of constructability.
 
+## Ui Overhaul
+- The Ui will be a hybrid of Helix Editor and a standard gui-based editing surface. Experienced users will benefit from the mouse-less keybindings and beginners will benefit from the CADPanel. 
+
 ## Rewrite 2 Update
 - Take advantage of Bevy ECS change detection (https://docs.rs/bevy_ecs/latest/bevy_ecs/#change-detection). 
 - Constraints: add coincident & extension constriant type.

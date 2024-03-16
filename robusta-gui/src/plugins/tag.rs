@@ -140,7 +140,6 @@ impl TagFlags {
 #[derive(Debug, PartialEq, Clone)]
 pub enum TagModify {
     Add(Tag),
-    AddPlaceholder,
     Remove(Tag),
     RemoveAll,
 }
@@ -167,7 +166,6 @@ pub fn update_act_tag(
 
                 match tm {
                     TagModify::Add(sp) => ret.1.taglist.insert(sp.clone()),
-                    TagModify::AddPlaceholder => ret.1.taglist.insert(Tag::placeholder(None)),
                     TagModify::Remove(sp) => ret.1.taglist.remove(sp),
                     TagModify::RemoveAll => {
                         ret.1.taglist.clear();
@@ -195,7 +193,6 @@ impl std::fmt::Display for TagModify {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let b = match self {
             TagModify::Add(sp) => format!("Added tag, {}", sp.name),
-            TagModify::AddPlaceholder => "Added placeholder tag to selection.".to_string(),
             TagModify::Remove(sp) => format!("Removed tag, {}", sp.name),
             TagModify::RemoveAll => "removed all tags from selection.".to_string(),
         };

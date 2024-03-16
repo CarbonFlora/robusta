@@ -24,6 +24,7 @@ fn update_camera(
     mut era: EventReader<Act>,
     //Util
     qre: Query<&REntity>,
+    mut qwwp: Query<(&Window, &mut bevy_pancam::PanCam), With<bevy_pancam::PanCam>>,
     //Output
     mut camera: Query<
         (
@@ -34,6 +35,10 @@ fn update_camera(
         With<bevy_pancam::PanCam>,
     >,
 ) {
+    // for mut i in qwwp.iter_mut() {
+    //     i.1.enabled = i.0.focused;
+    // }
+
     for a in era.read() {
         match a {
             Act::MoveCamera((x, y)) => camera_transform(x, y, &mut camera),

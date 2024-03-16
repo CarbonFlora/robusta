@@ -56,9 +56,23 @@ pub fn view_inspection(
 }
 
 fn tag_bundle(ui: &mut egui::Ui, re: &(REntity, Tags), ewa: &mut EventWriter<Act>) {
-    for t in &re.1.taglist {
-        let _ = ui.small_button(t.name.to_string());
-    }
+    ui.horizontal_wrapped(|ui| {
+        ui.menu_button("⛭", |ui| {
+            ui.horizontal(|ui_collapse| {
+                if ui_collapse.button("⊞").clicked() {
+                    let a = Tag::new(format!("Untitled-{}", re.1.taglist.len() + 1));
+                    ewa.send(Act::ModifyTag(re.0.clone(), TagModify::Add(a)));
+                }
+                if ui_collapse.button("⊟").clicked() {
+                    ewa.send(Act::ModifyTag(re.0.clone(), TagModify::RemoveAll));
+                }
+            });
+        });
+
+        for t in &re.1.taglist {
+            let _ = ui.small_button(t.name.to_string());
+        }
+    });
     // ui.collapsing("⛭", |ui| {
     //     ui.horizontal_wrapped(|ui_collapse| {
     //         if ui_collapse.button("⊞").clicked() {
@@ -69,14 +83,4 @@ fn tag_bundle(ui: &mut egui::Ui, re: &(REntity, Tags), ewa: &mut EventWriter<Act
     //         }
     //     });
     // });
-    ui.menu_button("⛭", |ui| {
-        ui.horizontal_wrapped(|ui_collapse| {
-            if ui_collapse.button("⊞").clicked() {
-                ewa.send(Act::ModifyTag(re.0.clone(), TagModify::AddPlaceholder));
-            }
-            if ui_collapse.button("⊟").clicked() {
-                ewa.send(Act::ModifyTag(re.0.clone(), TagModify::RemoveAll));
-            }
-        });
-    });
 }
