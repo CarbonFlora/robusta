@@ -3,7 +3,7 @@ use std::ops::Index;
 use egui::Sense;
 use egui_extras::{Column, TableBuilder};
 
-use self::plugins::tag::TagListModify;
+use self::plugins::tag::{Tag, TagListModify};
 
 use super::*;
 
@@ -16,7 +16,8 @@ pub fn view_taglist(
     ui.separator();
     ui.horizontal(|ui| {
         if ui.button("⊞").clicked() {
-            ewa.send(Act::ModifyTaglist(TagListModify::AddPlaceholder));
+            let tag = Tag::placeholder(Some(tc.len()));
+            ewa.send(Act::ModifyTaglist(TagListModify::Add(tag)));
         }
         if ui.button("⊟").clicked() {
             for a in db.egui_selection.values() {
