@@ -3996,6 +3996,7 @@ dependencies = [
  "egui_dock",
  "egui_extras",
  "nalgebra",
+ "regex",
  "thiserror",
 ]
 

@@ -3,14 +3,27 @@ use std::ops::Index;
 use egui::Sense;
 use egui_extras::{Column, TableBuilder};
 
+use self::plugins::tag::TagListModify;
+
 use super::*;
 
-pub fn view_taglist(ui: &mut egui::Ui, ewa: &mut EventWriter<Act>, tc: &TagCharacteristics) {
+pub fn view_taglist(
+    ui: &mut egui::Ui,
+    ewa: &mut EventWriter<Act>,
+    tc: &TagCharacteristics,
+    db: &DockBuffer,
+) {
     ui.separator();
-    if tc.is_empty() {
-        ui.label("No Selected Entities.");
-        return;
-    }
+    ui.horizontal(|ui| {
+        if ui.button("⊞").clicked() {
+            ewa.send(Act::ModifyTaglist(TagListModify::AddPlaceholder));
+        }
+        if ui.button("⊟").clicked() {
+            for a in db.egui_selection.values() {
+                ewa.send(Act::ModifyTaglist(TagListModify::Remove(a.clone())));
+            }
+        }
+    });
 
     let table = TableBuilder::new(ui)
         .striped(true)
@@ -27,9 +40,10 @@ pub fn view_taglist(ui: &mut egui::Ui, ewa: &mut EventWriter<Act>, tc: &TagChara
                 ui.strong("Characteristics");
             });
         })
-        .body(|mut body| {
+        .body(|body| {
             body.rows(20.0, tc.len(), |mut row| {
                 let row_index = row.index();
+                row.set_selected(db.egui_selection.contains_key(&row_index));
 
                 row.col(|ui| {
                     ui.label(&tc.index(row_index).0.name);
@@ -37,6 +51,13 @@ pub fn view_taglist(ui: &mut egui::Ui, ewa: &mut EventWriter<Act>, tc: &TagChara
                 row.col(|ui| {
                     ui.label(format!("{:?}", &tc.index(row_index).1));
                 });
+
+                if row.response().clicked() {
+                    ewa.send(Act::ToggleRowSelection((
+                        row_index,
+                        tc.index(row_index).0.clone(),
+                    )));
+                }
             });
         });
 }

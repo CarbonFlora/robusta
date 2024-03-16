@@ -1,3 +1,5 @@
+use bevy::utils::hashbrown::HashSet;
+
 use self::{
     leaves::taglist::view_taglist,
     plugins::{
@@ -15,23 +17,6 @@ pub struct UiState {
     pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
-}
-
-#[derive(Debug, Default, Resource)]
-pub struct DockBuffer {
-    history: (Act, String),
-    pub selected: Vec<(REntity, Tags)>,
-    pub nth_n: String,
-}
-
-impl DockBuffer {
-    pub fn new() -> Self {
-        DockBuffer {
-            history: (Act::None, String::new()),
-            selected: Vec::new(),
-            nth_n: String::new(),
-        }
-    }
 }
 
 /// This is all available tabs to be accessed.
@@ -239,6 +224,11 @@ impl UiState {
                 meta_data = format!("{b}");
                 "Tag modification: "
             }
+            Act::ModifyTaglist(a) => {
+                meta_data = format!("{a}");
+                "Tag list modification: "
+            }
+            Act::ToggleRowSelection(_) => return,
         });
         history.push_str(&meta_data);
         history.push('\n');
@@ -340,7 +330,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Points => (),
             EguiWindow::Inspect => view_inspection(ui, &self.db.selected, &mut self.act_write),
             EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state, self.ss),
-            EguiWindow::Taglist => view_taglist(ui, &mut self.act_write, self.tc),
+            EguiWindow::Taglist => view_taglist(ui, &mut self.act_write, self.tc, &self.db),
         }
     }
 

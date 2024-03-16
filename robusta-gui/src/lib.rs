@@ -1,3 +1,4 @@
+use self::plugins::dock::DockBuffer;
 use self::plugins::snap::toggle_snap;
 use self::plugins::tag::TagCharacteristics;
 use self::plugins::tag::TagModify;

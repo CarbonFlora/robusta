@@ -112,9 +112,18 @@ impl Index<usize> for TagCharacteristics {
 
 impl Default for TagFlags {
     fn default() -> Self {
-        TagFlags {
+        Self {
             color: Some(Color::WHITE),
             thickness: Some(1.),
+        }
+    }
+}
+
+impl TagFlags {
+    pub fn all_none() -> Self {
+        TagFlags {
+            color: None,
+            thickness: None,
         }
     }
 }
@@ -127,26 +136,48 @@ pub enum TagModify {
     RemoveAll,
 }
 
+#[derive(Debug, PartialEq, Clone)]
+pub enum TagListModify {
+    AddPlaceholder,
+    Remove(Tag),
+}
+
 pub fn update_act_tag(
     mut era: EventReader<Act>,
     mut es: Query<(&REntity, &mut Tags), With<Selected>>,
+    mut rmtc: ResMut<TagCharacteristics>,
+    mut db: ResMut<DockBuffer>,
 ) {
     for act in era.read() {
-        if let Act::ModifyTag(re, tm) = act {
-            let mut ret = es
-                .iter_mut()
-                .find(|x| x.0 == re)
-                .expect("REntity in selection doesn't exist in world.");
+        match act {
+            Act::ModifyTag(re, tm) => {
+                let mut ret = es
+                    .iter_mut()
+                    .find(|x| x.0 == re)
+                    .expect("REntity in selection doesn't exist in world.");
 
-            match tm {
-                TagModify::Add(sp) => ret.1.taglist.insert(sp.clone()),
-                TagModify::AddPlaceholder => ret.1.taglist.insert(Tag::placeholder()),
-                TagModify::Remove(sp) => ret.1.taglist.remove(sp),
-                TagModify::RemoveAll => {
-                    ret.1.taglist.clear();
-                    true
-                }
-            };
+                match tm {
+                    TagModify::Add(sp) => ret.1.taglist.insert(sp.clone()),
+                    TagModify::AddPlaceholder => ret.1.taglist.insert(Tag::placeholder()),
+                    TagModify::Remove(sp) => ret.1.taglist.remove(sp),
+                    TagModify::RemoveAll => {
+                        ret.1.taglist.clear();
+                        true
+                    }
+                };
+            }
+            Act::ModifyTaglist(tlm) => {
+                match tlm {
+                    TagListModify::AddPlaceholder => {
+                        rmtc.insert(Tag::placeholder(), TagFlags::all_none());
+                    }
+                    TagListModify::Remove(t) => {
+                        rmtc.remove(t);
+                        db.egui_selection.clear();
+                    }
+                };
+            }
+            _ => (),
         }
     }
 }
@@ -158,6 +189,16 @@ impl std::fmt::Display for TagModify {
             TagModify::AddPlaceholder => "Added placeholder tag to selection.".to_string(),
             TagModify::Remove(sp) => format!("Removed tag, {}", sp.name),
             TagModify::RemoveAll => "removed all tags from selection.".to_string(),
+        };
+        f.write_fmt(format_args!("{b}"))
+    }
+}
+
+impl std::fmt::Display for TagListModify {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let b = match self {
+            TagListModify::AddPlaceholder => "Added placeholder tag to list.".to_string(),
+            TagListModify::Remove(sp) => format!("Removed tag from list: {}", sp.name),
         };
         f.write_fmt(format_args!("{b}"))
     }
