@@ -6,4 +6,5 @@ pub mod insert;
 pub mod inspection;
 pub mod keystrokes;
 pub mod snap;
+pub mod taglist;
 pub mod term;

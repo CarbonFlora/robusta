@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use bevy::utils::hashbrown::HashSet;
 
 use super::*;
@@ -32,7 +34,7 @@ pub struct Tags {
     pub taglist: HashSet<Tag>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TagFlags {
     color: Option<Color>,
     thickness: Option<f32>,
@@ -41,21 +43,70 @@ pub struct TagFlags {
 #[derive(Debug, Resource, Default)]
 pub struct TagCharacteristics {
     tag_flags: HashMap<Tag, TagFlags>,
+    ordered_tag_list: Vec<(Tag, TagFlags)>,
 }
 
 impl TagCharacteristics {
     pub fn new() -> Self {
         let mut tag_flags = HashMap::new();
         tag_flags.insert(Tag::new("Default".to_string()), TagFlags::default());
+        let ordered_tag_list = Vec::new();
 
-        Self { tag_flags }
+        let mut a = Self {
+            tag_flags,
+            ordered_tag_list,
+        };
+        a.update_order();
+        a
     }
 
-    pub fn flags(&mut self, t: &Tag) -> &TagFlags {
+    pub fn get(&mut self, t: &Tag) -> &TagFlags {
         if !self.tag_flags.contains_key(t) {
             self.tag_flags.insert(t.clone(), TagFlags::default());
         }
         self.tag_flags.get(t).unwrap()
+    }
+
+    /// Also can be used to update an existing entry.
+    pub fn insert(&mut self, k: Tag, v: TagFlags) {
+        self.tag_flags.insert(k, v);
+        self.update_order();
+    }
+
+    pub fn remove(&mut self, k: &Tag) {
+        self.tag_flags.remove(k);
+        self.update_order();
+    }
+
+    fn update_order(&mut self) {
+        let mut pairs = self
+            .tag_flags
+            .iter()
+            .map(|x| (x.0.clone(), x.1.clone()))
+            .collect::<Vec<_>>();
+        pairs.sort_by(|a, b| a.0.name.cmp(&b.0.name));
+        self.ordered_tag_list = pairs;
+    }
+
+    pub fn len(&self) -> usize {
+        self.tag_flags.len()
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.tag_flags.len() == 0
+    }
+
+    pub fn ordered_tag_list(&self) -> &[(Tag, TagFlags)] {
+        &self.ordered_tag_list
+    }
+}
+
+impl Index<usize> for TagCharacteristics {
+    type Output = (Tag, TagFlags);
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.ordered_tag_list[index]
     }
 }
 

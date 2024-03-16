@@ -1,4 +1,6 @@
 use self::plugins::snap::toggle_snap;
+use self::plugins::tag::TagCharacteristics;
+use self::plugins::tag::TagModify;
 use self::plugins::tag::Tags;
 use self::plugins::RCADPlugins;
 use self::plugins::{

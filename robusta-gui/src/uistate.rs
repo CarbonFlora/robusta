@@ -1,4 +1,10 @@
-use self::plugins::{construction::ConstructType, tag::Tags};
+use self::{
+    leaves::taglist::view_taglist,
+    plugins::{
+        construction::ConstructType,
+        tag::{Tag, TagFlags, Tags},
+    },
+};
 
 use super::*;
 
@@ -36,6 +42,7 @@ pub enum EguiWindow {
     Inspect,
     History,
     StateRibbon,
+    Taglist,
 }
 
 #[derive(Debug, Default)]
@@ -147,12 +154,14 @@ impl UiState {
         act_write: EventWriter<Act>,
         dock_buffer: &DockBuffer,
         ss: &SnapSettings,
+        tc: &TagCharacteristics,
     ) {
         let mut tab_viewer = TabViewer {
             act_write,
             cad_state: &self.cad_state,
             db: dock_buffer,
             ss,
+            tc,
         };
         DockArea::new(&mut self.dock_state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -239,7 +248,7 @@ impl UiState {
 }
 
 fn ribbon_cadpanel() -> DockState<EguiWindow> {
-    let mut state = DockState::new(vec![EguiWindow::History]);
+    let mut state = DockState::new(vec![EguiWindow::History, EguiWindow::Taglist]);
     let tree = state.main_surface_mut();
     let [old, _new] = tree.split_above(NodeIndex::root(), 0.1, vec![EguiWindow::StateRibbon]);
     let [_old, _new] = tree.split_left(old, 0.22, vec![EguiWindow::Inspect, EguiWindow::Points]);
@@ -296,6 +305,7 @@ pub fn update_dock(
     qec: Query<&mut EguiContext, With<CADPanel>>,
     qre: Query<(&REntity, &Tags), With<Selected>>,
     mut db: ResMut<DockBuffer>,
+    tc: Res<TagCharacteristics>,
 ) {
     let mut binding = Vec::new();
     for a in qre.iter() {
@@ -304,7 +314,7 @@ pub fn update_dock(
     db.selected = binding;
 
     if let Ok(mut w) = qec.get_single().cloned() {
-        ui_state.ui(w.get_mut(), act_write, &db, &ss);
+        ui_state.ui(w.get_mut(), act_write, &db, &ss, &tc);
     }
 }
 
@@ -314,6 +324,7 @@ struct TabViewer<'a> {
     cad_state: &'a CADState,
     ss: &'a SnapSettings,
     db: &'a DockBuffer,
+    tc: &'a TagCharacteristics,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -329,6 +340,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Points => (),
             EguiWindow::Inspect => view_inspection(ui, &self.db.selected, &mut self.act_write),
             EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state, self.ss),
+            EguiWindow::Taglist => view_taglist(ui, &mut self.act_write, self.tc),
         }
     }
 
