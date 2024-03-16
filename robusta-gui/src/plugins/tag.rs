@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::ops::{Index, IndexMut};
 
 use bevy::utils::hashbrown::HashSet;
 
@@ -39,7 +39,7 @@ pub struct Tags {
 
 #[derive(Debug, Clone)]
 pub struct TagFlags {
-    color: Option<Color>,
+    pub color: Option<egui::Color32>,
     thickness: Option<f32>,
 }
 
@@ -113,10 +113,16 @@ impl Index<usize> for TagCharacteristics {
     }
 }
 
+impl IndexMut<usize> for TagCharacteristics {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.ordered_tag_list[index]
+    }
+}
+
 impl Default for TagFlags {
     fn default() -> Self {
         Self {
-            color: Some(Color::WHITE),
+            color: Some(egui::Color32::WHITE),
             thickness: Some(1.),
         }
     }

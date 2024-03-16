@@ -3,9 +3,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{plugins::construction::ConstructType, EguiWindow, REntity, SnapType, UiState};
-
-use super::tag::{Tag, TagListModify, TagModify};
+use super::*;
 
 pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
@@ -129,5 +127,4 @@ pub enum Act {
     ToggleSnap(Option<SnapType>),
     ModifyTag(REntity, TagModify),
     ModifyTaglist(TagListModify),
-    ToggleRowSelection((usize, Tag)),
 }

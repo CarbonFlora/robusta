@@ -1,41 +1,28 @@
-use self::plugins::dock::DockBuffer;
-use self::plugins::snap::toggle_snap;
-use self::plugins::tag::TagCharacteristics;
-use self::plugins::tag::TagModify;
-use self::plugins::tag::Tags;
-use self::plugins::RCADPlugins;
+use self::leaves::taglist::view_taglist;
 use self::plugins::{
-    construction::ConstructionBuffer,
-    phantom::{despawn_all_phantoms, PhantomSnaps, RPhantomPointer},
-    selection::Selected,
-    snap::UpdateSnapPoints,
+    construction::{ConstructType, ConstructionBuffer, ConstructionInput},
+    dock::DockBuffer,
+    keystroke::Act,
+    phantom::{despawn_all_phantoms, index_point, PhantomSnaps, RPhantomPointer},
+    selection::{deselect_all, Selected},
+    snap::{toggle_snap, UpdateSnapPoints},
+    tag::{Tag, TagCharacteristics, TagListModify, TagModify, Tags},
+    RCADPlugins,
 };
-use self::plugins::{
-    construction::ConstructionInput, phantom::index_point, selection::deselect_all,
-};
-use crate::plugins::construction::ConstructType;
-use crate::plugins::keystroke::Act;
 use ::bevy::render::{
     mesh::{Indices, PrimitiveTopology},
     render_asset::RenderAssetUsages,
 };
-use bevy::prelude::*;
-use bevy::sprite::MaterialMesh2dBundle;
-use bevy::utils::hashbrown::HashMap;
-use bevy::window;
+use bevy::{prelude::*, sprite::MaterialMesh2dBundle, utils::hashbrown::HashMap, window};
 use bevy_egui::EguiContext;
-use bevy_mod_picking::prelude::*;
-use bevy_mod_picking::{events::Pointer, selection::Deselect};
+use bevy_mod_picking::{events::Pointer, prelude::*, selection::Deselect};
 use bevy_window::PrimaryWindow;
-use dxf::entities::EntityType;
-use dxf::Drawing;
+use dxf::{entities::EntityType, Drawing};
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use parsedxf::{lwp_to_lines, pl_to_lines};
 use primitives::*;
 use std::path::PathBuf;
 use std::str::SplitWhitespace;
-
-use crate::{uistate::UiState, SnapType};
 
 pub mod app;
 pub mod leaves;

@@ -59,7 +59,17 @@ fn tag_bundle(ui: &mut egui::Ui, re: &(REntity, Tags), ewa: &mut EventWriter<Act
     for t in &re.1.taglist {
         let _ = ui.small_button(t.name.to_string());
     }
-    ui.collapsing("⛭", |ui| {
+    // ui.collapsing("⛭", |ui| {
+    //     ui.horizontal_wrapped(|ui_collapse| {
+    //         if ui_collapse.button("⊞").clicked() {
+    //             ewa.send(Act::ModifyTag(re.0.clone(), TagModify::AddPlaceholder));
+    //         }
+    //         if ui_collapse.button("⊟").clicked() {
+    //             ewa.send(Act::ModifyTag(re.0.clone(), TagModify::RemoveAll));
+    //         }
+    //     });
+    // });
+    ui.menu_button("⛭", |ui| {
         ui.horizontal_wrapped(|ui_collapse| {
             if ui_collapse.button("⊞").clicked() {
                 ewa.send(Act::ModifyTag(re.0.clone(), TagModify::AddPlaceholder));
