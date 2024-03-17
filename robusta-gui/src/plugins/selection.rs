@@ -18,7 +18,7 @@ use bevy_mod_picking::{
 };
 use bevy_window::{PrimaryWindow, Window};
 
-use super::tag::Tags;
+use super::{dock::DockBufferModify, tag::Tags};
 
 /// This is a wrapper for bevy_mod_picking selection.
 pub struct RSelectionPlugin;
@@ -68,15 +68,21 @@ fn maintain_selection(
     ss.is_enabled = !sw.single().focused;
 }
 
-pub fn update_selection(mut c: Commands, mut evs: EventReader<Selection>) {
+pub fn update_selection(
+    mut c: Commands,
+    mut evs: EventReader<Selection>,
+    mut ewdbm: EventWriter<DockBufferModify>,
+) {
     for s in evs.read() {
         if s.3 {
             c.entity(s.0).try_insert(Selected {
                 pointer_id: s.1,
                 pointer_location: s.2.clone(),
             });
+            ewdbm.send(DockBufferModify::AddSelected(s.0));
         } else {
             c.entity(s.0).remove::<Selected>();
+            ewdbm.send(DockBufferModify::RemoveSelected(s.0));
         }
     }
 }

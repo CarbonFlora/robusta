@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Circle {
     pub definition: [crate::point::Point; 2], // [@ angle=0, center]
 }

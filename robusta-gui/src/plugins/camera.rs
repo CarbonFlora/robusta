@@ -24,7 +24,8 @@ fn update_camera(
     mut era: EventReader<Act>,
     //Util
     qre: Query<&REntity>,
-    mut qwwp: Query<(&Window, &mut bevy_pancam::PanCam), With<bevy_pancam::PanCam>>,
+    mut qpc: Query<&mut bevy_pancam::PanCam>,
+    qw: Query<&Window, With<CADPanel>>,
     //Output
     mut camera: Query<
         (
@@ -35,9 +36,8 @@ fn update_camera(
         With<bevy_pancam::PanCam>,
     >,
 ) {
-    // for mut i in qwwp.iter_mut() {
-    //     i.1.enabled = i.0.focused;
-    // }
+    let a = qw.iter().any(|x| x.focused);
+    qpc.iter_mut().for_each(|mut x| x.enabled = !a);
 
     for a in era.read() {
         match a {

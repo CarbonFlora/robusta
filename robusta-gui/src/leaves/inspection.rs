@@ -2,14 +2,24 @@ use bevy::utils::hashbrown::HashSet;
 
 use super::*;
 
-pub fn view_inspection(ui: &mut egui::Ui, db: &mut DockBuffer, ewa: &mut EventWriter<Act>) {
-    ui.separator();
-    if db.selected.is_empty() {
-        ui.label("No Selected Entities.");
-        return;
-    }
+#[derive(Debug, Resource, Default, Clone)]
+pub struct InspectionBuffer {
+    pub selected: Vec<(REntity, Tags)>,
+    pub editing_tag: HashSet<Tag>,
+    pub temporary_name: String,
+}
 
-    for (i, re) in db.selected.iter_mut().enumerate() {
+pub fn view_inspection(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut EventWriter<Act>) {
+    ui.separator();
+    if ib.selected.is_empty() {
+        ui.label("No Selected Entities.");
+    } else {
+        inspection_bundle(ui, ib, ewa);
+    }
+}
+
+fn inspection_bundle(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut EventWriter<Act>) {
+    for (i, re) in ib.selected.iter_mut().enumerate() {
         ui.push_id(i, |ui_idd| {
             let mut c: Option<(f32, f32, f32, f32)> = None;
 
@@ -43,7 +53,7 @@ pub fn view_inspection(ui: &mut egui::Ui, db: &mut DockBuffer, ewa: &mut EventWr
                 REntity::PhantomPoint => (),
             }
 
-            tag_bundle(ui_idd, re, ewa, &mut db.editing_tag, &mut db.temporary_name);
+            tag_bundle(ui_idd, re, ewa, &mut ib.editing_tag, &mut ib.temporary_name);
             ui_idd.separator();
 
             if let Some(c) = c {

@@ -3,7 +3,7 @@ use super::*;
 
 use crate::{angle_full_circle, point::Point};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Line {
     pub definition: [crate::point::Point; 2],
 }

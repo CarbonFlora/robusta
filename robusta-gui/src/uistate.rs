@@ -169,14 +169,14 @@ impl UiState {
     }
 
     pub fn push_history(&mut self, act: &Act, db: &mut ResMut<DockBuffer>) {
-        let (latest, history) = &mut db.history;
+        let hb = &mut db.history;
         let mut meta_data = String::new();
 
-        if act == latest {
+        if act == &hb.latest_act {
             return;
         }
 
-        history.push_str(match act {
+        hb.all_history.push_str(match act {
             Act::None => return,
             Act::Exit => "Cleaning up.",
             Act::QuitWithoutSaving => "Quit without saving.",
@@ -219,10 +219,10 @@ impl UiState {
                 "Tag list modification: "
             }
         });
-        history.push_str(&meta_data);
-        history.push('\n');
+        hb.all_history.push_str(&meta_data);
+        hb.all_history.push('\n');
 
-        db.history.0 = act.clone();
+        db.history.latest_act = act.clone();
     }
 }
 
@@ -277,27 +277,6 @@ pub enum InterchangeFormat {
 #[derive(Component, Default)]
 pub struct CADPanel {}
 
-#[allow(clippy::too_many_arguments)]
-pub fn update_dock(
-    act_write: EventWriter<Act>,
-    mut ui_state: ResMut<UiState>,
-    ss: Res<SnapSettings>,
-    qec: Query<&mut EguiContext, With<CADPanel>>,
-    qre: Query<(&REntity, &Tags), With<Selected>>,
-    mut db: ResMut<DockBuffer>,
-    mut tc: ResMut<TagCharacteristics>,
-) {
-    let mut binding = Vec::new();
-    for a in qre.iter() {
-        binding.push((a.0.clone(), a.1.clone()));
-    }
-    db.selected = binding;
-
-    if let Ok(mut w) = qec.get_single().cloned() {
-        ui_state.ui(w.get_mut(), act_write, &mut db, &ss, &mut tc);
-    }
-}
-
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     act_write: EventWriter<'a, Act>,
@@ -318,7 +297,9 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Empty => (),
             EguiWindow::History => view_history(ui, &self.db.history),
             EguiWindow::Points => (),
-            EguiWindow::Inspect => view_inspection(ui, self.db, &mut self.act_write),
+            EguiWindow::Inspect => {
+                view_inspection(ui, &mut self.db.inspection, &mut self.act_write)
+            }
             EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state, self.ss),
             EguiWindow::Taglist => view_taglist(self.tc, ui, &mut self.act_write, self.db),
         }

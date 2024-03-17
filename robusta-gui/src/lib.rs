@@ -40,7 +40,7 @@ use crate::uistate::*;
 use crate::update_act::*;
 use crate::viewport_ui::*;
 
-#[derive(Component, Debug, Clone, PartialEq, Event)]
+#[derive(Component, Debug, Clone, PartialEq, Event, PartialOrd)]
 pub enum REntity {
     Arc(primitives::arc::Arc),
     Circle(primitives::circle::Circle),
