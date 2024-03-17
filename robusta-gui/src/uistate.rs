@@ -318,7 +318,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Empty => (),
             EguiWindow::History => view_history(ui, &self.db.history),
             EguiWindow::Points => (),
-            EguiWindow::Inspect => view_inspection(ui, &self.db.selected, &mut self.act_write),
+            EguiWindow::Inspect => view_inspection(ui, self.db, &mut self.act_write),
             EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state, self.ss),
             EguiWindow::Taglist => view_taglist(self.tc, ui, &mut self.act_write, self.db),
         }

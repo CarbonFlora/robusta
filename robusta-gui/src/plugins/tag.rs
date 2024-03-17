@@ -1,7 +1,5 @@
 use std::ops::{Index, IndexMut};
 
-use bevy::utils::hashbrown::HashSet;
-
 use super::*;
 
 pub struct TagPlugin;
@@ -15,6 +13,18 @@ impl bevy::app::Plugin for TagPlugin {
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
 pub struct Tag {
     pub name: String,
+}
+
+impl Ord for Tag {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.name.cmp(&other.name)
+    }
+}
+
+impl PartialOrd for Tag {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.name.cmp(&other.name))
+    }
 }
 
 impl Tag {
@@ -34,8 +44,50 @@ impl Tag {
 
 #[derive(Debug, Component, Default, Clone)]
 pub struct Tags {
-    pub taglist: HashSet<Tag>,
+    // taglist: HashSet<Tag>,
+    pub ordered_taglist: Vec<Tag>,
 }
+
+// impl Tags {
+//     pub fn new() -> Self {
+//         let mut a = Self {
+//             taglist: HashSet::new(),
+//             ordered_taglist: Vec::new(),
+//         };
+//         a.update_order();
+//         a
+//     }
+
+//     fn update_order(&mut self) {
+//         let mut a = self.taglist.iter().map(|x| x.clone()).collect::<Vec<_>>();
+//         a.sort_by(|a, b| a.name.cmp(&b.name));
+//         self.ordered_taglist = a;
+//     }
+
+//     /// Also can be used to update an existing entry.
+//     pub fn insert(&mut self, k: Tag) {
+//         self.taglist.insert(k);
+//         self.update_order();
+//     }
+
+//     pub fn remove(&mut self, k: &Tag) {
+//         self.taglist.remove(k);
+//         self.update_order();
+//     }
+
+//     pub fn len(&self) -> usize {
+//         self.taglist.len()
+//     }
+
+//     #[must_use]
+//     pub fn is_empty(&self) -> bool {
+//         self.taglist.len() == 0
+//     }
+
+//     pub fn ordered_tag_list(&self) -> &[Tag] {
+//         &self.ordered_taglist
+//     }
+// }
 
 #[derive(Debug, Clone)]
 pub struct TagFlags {
@@ -46,7 +98,7 @@ pub struct TagFlags {
 #[derive(Debug, Resource, Default)]
 pub struct TagCharacteristics {
     tag_flags: HashMap<Tag, TagFlags>,
-    ordered_tag_list: Vec<(Tag, TagFlags)>,
+    ordered_tag_flags: Vec<(Tag, TagFlags)>,
 }
 
 impl TagCharacteristics {
@@ -57,7 +109,7 @@ impl TagCharacteristics {
 
         let mut a = Self {
             tag_flags,
-            ordered_tag_list,
+            ordered_tag_flags: ordered_tag_list,
         };
         a.update_order();
         a
@@ -88,7 +140,7 @@ impl TagCharacteristics {
             .map(|x| (x.0.clone(), x.1.clone()))
             .collect::<Vec<_>>();
         pairs.sort_by(|a, b| a.0.name.cmp(&b.0.name));
-        self.ordered_tag_list = pairs;
+        self.ordered_tag_flags = pairs;
     }
 
     pub fn len(&self) -> usize {
@@ -101,7 +153,7 @@ impl TagCharacteristics {
     }
 
     pub fn ordered_tag_list(&self) -> &[(Tag, TagFlags)] {
-        &self.ordered_tag_list
+        &self.ordered_tag_flags
     }
 }
 
@@ -109,13 +161,27 @@ impl Index<usize> for TagCharacteristics {
     type Output = (Tag, TagFlags);
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.ordered_tag_list[index]
+        &self.ordered_tag_flags[index]
     }
 }
 
 impl IndexMut<usize> for TagCharacteristics {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.ordered_tag_list[index]
+        &mut self.ordered_tag_flags[index]
+    }
+}
+
+impl Index<usize> for Tags {
+    type Output = Tag;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.ordered_taglist[index]
+    }
+}
+
+impl IndexMut<usize> for Tags {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.ordered_taglist[index]
     }
 }
 
@@ -165,12 +231,14 @@ pub fn update_act_tag(
                     .expect("REntity in selection doesn't exist in world.");
 
                 match tm {
-                    TagModify::Add(sp) => ret.1.taglist.insert(sp.clone()),
-                    TagModify::Remove(sp) => ret.1.taglist.remove(sp),
-                    TagModify::RemoveAll => {
-                        ret.1.taglist.clear();
-                        true
+                    TagModify::Add(sp) => ret.1.ordered_taglist.push(sp.clone()),
+                    TagModify::Remove(sp) => {
+                        let index = ret.1.ordered_taglist.binary_search(sp);
+                        if let Ok(w) = index {
+                            ret.1.ordered_taglist.remove(w);
+                        }
                     }
+                    TagModify::RemoveAll => ret.1.ordered_taglist.clear(),
                 };
             }
             Act::ModifyTaglist(tlm) => {

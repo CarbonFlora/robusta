@@ -1,3 +1,5 @@
+use bevy::utils::hashbrown::HashSet;
+
 use super::*;
 
 pub struct DockPlugin;
@@ -18,17 +20,13 @@ pub struct DockBuffer {
     pub nth_n: String,
     pub egui_selection: HashMap<usize, Tag>,
     pub is_selection_mode: bool,
+    pub editing_tag: HashSet<Tag>,
+    pub temporary_name: String,
 }
 
 impl DockBuffer {
     pub fn new() -> Self {
-        DockBuffer {
-            history: (Act::None, String::new()),
-            selected: Vec::new(),
-            nth_n: String::new(),
-            egui_selection: HashMap::new(),
-            is_selection_mode: false,
-        }
+        Self::default()
     }
 }
 
