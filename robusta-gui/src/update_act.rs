@@ -17,6 +17,7 @@ pub fn update_act(
     mut fs: ResMut<PhantomSnaps>,
     mut ss: ResMut<SnapSettings>,
     mut db: ResMut<DockBuffer>,
+    mut ewm: EventWriter<Menu>,
 ) {
     for act in era.read() {
         let mut binding = act.clone();
@@ -36,8 +37,11 @@ pub fn update_act(
                 ss.reset();
                 ewrsp.send(UpdateSnapPoints(true));
             }
+            Act::CameraUIMenu(sp) => {
+                ewm.send(sp.clone());
+            }
             Act::Confirm => index_point(&qrerpp, &mut ewci),
-            Act::Exit => uis.close_all(&mut co, &qerpp, &mut ewrsp, &mut rmcb, &mut fs),
+            Act::Exit => uis.close_all(&mut co, &qerpp, &mut ewrsp, &mut rmcb, &mut fs, &mut ewm),
             Act::QuitWithoutSaving => {
                 app_exit_events.send(bevy::app::AppExit);
             }
@@ -72,12 +76,12 @@ fn snap_acts(mut text_buffer: SplitWhitespace) -> Act {
         .parse::<usize>()
         .unwrap_or_default();
     match text {
-        "endpoint" | "end" => Act::ToggleSnap(Some(SnapType::Endpoint)),
-        "midpoint" | "mid" => Act::ToggleSnap(Some(SnapType::Midpoint)),
-        "nthpoint" | "nth" => Act::ToggleSnap(Some(SnapType::Nthpoint(Some(divisions)))),
-        "intersection" | "int" => Act::ToggleSnap(Some(SnapType::Intersection)),
-        "perpendicular" | "per" => Act::ToggleSnap(Some(SnapType::Perpendicular)),
-        "tangent" | "tan" => Act::ToggleSnap(Some(SnapType::Tangent)),
+        "endpoint" | "end" => Act::ToggleSnap(SnapType::Endpoint),
+        "midpoint" | "mid" => Act::ToggleSnap(SnapType::Midpoint),
+        "nthpoint" | "nth" => Act::ToggleSnap(SnapType::Nthpoint(Some(divisions))),
+        "intersection" | "int" => Act::ToggleSnap(SnapType::Intersection),
+        "perpendicular" | "per" => Act::ToggleSnap(SnapType::Perpendicular),
+        "tangent" | "tan" => Act::ToggleSnap(SnapType::Tangent),
         _ => Act::None,
     }
 }

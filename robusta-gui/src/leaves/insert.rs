@@ -3,7 +3,7 @@ use egui::{Button, Ui};
 use super::*;
 
 pub fn update_insert_egui(
-    ewa: &mut EventWriter<Act>,
+    aw: &mut EventWriter<Act>,
     context: &mut Query<&mut EguiContext, With<PrimaryWindow>>,
 ) {
     let w = match context.get_single() {
@@ -17,11 +17,11 @@ pub fn update_insert_egui(
         .show(w.get(), |ui| {
             ui.label("Insert");
             ui.horizontal(|ui| {
-                construct_type_button(ui, ewa, ConstructType::Point);
-                construct_type_button(ui, ewa, ConstructType::Line);
-                construct_type_button(ui, ewa, ConstructType::Arc);
-                construct_type_button(ui, ewa, ConstructType::Circle);
-                construct_type_button(ui, ewa, ConstructType::Text);
+                construct_type_button(ui, aw, ConstructType::Point);
+                construct_type_button(ui, aw, ConstructType::Line);
+                construct_type_button(ui, aw, ConstructType::Arc);
+                construct_type_button(ui, aw, ConstructType::Circle);
+                construct_type_button(ui, aw, ConstructType::Text);
             });
         });
 }

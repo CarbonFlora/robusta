@@ -34,14 +34,12 @@ pub mod plugins;
 pub mod primitives;
 pub mod uistate;
 pub mod update_act;
-pub mod viewport_ui;
 
 use crate::leaves::history::view_history;
 use crate::leaves::inspection::view_inspection;
 use crate::leaves::term::update_terminal_egui;
 use crate::uistate::*;
 use crate::update_act::*;
-use crate::viewport_ui::*;
 
 #[derive(Component, Debug, Clone, PartialEq, Event, PartialOrd)]
 pub enum REntity {

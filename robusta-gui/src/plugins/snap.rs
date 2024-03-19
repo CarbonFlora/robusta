@@ -7,7 +7,7 @@ impl bevy::app::Plugin for SnapPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(SnapSettings::default())
             .add_event::<UpdateSnapPoints>()
-            .add_event::<Snap>()
+            .add_event::<SnapTo>()
             .add_systems(Update, update_snap_points);
     }
 }
@@ -16,7 +16,7 @@ impl bevy::app::Plugin for SnapPlugin {
 pub struct SnapPoint;
 
 #[derive(Event, Clone, Debug, PartialEq)]
-pub struct Snap(pub Entity, pub bool);
+pub struct SnapTo(pub Entity, pub bool);
 
 #[derive(Event, Clone, Debug, PartialEq)]
 pub struct UpdateSnapPoints(pub bool);
@@ -151,6 +151,7 @@ fn update_snap_points(
         }
     }
 }
+
 #[derive(Bundle)]
 pub struct SnapBundle {
     a: SnapPoint,
@@ -162,8 +163,8 @@ impl Default for SnapBundle {
     fn default() -> Self {
         SnapBundle {
             a: SnapPoint,
-            b: On::<Pointer<Over>>::send_event::<Snap>(),
-            c: On::<Pointer<Out>>::send_event::<Snap>(),
+            b: On::<Pointer<Over>>::send_event::<SnapTo>(),
+            c: On::<Pointer<Out>>::send_event::<SnapTo>(),
         }
     }
 }
@@ -182,14 +183,14 @@ impl std::fmt::Display for SnapType {
     }
 }
 
-impl From<ListenerInput<Pointer<Out>>> for Snap {
+impl From<ListenerInput<Pointer<Out>>> for SnapTo {
     fn from(event: ListenerInput<Pointer<Out>>) -> Self {
-        Snap(event.target, false)
+        SnapTo(event.target, false)
     }
 }
 
-impl From<ListenerInput<Pointer<Over>>> for Snap {
+impl From<ListenerInput<Pointer<Over>>> for SnapTo {
     fn from(event: ListenerInput<Pointer<Over>>) -> Self {
-        Snap(event.target, true)
+        SnapTo(event.target, true)
     }
 }

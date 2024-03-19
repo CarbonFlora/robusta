@@ -1,7 +1,7 @@
 use super::*;
 
 pub fn update_terminal_egui(
-    act_write: &mut EventWriter<Act>,
+    aw: &mut EventWriter<Act>,
     ewcui: &mut EventWriter<Menu>,
     buffer: &mut String,
     context: &mut Query<&mut EguiContext, With<PrimaryWindow>>,
@@ -17,7 +17,7 @@ pub fn update_terminal_egui(
                         ui.add(TextEdit::singleline(buffer).hint_text("Enter a command."));
 
                     if response.lost_focus() {
-                        act_write.send(Act::TryAct(buffer.clone()));
+                        aw.send(Act::TryAct(buffer.clone()));
                         ewcui.send(Menu::NoMenu);
                         return;
                     }

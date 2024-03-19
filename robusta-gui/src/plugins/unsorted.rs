@@ -11,7 +11,7 @@ impl bevy::app::Plugin for UnsortedPlugin {
             .add_event::<Act>()
             .add_event::<REntity>()
             .add_systems(PostStartup, draw_first)
-            .add_systems(Update, update_viewport_ui)
+            // .add_systems(Update, update_viewport_ui)
             .add_systems(Update, update_spawn_rentities)
             .add_systems(PreUpdate, update_act);
     }

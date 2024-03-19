@@ -9,7 +9,8 @@ pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(ModalResources::new())
-            .add_systems(PreUpdate, capture_keystrokes);
+            .add_systems(PreUpdate, capture_keystrokes)
+            .add_systems(Update, update_mode);
     }
 }
 
@@ -31,6 +32,17 @@ pub enum Mode {
     Typing,
     Insert,
     Snap,
+}
+
+fn update_mode(mut er: EventReader<Menu>, mut rmmr: ResMut<ModalResources>) {
+    for a in er.read() {
+        rmmr.mode = match a {
+            Menu::NoMenu => Mode::Normal,
+            Menu::CadTerm(_) => Mode::Typing,
+            Menu::InsertMenu(_) => Mode::Insert,
+            Menu::SnapMenu(_) => Mode::Snap,
+        };
+    }
 }
 
 pub fn capture_keystrokes(
@@ -77,8 +89,9 @@ pub fn capture_keystrokes(
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
+        [None, Some(KeyCode::KeyT)] => Act::CameraUIMenu(Menu::CadTerm("".to_string())),
         [None, Some(KeyCode::KeyI)] => Act::CameraUIMenu(Menu::InsertMenu(None)),
-        [None, Some(KeyCode::KeyS)] => Act::CameraUIMenu(Menu::SnapMenu(None)),
+        [None, Some(KeyCode::KeyS)] => Act::CameraUIMenu(Menu::SnapMenu((None, "".to_string()))),
         [None, Some(KeyCode::ArrowLeft)] => Act::MoveCamera((-1., 0.)),
         [None, Some(KeyCode::ArrowDown)] => Act::MoveCamera((0., -1.)),
         [None, Some(KeyCode::ArrowUp)] => Act::MoveCamera((0., 1.)),
@@ -112,6 +125,7 @@ fn insert_act(buffer: [Option<KeyCode>; 2]) -> Act {
         [None, Some(KeyCode::KeyA)] => Act::Insert(ConstructType::Arc),
         [None, Some(KeyCode::KeyC)] => Act::Insert(ConstructType::Circle),
         [None, Some(KeyCode::KeyT)] => Act::Insert(ConstructType::Text),
+        [_, Some(KeyCode::Insert)] => Act::Confirm,
         _ => Act::None,
     }
 }

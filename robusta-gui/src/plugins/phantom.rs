@@ -2,7 +2,7 @@ use crate::REntity;
 
 use self::{
     construction::ConstructionInput,
-    snap::{Snap, SnapPoint},
+    snap::{SnapPoint, SnapTo},
 };
 
 use super::*;
@@ -50,7 +50,7 @@ pub fn despawn_all_phantoms(
 
 pub fn update_phantom_snap(
     mut pr: ResMut<PhantomSnaps>,
-    mut ers: EventReader<Snap>,
+    mut ers: EventReader<SnapTo>,
     resp: Query<&REntity, (With<SnapPoint>, Without<RPhantomPointer>)>,
 ) {
     for s in ers.read() {

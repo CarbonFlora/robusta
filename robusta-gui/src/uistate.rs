@@ -131,14 +131,12 @@ impl UiState {
         ewrsp: &mut EventWriter<UpdateSnapPoints>,
         rmcb: &mut ResMut<ConstructionBuffer>,
         fs: &mut ResMut<PhantomSnaps>,
+        ewm: &mut EventWriter<Menu>,
     ) {
-        ewrsp.send(UpdateSnapPoints(false));
-        rmcb.as_mut().reset();
-        self.cad_state.cad_term = None;
-        self.cad_state.insert_menu = None;
-        self.cad_state.snap_menu = None;
-        self.cad_state.mode = Mode::Normal;
-        despawn_all_phantoms(co, ewp, fs);
+        ewrsp.send(UpdateSnapPoints(false)); //snap plugin
+        rmcb.as_mut().reset(); //construction plugin
+        ewm.send(Menu::NoMenu); //cameraui plugin
+        despawn_all_phantoms(co, ewp, fs); //phantom plugin
     }
 
     pub fn push_history(&mut self, act: &Act, db: &mut ResMut<DockBuffer>) {
@@ -286,6 +284,5 @@ impl egui_dock::TabViewer for TabViewer<'_> {
 }
 
 fn view_stateribbon(ui: &mut egui::Ui, ss: &SnapSettings) {
-    ui.label(format!("{:?}", cad_state.mode));
     ui.label(format!("{:?}", ss));
 }
