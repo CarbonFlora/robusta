@@ -1,7 +1,4 @@
-use self::{
-    keystroke::ModalResources,
-    leaves::{insert::update_insert_egui, snap::update_snap_egui},
-};
+use self::leaves::{insert::update_insert_egui, snap::update_snap_egui};
 
 use super::*;
 

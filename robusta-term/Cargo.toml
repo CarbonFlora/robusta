@@ -20,6 +20,9 @@ name = "circles"
 [[example]]
 name = "station"
 
+[[example]]
+name = "text_quad"
+
 [dependencies]
 robusta-gui = { path = "../robusta-gui" }
 

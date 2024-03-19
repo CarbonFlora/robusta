@@ -76,13 +76,23 @@ impl From<&dxf::entities::Text> for text::Text {
     fn from(sp: &dxf::entities::Text) -> Self {
         let origin = point::Point::new(sp.location.x as f32, sp.location.y as f32, 0.);
 
-        text::Text {
-            bud_position: [origin],
-            body: sp.value.clone(),
-            rotation: sp.rotation as f32,
-            height: sp.text_height as f32,
-            leader: None,
-        }
+        let mut a = text::Text::new(origin);
+        a.body = sp.value.clone();
+        a.horizontal_tj = match sp.horizontal_text_justification {
+            dxf::enums::HorizontalTextJustification::Left => text::HorizontalTJ::Left,
+            dxf::enums::HorizontalTextJustification::Center => text::HorizontalTJ::Center,
+            dxf::enums::HorizontalTextJustification::Right => text::HorizontalTJ::Right,
+            dxf::enums::HorizontalTextJustification::Aligned => text::HorizontalTJ::Aligned,
+            dxf::enums::HorizontalTextJustification::Middle => text::HorizontalTJ::Middle,
+            dxf::enums::HorizontalTextJustification::Fit => text::HorizontalTJ::Fit,
+        };
+        a.vertical_tj = match sp.vertical_text_justification {
+            dxf::enums::VerticalTextJustification::Baseline => text::VerticalTJ::Baseline,
+            dxf::enums::VerticalTextJustification::Bottom => text::VerticalTJ::Bottom,
+            dxf::enums::VerticalTextJustification::Middle => text::VerticalTJ::Middle,
+            dxf::enums::VerticalTextJustification::Top => text::VerticalTJ::Top,
+        };
+        a
     }
 }
 
@@ -97,14 +107,7 @@ impl From<&dxf::entities::Insert> for text::Text {
     fn from(sp: &dxf::entities::Insert) -> Self {
         let origin = point::Point::new(sp.location.x as f32, sp.location.y as f32, 0.);
 
-        text::Text {
-            bud_position: [origin],
-            body: sp.name.clone(),
-            // rotation: sp.rotation as f32,
-            rotation: 0.0,
-            height: 1.0,
-            leader: None,
-        }
+        text::Text::new(origin)
     }
 }
 
@@ -119,13 +122,7 @@ impl From<&dxf::entities::MText> for text::Text {
         let origin =
             point::Point::new(sp.insertion_point.x as f32, sp.insertion_point.y as f32, 0.);
 
-        text::Text {
-            bud_position: [origin],
-            body: sp.text.clone(),
-            rotation: sp.rotation_angle as f32,
-            height: 1.0,
-            leader: None,
-        }
+        text::Text::new(origin)
     }
 }
 

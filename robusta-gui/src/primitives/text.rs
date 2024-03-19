@@ -1,12 +1,36 @@
+use self::point::Point;
+
 use super::*;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Text {
-    pub bud_position: [crate::point::Point; 1],
+    pub bud_position: crate::point::Point,
     pub body: String,
     pub rotation: f32,
     pub height: f32,
     pub leader: Option<Leader>,
+    pub horizontal_tj: HorizontalTJ,
+    pub vertical_tj: VerticalTJ,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Default, PartialOrd)]
+pub enum HorizontalTJ {
+    #[default]
+    Left,
+    Center,
+    Right,
+    Aligned,
+    Middle,
+    Fit,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Default, PartialOrd)]
+pub enum VerticalTJ {
+    #[default]
+    Baseline,
+    Bottom,
+    Middle,
+    Top,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -25,11 +49,13 @@ pub struct Leader {
 impl Text {
     pub fn new(origin: crate::point::Point) -> Self {
         Text {
-            bud_position: [origin],
-            body: String::new(),
+            bud_position: origin,
+            height: 1.,
+            body: "".to_string(),
             rotation: 0.,
-            height: 10.,
             leader: None,
+            horizontal_tj: HorizontalTJ::default(),
+            vertical_tj: VerticalTJ::default(),
         }
     }
 
@@ -42,7 +68,12 @@ impl Text {
 
     pub fn min_max(&self) -> (f32, f32, f32, f32) {
         // This is temp as text is not implimented.
-        crate::min_max(&self.bud_position.clone())
+        let x1 = self.bud_position.coordinates.x - 1.0;
+        let y1 = self.bud_position.coordinates.y - 1.0;
+        let x2 = self.bud_position.coordinates.x + 1.0;
+        let y2 = self.bud_position.coordinates.y + 1.0;
+
+        crate::min_max(&[Point::new(x1, y1, 0.), Point::new(x2, y2, 0.)])
     }
 
     pub fn mesh(
@@ -53,12 +84,12 @@ impl Text {
     ) -> MaterialMesh2dBundle<ColorMaterial> {
         MaterialMesh2dBundle {
             mesh: me
-                .add(bevy::math::primitives::Rectangle::new(10.0, 10.0))
+                .add(bevy::math::primitives::Rectangle::new(0.5, 0.5))
                 .into(),
-            material: ma.add(ColorMaterial::from(Color::MAROON)),
+            material: ma.add(ColorMaterial::from(Color::CYAN)),
             transform: Transform::from_translation(Vec3::new(
-                self.bud_position[0].coordinates.x,
-                self.bud_position[0].coordinates.y,
+                self.bud_position.coordinates.x,
+                self.bud_position.coordinates.y,
                 tz.top() as f32,
             )),
             ..default()
@@ -69,21 +100,17 @@ impl Text {
         let text_body = bevy::text::Text::from_section(
             self.body.clone(),
             TextStyle {
-                font_size: self.height * 10.,
+                font_size: self.height * 50., //This magic # should be connected to the zoom level of the viewport camera(pancam).
                 ..default()
             },
         );
-        let origin = self.bud_position[0].xyz();
 
         Text2dBundle {
             text: text_body,
-            text_anchor: bevy::sprite::Anchor::Center,
-            transform: Transform::from_translation(Vec3::new(
-                origin[0],
-                origin[1],
-                tz.top() as f32,
-            ))
-            .with_rotation(Quat::from_rotation_z(self.rotation)),
+            text_anchor: bevy::sprite::Anchor::BottomLeft,
+            transform: Transform::from_translation(Vec3::new(0., 0., tz.top() as f32))
+                .with_scale(Vec3::new(self.height / 50., self.height / 50., 1.))
+                .with_rotation(Quat::from_rotation_z(self.rotation)),
             // .with_scale(Vec3::new(self.height / 5., self.height / 5., 1.)),
             // text_layout_info: bevy::text::TextLayoutInfo::default(),
             ..default()
@@ -93,6 +120,6 @@ impl Text {
 
 impl std::fmt::Display for Text {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_fmt(format_args!("Origin: {}", self.bud_position[0]))
+        f.write_fmt(format_args!("Origin: {}", self.bud_position))
     }
 }
