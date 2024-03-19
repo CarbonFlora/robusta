@@ -39,6 +39,6 @@ pub fn update_snap_egui(
 
 fn build_type_button(ui: &mut Ui, ewa: &mut EventWriter<Act>, st: SnapType) {
     if ui.add(Button::new(format!("{st}"))).clicked() {
-        ewa.send(Act::ToggleSnap(Some(st)));
+        ewa.send(Act::ToggleSnap(st));
     }
 }

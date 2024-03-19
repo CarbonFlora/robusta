@@ -4,7 +4,6 @@ type LoadedFiles = HashMap<Option<String>, InterchangeFormat>;
 /// This is the `Bevy` resource containing all the custom GUI elements.
 #[derive(Resource)]
 pub struct UiState {
-    pub cad_state: CADState,
     pub loaded_files: LoadedFiles,
     pub dock_state: DockState<EguiWindow>,
 }
@@ -18,21 +17,6 @@ pub enum EguiWindow {
     History,
     StateRibbon,
     Taglist,
-}
-
-#[derive(Debug, Default)]
-pub struct CADState {
-    // pub object_snapping: SnapSettings,
-    pub mode: Mode,
-    pub cad_term: Option<String>,
-    pub insert_menu: Option<Option<ConstructType>>,
-    pub snap_menu: Option<Option<SnapType>>,
-}
-
-impl CADState {
-    fn new() -> Self {
-        CADState::default()
-    }
 }
 
 #[derive(Resource, Default)]
@@ -105,19 +89,9 @@ pub enum SnapType {
     Tangent,
 }
 
-#[derive(Debug, Default)]
-pub enum Mode {
-    #[default]
-    Normal,
-    Typing,
-    Insert,
-    Snap,
-}
-
 impl UiState {
     pub fn new(path: &Option<String>) -> Self {
         Self {
-            cad_state: CADState::new(),
             loaded_files: load_files(path),
             dock_state: ribbon_cadpanel(),
         }
@@ -133,7 +107,6 @@ impl UiState {
     ) {
         let mut tab_viewer = TabViewer {
             act_write,
-            cad_state: &self.cad_state,
             db: dock_buffer,
             ss,
             tc,
@@ -182,30 +155,24 @@ impl UiState {
             Act::QuitWithoutSaving => "Quit without saving.",
             Act::DeselectAll => "Deselecting everything.",
             Act::Confirm => "Action confirmed.",
-            Act::OpenCADTerm => "Terminal opened.",
+            // Act::OpenCADTerm => "Terminal opened.",
             Act::TryAct(a) => {
                 meta_data = format!("{a:?}");
                 "Terminal submitted: "
             }
-            Act::ToggleSnap(a) => match a {
-                Some(b) => {
-                    meta_data = format!("{b}");
-                    "Snap configuration changed: "
-                }
-                None => "Turned off all snaps.",
-            },
+            Act::ToggleSnap(a) => {
+                meta_data = format!("{a}");
+                "Snap configuration changed: "
+            }
             Act::EguiFocus(a) => {
                 meta_data = format!("{a:?}");
                 "Focusing tab: "
             }
 
-            Act::Insert(a) => match a {
-                Some(b) => {
-                    meta_data = format!("{b}");
-                    "Insert: "
-                }
-                None => "Opened insert menu.",
-            },
+            Act::Insert(a) => {
+                meta_data = format!("{a}");
+                "Insert: "
+            }
             Act::PullCameraFocus(_) => "Camera moved.",
             Act::FitView => "Fit view to all entities.",
             Act::MoveCamera(_) => return,
@@ -218,6 +185,11 @@ impl UiState {
                 meta_data = format!("{a}");
                 "Tag list modification: "
             }
+            Act::CameraUIMenu(m) => {
+                meta_data = format!("{m}");
+                "Menu opened: "
+            }
+            Act::ClearSnaps => todo!(),
         });
         hb.all_history.push_str(&meta_data);
         hb.all_history.push('\n');
@@ -280,7 +252,6 @@ pub struct CADPanel {}
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     act_write: EventWriter<'a, Act>,
-    cad_state: &'a CADState,
     ss: &'a SnapSettings,
     db: &'a mut DockBuffer,
     tc: &'a mut TagCharacteristics,
@@ -300,7 +271,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Inspect => {
                 view_inspection(ui, &mut self.db.inspection, &mut self.act_write)
             }
-            EguiWindow::StateRibbon => view_stateribbon(ui, self.cad_state, self.ss),
+            EguiWindow::StateRibbon => view_stateribbon(ui, self.ss),
             EguiWindow::Taglist => view_taglist(self.tc, ui, &mut self.act_write, self.db),
         }
     }
@@ -314,7 +285,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 }
 
-fn view_stateribbon(ui: &mut egui::Ui, cad_state: &CADState, ss: &SnapSettings) {
+fn view_stateribbon(ui: &mut egui::Ui, ss: &SnapSettings) {
     ui.label(format!("{:?}", cad_state.mode));
     ui.label(format!("{:?}", ss));
 }

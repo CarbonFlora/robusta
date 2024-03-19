@@ -1,4 +1,7 @@
 use self::leaves::taglist::view_taglist;
+use self::plugins::cameraui::CameraUIBuffer;
+use self::plugins::cameraui::Menu;
+use self::plugins::keystroke::Mode;
 use self::plugins::{
     construction::{ConstructType, ConstructionBuffer, ConstructionInput},
     dock::DockBuffer,

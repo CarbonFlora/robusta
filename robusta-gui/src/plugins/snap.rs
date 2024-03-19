@@ -23,27 +23,19 @@ pub struct UpdateSnapPoints(pub bool);
 
 pub fn toggle_snap(
     ss: &mut ResMut<SnapSettings>,
-    ost: &Option<SnapType>,
-    uis: &mut UiState,
+    ost: &SnapType,
     ewrsp: &mut EventWriter<UpdateSnapPoints>,
 ) {
     match ost {
-        None => {
-            uis.cad_state.snap_menu = Some(*ost);
-            uis.cad_state.mode = Mode::Snap;
-        }
-        Some(st) => {
-            match st {
-                SnapType::Endpoint => flip(&mut ss.endpoint),
-                SnapType::Midpoint => flip(&mut ss.midpoint),
-                SnapType::Nthpoint(div) => ss.flip_nth(div),
+        SnapType::Endpoint => flip(&mut ss.endpoint),
+        SnapType::Midpoint => flip(&mut ss.midpoint),
+        SnapType::Nthpoint(div) => ss.flip_nth(div),
 
-                SnapType::Intersection => flip(&mut ss.intersection),
-                SnapType::Perpendicular => flip(&mut ss.perpendicular),
-                SnapType::Tangent => flip(&mut ss.tangent),
-            };
-        }
-    }
+        SnapType::Intersection => flip(&mut ss.intersection),
+        SnapType::Perpendicular => flip(&mut ss.perpendicular),
+        SnapType::Tangent => flip(&mut ss.tangent),
+    };
+
     ewrsp.send(UpdateSnapPoints(true));
 }
 

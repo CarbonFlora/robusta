@@ -8,12 +8,34 @@ use super::*;
 pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(PreUpdate, capture_keystrokes);
+        app.insert_resource(ModalResources::new())
+            .add_systems(PreUpdate, capture_keystrokes);
     }
 }
 
+#[derive(Debug, Resource, Default)]
+pub struct ModalResources {
+    pub mode: Mode,
+}
+
+impl ModalResources {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+#[derive(Debug, Default)]
+pub enum Mode {
+    #[default]
+    Normal,
+    Typing,
+    Insert,
+    Snap,
+}
+
 pub fn capture_keystrokes(
-    ui_state: Res<UiState>,
+    // ui_state: Res<UiState>,
+    mr: Res<ModalResources>,
     mut kb: EventReader<KeyboardInput>,
     mut mb: EventReader<MouseButtonInput>,
     mut act_write: EventWriter<Act>,
@@ -40,11 +62,11 @@ pub fn capture_keystrokes(
         }
     }
 
-    let act = match ui_state.cad_state.mode {
-        crate::Mode::Normal => normal_act(buffer),
-        crate::Mode::Typing => typing_act(buffer),
-        crate::Mode::Insert => insert_act(buffer),
-        crate::Mode::Snap => snap_act(buffer),
+    let act = match mr.mode {
+        Mode::Normal => normal_act(buffer),
+        Mode::Typing => typing_act(buffer),
+        Mode::Insert => insert_act(buffer),
+        Mode::Snap => snap_act(buffer),
     };
 
     if act != Act::None {
@@ -55,8 +77,8 @@ pub fn capture_keystrokes(
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::KeyI)] => Act::Insert(None),
-        [None, Some(KeyCode::KeyS)] => Act::ToggleSnap(None),
+        [None, Some(KeyCode::KeyI)] => Act::CameraUIMenu(Menu::InsertMenu(None)),
+        [None, Some(KeyCode::KeyS)] => Act::CameraUIMenu(Menu::SnapMenu(None)),
         [None, Some(KeyCode::ArrowLeft)] => Act::MoveCamera((-1., 0.)),
         [None, Some(KeyCode::ArrowDown)] => Act::MoveCamera((0., -1.)),
         [None, Some(KeyCode::ArrowUp)] => Act::MoveCamera((0., 1.)),
@@ -66,7 +88,7 @@ fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
         [Some(KeyCode::ControlLeft), Some(KeyCode::KeyO)] => Act::ZoomCamera(1.),
         [_, Some(KeyCode::Insert)] => Act::Confirm,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
-            Act::OpenCADTerm
+            Act::CameraUIMenu(Menu::CadTerm("".to_string()))
         }
         _ => Act::None,
     }
@@ -76,7 +98,7 @@ fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
-            Act::OpenCADTerm
+            Act::CameraUIMenu(Menu::CadTerm("".to_string()))
         }
         _ => Act::None,
     }
@@ -85,11 +107,11 @@ fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
 fn insert_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::KeyP)] => Act::Insert(Some(ConstructType::Point)),
-        [None, Some(KeyCode::KeyL)] => Act::Insert(Some(ConstructType::Line)),
-        [None, Some(KeyCode::KeyA)] => Act::Insert(Some(ConstructType::Arc)),
-        [None, Some(KeyCode::KeyC)] => Act::Insert(Some(ConstructType::Circle)),
-        [None, Some(KeyCode::KeyT)] => Act::Insert(Some(ConstructType::Text)),
+        [None, Some(KeyCode::KeyP)] => Act::Insert(ConstructType::Point),
+        [None, Some(KeyCode::KeyL)] => Act::Insert(ConstructType::Line),
+        [None, Some(KeyCode::KeyA)] => Act::Insert(ConstructType::Arc),
+        [None, Some(KeyCode::KeyC)] => Act::Insert(ConstructType::Circle),
+        [None, Some(KeyCode::KeyT)] => Act::Insert(ConstructType::Text),
         _ => Act::None,
     }
 }
@@ -97,13 +119,13 @@ fn insert_act(buffer: [Option<KeyCode>; 2]) -> Act {
 fn snap_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::KeyC)] => Act::ToggleSnap(None),
-        [None, Some(KeyCode::KeyE)] => Act::ToggleSnap(Some(SnapType::Endpoint)),
-        [None, Some(KeyCode::KeyM)] => Act::ToggleSnap(Some(SnapType::Midpoint)),
-        [None, Some(KeyCode::KeyN)] => Act::ToggleSnap(Some(SnapType::Nthpoint(None))),
-        [None, Some(KeyCode::KeyI)] => Act::ToggleSnap(Some(SnapType::Intersection)),
-        [None, Some(KeyCode::KeyP)] => Act::ToggleSnap(Some(SnapType::Perpendicular)),
-        [None, Some(KeyCode::KeyT)] => Act::ToggleSnap(Some(SnapType::Tangent)),
+        [None, Some(KeyCode::KeyC)] => Act::ClearSnaps,
+        [None, Some(KeyCode::KeyE)] => Act::ToggleSnap(SnapType::Endpoint),
+        [None, Some(KeyCode::KeyM)] => Act::ToggleSnap(SnapType::Midpoint),
+        [None, Some(KeyCode::KeyN)] => Act::ToggleSnap(SnapType::Nthpoint(None)),
+        [None, Some(KeyCode::KeyI)] => Act::ToggleSnap(SnapType::Intersection),
+        [None, Some(KeyCode::KeyP)] => Act::ToggleSnap(SnapType::Perpendicular),
+        [None, Some(KeyCode::KeyT)] => Act::ToggleSnap(SnapType::Tangent),
         _ => Act::None,
     }
 }
@@ -116,15 +138,16 @@ pub enum Act {
     QuitWithoutSaving,
     DeselectAll,
     Confirm,
-    OpenCADTerm,
+    CameraUIMenu(Menu),
     TryAct(String),
     EguiFocus(EguiWindow),
-    Insert(Option<ConstructType>),
     PullCameraFocus(Rect),
     FitView,
     MoveCamera((f32, f32)),
     ZoomCamera(f32),
-    ToggleSnap(Option<SnapType>),
+    Insert(ConstructType),
+    ToggleSnap(SnapType),
+    ClearSnaps,
     ModifyTag(REntity, TagModify),
     ModifyTaglist(TagListModify),
 }

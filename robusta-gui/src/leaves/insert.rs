@@ -28,6 +28,6 @@ pub fn update_insert_egui(
 
 fn construct_type_button(ui: &mut Ui, ewa: &mut EventWriter<Act>, ct: ConstructType) {
     if ui.add(Button::new(format!("{ct}"))).clicked() {
-        ewa.send(Act::Insert(Some(ct)));
+        ewa.send(Act::Insert(ct));
     }
 }
