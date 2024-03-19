@@ -15,14 +15,6 @@ impl bevy::app::Plugin for CameraUIPlugin {
     }
 }
 
-// #[derive(Debug, Default, Resource)]
-// pub struct CADState {
-//     pub cad_term: Option<String>,
-//     pub insert_menu: Option<Option<ConstructType>>,
-//     pub snap_menu: Option<Option<SnapType>>,
-// }
-
-// #[derive(Debug,  Event)]
 #[derive(Debug, Default, Resource, Event, Clone)]
 pub struct CameraUIBuffer {
     pub menu: Menu,
@@ -66,15 +58,6 @@ pub fn update_camera_ui(
         Menu::InsertMenu(_buffer) => update_insert_egui(&mut aw, &mut context),
         Menu::SnapMenu(buffer) => update_snap_egui(&mut aw, &mut ss, buffer, &mut context),
     }
-    // if uis.cad_state.cad_term.is_some() {
-    //     update_terminal_egui(&mut aw, &mut uis, &mut ecp);
-    // }
-    // if uis.cad_state.insert_menu.is_some() {
-    //     update_insert_egui(&mut aw, &mut ecp);
-    // }
-    // if uis.cad_state.snap_menu.is_some() {
-    // update_snap_egui(&mut aw, &mut ecp, &mut ss, &mut db);
-    // }
 }
 
 fn update_menu(mut er: EventReader<Menu>, mut rmcs: ResMut<CameraUIBuffer>) {
