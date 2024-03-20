@@ -1,4 +1,7 @@
-use self::leaves::{history::HistoryBuffer, inspection::InspectionBuffer};
+use self::{
+    keystroke::ModalResources,
+    leaves::{history::HistoryBuffer, inspection::InspectionBuffer},
+};
 
 use super::*;
 
@@ -50,9 +53,11 @@ fn spawn_window(mut co: Commands) {
     ));
 }
 
+#[allow(clippy::too_many_arguments)]
 fn update_dock(
     act_write: EventWriter<Act>,
     ewdbm: EventWriter<DockBufferModify>,
+    mut ewm: ResMut<ModalResources>,
     mut ui_state: ResMut<UiState>,
     ss: Res<SnapSettings>,
     qec: Query<&mut EguiContext, With<CADPanel>>,
@@ -60,7 +65,15 @@ fn update_dock(
     mut tc: ResMut<TagCharacteristics>,
 ) {
     if let Ok(mut w) = qec.get_single().cloned() {
-        ui_state.ui(w.get_mut(), act_write, ewdbm, &mut db, &ss, &mut tc);
+        ui_state.ui(
+            w.get_mut(),
+            act_write,
+            ewdbm,
+            &mut ewm,
+            &mut db,
+            &ss,
+            &mut tc,
+        );
     }
 }
 
@@ -88,28 +101,25 @@ fn event_entity_to_rentity(
                 db.inspection.selected_list.remove(i);
             }
             DockBufferModify::AddTag(rentity, tag) => {
-                let _ = db
-                    .inspection
-                    .selected_list
-                    .iter_mut()
-                    .filter(|x| x.0 == *rentity)
-                    .map(|x| x.1.taglist.insert(tag.clone()));
+                for i in &mut db.inspection.selected_list {
+                    if &i.0 == rentity {
+                        i.1.taglist.insert(tag.clone());
+                    }
+                }
             }
             DockBufferModify::RemoveTag(rentity, tag) => {
-                let _ = db
-                    .inspection
-                    .selected_list
-                    .iter_mut()
-                    .filter(|x| x.0 == *rentity)
-                    .map(|x| x.1.taglist.remove(tag));
+                for i in &mut db.inspection.selected_list {
+                    if &i.0 == rentity {
+                        i.1.taglist.remove(tag);
+                    }
+                }
             }
             DockBufferModify::RemoveAllTags(rentity) => {
-                let _ = db
-                    .inspection
-                    .selected_list
-                    .iter_mut()
-                    .filter(|x| x.0 == *rentity)
-                    .map(|x| x.1.taglist.clear());
+                for i in &mut db.inspection.selected_list {
+                    if &i.0 == rentity {
+                        i.1.taglist.clear();
+                    }
+                }
             }
         }
     }

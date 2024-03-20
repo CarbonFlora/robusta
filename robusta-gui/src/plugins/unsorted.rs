@@ -28,7 +28,7 @@ pub fn update_spawn_rentities(
     mut co: Commands,
 ) {
     for re in erre.read() {
-        let _ = match re {
+        match re {
             REntity::Arc(sp) => {
                 co.spawn((
                     REntity::Arc(sp.clone()),

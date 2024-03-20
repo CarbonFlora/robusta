@@ -1,3 +1,5 @@
+use self::plugins::keystroke::{ModalResources, Mode};
+
 use super::*;
 
 type EditingTags = HashSet<Tag>;
@@ -19,12 +21,13 @@ pub fn view_inspection(
     ib: &mut InspectionBuffer,
     ewa: &mut EventWriter<Act>,
     ewdbm: &mut EventWriter<DockBufferModify>,
+    ewm: &mut ModalResources,
 ) {
     ui.separator();
     if ib.selected_list.is_empty() {
         ui.label("No Selected Entities.");
     } else {
-        inspection_bundle(ui, ib, ewa, ewdbm);
+        inspection_bundle(ui, ib, ewa, ewdbm, ewm);
     }
 }
 
@@ -33,6 +36,7 @@ fn inspection_bundle(
     ib: &mut InspectionBuffer,
     ewa: &mut EventWriter<Act>,
     ewdbm: &mut EventWriter<DockBufferModify>,
+    ewm: &mut ModalResources,
 ) {
     for (i, selected) in ib.selected_list.iter_mut().enumerate() {
         ui.push_id(i, |ui_idd| {
@@ -68,7 +72,7 @@ fn inspection_bundle(
                 REntity::PhantomPoint => (),
             }
 
-            tag_bundle(ui_idd, ewa, ewdbm, selected, &mut ib.temporary_name);
+            tag_bundle(ui_idd, ewa, ewdbm, ewm, selected, &mut ib.temporary_name);
             ui_idd.separator();
 
             if let Some(c) = c {
@@ -82,6 +86,7 @@ fn tag_bundle(
     ui: &mut egui::Ui,
     ewa: &mut EventWriter<Act>,
     ewdbm: &mut EventWriter<DockBufferModify>,
+    ewm: &mut ModalResources,
     //Intersection Buffer Parts
     selected: &mut (REntity, TagList, EditingTags),
     string_buffer: &mut String,
@@ -112,7 +117,9 @@ fn tag_bundle(
                     }
                 }
                 true => {
-                    if ui.text_edit_singleline(string_buffer).lost_focus() {
+                    let response = ui.text_edit_singleline(string_buffer);
+                    if response.lost_focus() {
+                        ewm.mode = Mode::Normal;
                         ewa.send_batch([
                             Act::ModifyTag(selected.0.clone(), TagModify::Remove(tag.clone())),
                             Act::ModifyTag(
@@ -130,7 +137,10 @@ fn tag_bundle(
 
                         string_buffer.clear();
                         selected.2.clear();
+                    } else {
+                        ewm.mode = Mode::Typing;
                     };
+                    response.request_focus();
                 }
             }
         }

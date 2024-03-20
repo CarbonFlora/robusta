@@ -1,3 +1,5 @@
+use self::plugins::keystroke::ModalResources;
+
 use super::*;
 
 type LoadedFiles = HashMap<Option<String>, InterchangeFormat>;
@@ -97,11 +99,13 @@ impl UiState {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn ui(
         &mut self,
         ctx: &mut egui::Context,
         act_write: EventWriter<Act>,
         ewdbm: EventWriter<DockBufferModify>,
+        ewm: &mut ModalResources,
         dock_buffer: &mut DockBuffer,
         ss: &SnapSettings,
         tc: &mut TagCharacteristics,
@@ -109,6 +113,7 @@ impl UiState {
         let mut tab_viewer = TabViewer {
             act_write,
             ewdbm,
+            ewm,
             db: dock_buffer,
             ss,
             tc,
@@ -253,6 +258,7 @@ pub struct CADPanel {}
 struct TabViewer<'a> {
     act_write: EventWriter<'a, Act>,
     ewdbm: EventWriter<'a, DockBufferModify>,
+    ewm: &'a mut ModalResources,
     ss: &'a SnapSettings,
     db: &'a mut DockBuffer,
     tc: &'a mut TagCharacteristics,
@@ -274,6 +280,7 @@ impl egui_dock::TabViewer for TabViewer<'_> {
                 &mut self.db.inspection,
                 &mut self.act_write,
                 &mut self.ewdbm,
+                self.ewm,
             ),
             EguiWindow::StateRibbon => view_stateribbon(ui, self.ss),
             EguiWindow::Taglist => view_taglist(self.tc, ui, &mut self.act_write, self.db),
