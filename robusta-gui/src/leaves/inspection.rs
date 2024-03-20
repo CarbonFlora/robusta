@@ -1,29 +1,44 @@
-use bevy::utils::hashbrown::HashSet;
-
 use super::*;
+
+type EditingTags = HashSet<Tag>;
 
 #[derive(Debug, Resource, Default, Clone)]
 pub struct InspectionBuffer {
-    pub selected: Vec<(REntity, Tags)>,
-    pub editing_tag: HashSet<Tag>,
+    pub selected_list: Vec<(REntity, TagList, EditingTags)>,
     pub temporary_name: String,
 }
 
-pub fn view_inspection(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut EventWriter<Act>) {
-    ui.separator();
-    if ib.selected.is_empty() {
-        ui.label("No Selected Entities.");
-    } else {
-        inspection_bundle(ui, ib, ewa);
+impl InspectionBuffer {
+    pub fn sync(&mut self) {
+        //if buffers get too large, it may be cleaner to have a dedicated sync function to update the buffer with what is actually happening in the world.
     }
 }
 
-fn inspection_bundle(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut EventWriter<Act>) {
-    for (i, re) in ib.selected.iter_mut().enumerate() {
+pub fn view_inspection(
+    ui: &mut egui::Ui,
+    ib: &mut InspectionBuffer,
+    ewa: &mut EventWriter<Act>,
+    ewdbm: &mut EventWriter<DockBufferModify>,
+) {
+    ui.separator();
+    if ib.selected_list.is_empty() {
+        ui.label("No Selected Entities.");
+    } else {
+        inspection_bundle(ui, ib, ewa, ewdbm);
+    }
+}
+
+fn inspection_bundle(
+    ui: &mut egui::Ui,
+    ib: &mut InspectionBuffer,
+    ewa: &mut EventWriter<Act>,
+    ewdbm: &mut EventWriter<DockBufferModify>,
+) {
+    for (i, selected) in ib.selected_list.iter_mut().enumerate() {
         ui.push_id(i, |ui_idd| {
             let mut c: Option<(f32, f32, f32, f32)> = None;
 
-            match &re.0 {
+            match &selected.0 {
                 REntity::Arc(sp) => {
                     if ui_idd.selectable_label(false, format!("{sp}")).clicked() {
                         c = Some(sp.min_max());
@@ -53,7 +68,7 @@ fn inspection_bundle(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut Eve
                 REntity::PhantomPoint => (),
             }
 
-            tag_bundle(ui_idd, re, ewa, &mut ib.editing_tag, &mut ib.temporary_name);
+            tag_bundle(ui_idd, ewa, ewdbm, selected, &mut ib.temporary_name);
             ui_idd.separator();
 
             if let Some(c) = c {
@@ -65,51 +80,59 @@ fn inspection_bundle(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut Eve
 
 fn tag_bundle(
     ui: &mut egui::Ui,
-    re: &mut (REntity, Tags),
     ewa: &mut EventWriter<Act>,
-    hst: &mut HashSet<Tag>,
-    temporary_name: &mut String,
+    ewdbm: &mut EventWriter<DockBufferModify>,
+    //Intersection Buffer Parts
+    selected: &mut (REntity, TagList, EditingTags),
+    string_buffer: &mut String,
 ) {
     ui.horizontal_wrapped(|ui| {
         ui.menu_button("⛭", |ui| {
             ui.horizontal(|ui_collapse| {
                 if ui_collapse.button("⊞").clicked() {
-                    let a = Tag::new(format!("Untitled-{}", re.1.ordered_taglist.len() + 1));
-                    ewa.send(Act::ModifyTag(re.0.clone(), TagModify::Add(a)));
+                    let a = Tag::new(format!("Untitled-{}", selected.1.taglist.len() + 1));
+                    ewa.send(Act::ModifyTag(
+                        selected.0.clone(),
+                        TagModify::Add(a.clone()),
+                    ));
+                    ewdbm.send(DockBufferModify::AddTag(selected.0.clone(), a));
                 }
                 if ui_collapse.button("⊟").clicked() {
-                    ewa.send(Act::ModifyTag(re.0.clone(), TagModify::RemoveAll));
+                    ewa.send(Act::ModifyTag(selected.0.clone(), TagModify::RemoveAll));
+                    ewdbm.send(DockBufferModify::RemoveAllTags(selected.0.clone()));
                 }
             });
         });
 
-        for (i, t) in re.1.ordered_taglist.clone().iter().enumerate() {
-            match hst.contains(t) {
-                true => {
-                    if ui.text_edit_singleline(temporary_name).lost_focus() {
-                        temporary_name.clear();
-                        re.1.ordered_taglist.remove(i);
-                        re.1.ordered_taglist
-                            .insert(i, Tag::new(temporary_name.to_string()));
-                        hst.remove(t);
-                    };
-                }
+        for tag in selected.1.taglist.iter() {
+            match selected.2.contains(tag) {
                 false => {
-                    if ui.small_button(t.name.to_string()).clicked() {
-                        hst.insert(t.clone());
+                    if ui.small_button(tag.name.to_string()).clicked() {
+                        selected.2.insert(tag.clone());
+                    }
+                }
+                true => {
+                    if ui.text_edit_singleline(string_buffer).lost_focus() {
+                        ewa.send_batch([
+                            Act::ModifyTag(selected.0.clone(), TagModify::Remove(tag.clone())),
+                            Act::ModifyTag(
+                                selected.0.clone(),
+                                TagModify::Add(Tag::new(string_buffer.to_string())),
+                            ),
+                        ]);
+                        ewdbm.send_batch([
+                            DockBufferModify::RemoveTag(selected.0.clone(), tag.clone()),
+                            DockBufferModify::AddTag(
+                                selected.0.clone(),
+                                Tag::new(string_buffer.to_string()),
+                            ),
+                        ]);
+
+                        string_buffer.clear();
+                        selected.2.clear();
                     };
                 }
-            };
+            }
         }
     });
-    // ui.collapsing("⛭", |ui| {
-    //     ui.horizontal_wrapped(|ui_collapse| {
-    //         if ui_collapse.button("⊞").clicked() {
-    //             ewa.send(Act::ModifyTag(re.0.clone(), TagModify::AddPlaceholder));
-    //         }
-    //         if ui_collapse.button("⊟").clicked() {
-    //             ewa.send(Act::ModifyTag(re.0.clone(), TagModify::RemoveAll));
-    //         }
-    //     });
-    // });
 }

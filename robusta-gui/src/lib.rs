@@ -1,4 +1,5 @@
 use self::leaves::taglist::view_taglist;
+use self::plugins::dock::DockBufferModify;
 use self::plugins::cameraui::Menu;
 use self::plugins::{
     construction::{ConstructType, ConstructionBuffer, ConstructionInput},
@@ -7,13 +8,14 @@ use self::plugins::{
     phantom::{despawn_all_phantoms, index_point, PhantomSnaps, RPhantomPointer},
     selection::{deselect_all, Selected},
     snap::{toggle_snap, UpdateSnapPoints},
-    tag::{Tag, TagCharacteristics, TagListModify, TagModify, Tags},
+    tag::{Tag, TagCharacteristics, TagList, TagListModify, TagModify},
     RCADPlugins,
 };
 use ::bevy::render::{
     mesh::{Indices, PrimitiveTopology},
     render_asset::RenderAssetUsages,
 };
+use bevy::utils::hashbrown::HashSet;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle, utils::hashbrown::HashMap, window};
 use bevy_egui::EguiContext;
 use bevy_mod_picking::{events::Pointer, prelude::*, selection::Deselect};

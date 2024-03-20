@@ -101,12 +101,14 @@ impl UiState {
         &mut self,
         ctx: &mut egui::Context,
         act_write: EventWriter<Act>,
+        ewdbm: EventWriter<DockBufferModify>,
         dock_buffer: &mut DockBuffer,
         ss: &SnapSettings,
         tc: &mut TagCharacteristics,
     ) {
         let mut tab_viewer = TabViewer {
             act_write,
+            ewdbm,
             db: dock_buffer,
             ss,
             tc,
@@ -250,6 +252,7 @@ pub struct CADPanel {}
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     act_write: EventWriter<'a, Act>,
+    ewdbm: EventWriter<'a, DockBufferModify>,
     ss: &'a SnapSettings,
     db: &'a mut DockBuffer,
     tc: &'a mut TagCharacteristics,
@@ -266,9 +269,12 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Empty => (),
             EguiWindow::History => view_history(ui, &self.db.history),
             EguiWindow::Points => (),
-            EguiWindow::Inspect => {
-                view_inspection(ui, &mut self.db.inspection, &mut self.act_write)
-            }
+            EguiWindow::Inspect => view_inspection(
+                ui,
+                &mut self.db.inspection,
+                &mut self.act_write,
+                &mut self.ewdbm,
+            ),
             EguiWindow::StateRibbon => view_stateribbon(ui, self.ss),
             EguiWindow::Taglist => view_taglist(self.tc, ui, &mut self.act_write, self.db),
         }

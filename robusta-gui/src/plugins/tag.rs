@@ -1,5 +1,7 @@
 use std::ops::{Index, IndexMut};
 
+use bevy::utils::hashbrown::HashSet;
+
 use super::*;
 
 pub struct TagPlugin;
@@ -42,10 +44,19 @@ impl Tag {
     }
 }
 
-#[derive(Debug, Component, Default, Clone)]
-pub struct Tags {
-    // taglist: HashSet<Tag>,
-    pub ordered_taglist: Vec<Tag>,
+#[derive(Debug, Component, Clone)]
+pub struct TagList {
+    pub taglist: HashSet<Tag>,
+    // pub ordered_taglist: Vec<Tag>,
+}
+
+impl Default for TagList {
+    fn default() -> Self {
+        let mut taglist = HashSet::new();
+        taglist.insert(Tag::new("Default".to_string()));
+
+        Self { taglist }
+    }
 }
 
 // impl Tags {
@@ -171,19 +182,19 @@ impl IndexMut<usize> for TagCharacteristics {
     }
 }
 
-impl Index<usize> for Tags {
-    type Output = Tag;
+// impl Index<usize> for TagList {
+//     type Output = Tag;
 
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.ordered_taglist[index]
-    }
-}
+//     fn index(&self, index: usize) -> &Self::Output {
+//         &self.ordered_taglist[index]
+//     }
+// }
 
-impl IndexMut<usize> for Tags {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.ordered_taglist[index]
-    }
-}
+// impl IndexMut<usize> for TagList {
+//     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+//         &mut self.ordered_taglist[index]
+//     }
+// }
 
 impl Default for TagFlags {
     fn default() -> Self {
@@ -218,7 +229,7 @@ pub enum TagListModify {
 
 pub fn update_act_tag(
     mut era: EventReader<Act>,
-    mut es: Query<(&REntity, &mut Tags), With<Selected>>,
+    mut es: Query<(&REntity, &mut TagList), With<Selected>>,
     mut rmtc: ResMut<TagCharacteristics>,
     mut db: ResMut<DockBuffer>,
 ) {
@@ -231,15 +242,14 @@ pub fn update_act_tag(
                     .expect("REntity in selection doesn't exist in world.");
 
                 match tm {
-                    TagModify::Add(sp) => ret.1.ordered_taglist.push(sp.clone()),
-                    TagModify::Remove(sp) => {
-                        let index = ret.1.ordered_taglist.binary_search(sp);
-                        if let Ok(w) = index {
-                            ret.1.ordered_taglist.remove(w);
-                        }
+                    TagModify::Add(sp) => ret.1.taglist.insert(sp.clone()),
+                    TagModify::Remove(sp) => ret.1.taglist.remove(sp),
+                    TagModify::RemoveAll => {
+                        ret.1.taglist.clear();
+                        true
                     }
-                    TagModify::RemoveAll => ret.1.ordered_taglist.clear(),
                 };
+                println!("{:?}", ret.1.taglist);
             }
             Act::ModifyTaglist(tlm) => {
                 match tlm {
