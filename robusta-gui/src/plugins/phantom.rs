@@ -12,7 +12,8 @@ impl bevy::app::Plugin for PhantomPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(PhantomSnaps::new())
             .add_systems(PreUpdate, update_phantom_snap)
-            .add_systems(Update, update_rphantom_pointer);
+            .add_systems(Update, update_rphantom_pointer_location)
+            .add_systems(Update, update_phantoms);
     }
 }
 
@@ -32,25 +33,41 @@ impl PhantomSnaps {
     }
 }
 
+#[derive(Debug, Event)]
+pub enum PhantomAct {
+    DespawnAll,
+}
+
 /// This is a marker component to delineate a point entity in the process of being placed.
 #[derive(Debug, Component, Default)]
 pub struct RPhantomPointer;
 
-pub fn despawn_all_phantoms(
-    c: &mut Commands,
-    ewp: &Query<Entity, With<RPhantomPointer>>,
-    fs: &mut ResMut<PhantomSnaps>,
+pub fn update_phantoms(
+    //Input
+    mut erpa: EventReader<PhantomAct>,
+    //Output
+    mut co: Commands,
+    qewrpp: Query<Entity, With<RPhantomPointer>>,
+    mut rmps: ResMut<PhantomSnaps>,
 ) {
-    for e in ewp.iter() {
-        c.entity(e).remove::<RPhantomPointer>();
-        c.entity(e).despawn();
+    for pa in erpa.read() {
+        match pa {
+            PhantomAct::DespawnAll => {
+                for e in qewrpp.iter() {
+                    co.entity(e).remove::<RPhantomPointer>();
+                    co.entity(e).despawn();
+                }
+                rmps.snap_to = None;
+            }
+        }
     }
-    fs.snap_to = None;
 }
 
 pub fn update_phantom_snap(
-    mut pr: ResMut<PhantomSnaps>,
+    //Input
     mut ers: EventReader<SnapTo>,
+    //Output
+    mut pr: ResMut<PhantomSnaps>,
     resp: Query<&REntity, (With<SnapPoint>, Without<RPhantomPointer>)>,
 ) {
     for s in ers.read() {
@@ -67,7 +84,7 @@ pub fn update_phantom_snap(
 }
 
 #[allow(clippy::type_complexity)]
-pub fn update_rphantom_pointer(
+pub fn update_rphantom_pointer_location(
     pr: Res<PhantomSnaps>,
     // preg: Res<PhantomREntityGeo>,
     mut ewp: Query<
@@ -78,23 +95,6 @@ pub fn update_rphantom_pointer(
     transform: Query<(&Camera, &GlobalTransform), With<bevy_pancam::PanCam>>,
 ) {
     let (ca, gt) = transform.single();
-    // if let Ok((mut tr, re)) = ewp.get_single_mut() {
-    //     let sp = re.into_inner().unwrap_point_mut();
-    //     if let Some(cursor_world_pos) = w
-    //         .single()
-    //         .cursor_position()
-    //         .and_then(|cursor_pos| ca.viewport_to_world_2d(gt, cursor_pos))
-    //     {
-    //         let binding_xy = match pr.snap_to {
-    //             Some(sv) => sv,
-    //             None => cursor_world_pos,
-    //         };
-
-    //         sp.xy_mut(binding_xy.x, binding_xy.y);
-    //         tr.translation.x = binding_xy.x;
-    //         tr.translation.y = binding_xy.y;
-    //     }
-    // }
     for (mut tr, mut re) in ewp.iter_mut() {
         let sp = re.unwrap_point_mut();
         if let Some(cursor_world_pos) = w

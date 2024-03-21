@@ -1,10 +1,11 @@
+use self::plugins::phantom::PhantomAct;
+
 use super::*;
 
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(
     mut era: EventReader<Act>,
     mut ewrsp: EventWriter<UpdateSnapPoints>,
-    qerpp: Query<Entity, With<RPhantomPointer>>,
     qrerpp: Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
     es: Query<(Entity, &Selected), With<Selected>>,
     mut uis: ResMut<UiState>,
@@ -14,10 +15,10 @@ pub fn update_act(
     mut dsel: EventWriter<Pointer<Deselect>>,
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
-    mut fs: ResMut<PhantomSnaps>,
     mut ss: ResMut<SnapSettings>,
     mut db: ResMut<DockBuffer>,
     mut ewm: EventWriter<Menu>,
+    mut ewpa: EventWriter<PhantomAct>,
 ) {
     for act in era.read() {
         let mut binding = act.clone();
@@ -41,7 +42,7 @@ pub fn update_act(
                 ewm.send(sp.clone());
             }
             Act::Confirm => index_point(&qrerpp, &mut ewci),
-            Act::Exit => uis.close_all(&mut co, &qerpp, &mut ewrsp, &mut rmcb, &mut fs, &mut ewm),
+            Act::Exit => uis.close_all(&mut ewrsp, &mut rmcb, &mut ewm, &mut ewpa),
             Act::QuitWithoutSaving => {
                 app_exit_events.send(bevy::app::AppExit);
             }

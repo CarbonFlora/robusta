@@ -17,8 +17,8 @@ pub fn update_insert_egui(
         .show(w.get(), |ui| {
             ui.label("Insert");
             ui.horizontal(|ui| {
-                construct_type_button(ui, aw, ConstructType::Point);
-                construct_type_button(ui, aw, ConstructType::Line);
+                construct_type_button(ui, aw, ConstructType::PointBy1Click);
+                construct_type_button(ui, aw, ConstructType::LineBy2Click);
                 construct_type_button(ui, aw, ConstructType::Arc);
                 construct_type_button(ui, aw, ConstructType::Circle);
                 construct_type_button(ui, aw, ConstructType::Text);

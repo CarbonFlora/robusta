@@ -1,4 +1,4 @@
-use self::plugins::keystroke::ModalResources;
+use self::plugins::{keystroke::ModalResources, phantom::PhantomAct};
 
 use super::*;
 
@@ -133,17 +133,15 @@ impl UiState {
 
     pub fn close_all(
         &mut self,
-        co: &mut Commands,
-        ewp: &Query<Entity, With<RPhantomPointer>>,
         ewrsp: &mut EventWriter<UpdateSnapPoints>,
         rmcb: &mut ResMut<ConstructionBuffer>,
-        fs: &mut ResMut<PhantomSnaps>,
         ewm: &mut EventWriter<Menu>,
+        ewpa: &mut EventWriter<PhantomAct>,
     ) {
         ewrsp.send(UpdateSnapPoints(false)); //snap plugin
         rmcb.as_mut().reset(); //construction plugin
         ewm.send(Menu::NoMenu); //cameraui plugin
-        despawn_all_phantoms(co, ewp, fs); //phantom plugin
+        ewpa.send(PhantomAct::DespawnAll); //phantom plugin
     }
 
     pub fn push_history(&mut self, act: &Act, db: &mut ResMut<DockBuffer>) {

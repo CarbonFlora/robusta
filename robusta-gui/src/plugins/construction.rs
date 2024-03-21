@@ -1,10 +1,4 @@
-use self::{
-    line::Line,
-    phantom::{despawn_all_phantoms, PhantomSnaps, RPhantomPointer},
-    point::Point,
-    selection::Selection,
-    snap::UpdateSnapPoints,
-};
+use self::{line::Line, phantom::PhantomAct, point::Point, snap::UpdateSnapPoints};
 
 use super::*;
 
@@ -55,31 +49,26 @@ pub struct RConstructionEntity;
 pub enum ConstructType {
     Arc,
     Circle,
-    Line,
-    Point,
+    LineBy2Click,
+    PointBy1Click,
     Text,
 }
 
 #[allow(clippy::too_many_arguments)]
 fn update_queue(
+    //Input
     mut erra: EventReader<ConstructionInput>,
+    //Util
     mut rmcb: ResMut<ConstructionBuffer>,
-    mut co: Commands,
-    mut me: ResMut<Assets<Mesh>>,
-    mut ma: ResMut<Assets<ColorMaterial>>,
-    mut tzi: ResMut<TopZLayer>,
+    //Output
     mut ewrsp: EventWriter<UpdateSnapPoints>,
     mut ewre: EventWriter<REntity>,
-    ewp: Query<Entity, With<RPhantomPointer>>,
-    mut fs: ResMut<PhantomSnaps>,
+    mut ewpa: EventWriter<PhantomAct>,
 ) {
     if erra.is_empty() {
         return;
     }
-    // for ci in erra.read() {
-    //     rmcb.buf.push(ci.clone());
-    //     rmcb.buf.dedup();
-    // }
+
     if let Some(w) = erra.read().next() {
         rmcb.buf.push(w.clone());
         rmcb.buf.dedup();
@@ -92,27 +81,25 @@ fn update_queue(
     {
         ConstructType::Arc => todo!(),
         ConstructType::Circle => todo!(),
-        ConstructType::Line => {
+        ConstructType::LineBy2Click => {
             if rmcb.buf.len() == 2 {
                 let pt1 = rmcb.buf[0].coords;
                 let pt2 = rmcb.buf[1].coords;
-                let sp = Line::new([
+                ewre.send(REntity::Line(Line::new([
                     Point::new(pt1.x, pt1.y, pt1.z),
                     Point::new(pt2.x, pt2.y, pt2.z),
-                ]);
-                canonize_line(sp, &mut ewre);
+                ])));
                 ewrsp.send(UpdateSnapPoints(false));
-                despawn_all_phantoms(&mut co, &ewp, &mut fs);
+                ewpa.send(PhantomAct::DespawnAll);
                 rmcb.into_inner().reset();
             }
         }
-        ConstructType::Point => {
+        ConstructType::PointBy1Click => {
             if rmcb.buf.len() == 1 {
                 let pt1 = rmcb.buf[0].coords;
-                let sp = Point::new(pt1.x, pt1.y, pt1.z);
-                canonize_point(sp, &mut co, &mut me, &mut ma, &mut tzi);
+                ewre.send(REntity::Point(Point::new(pt1.x, pt1.y, pt1.z)));
                 ewrsp.send(UpdateSnapPoints(false));
-                despawn_all_phantoms(&mut co, &ewp, &mut fs);
+                ewpa.send(PhantomAct::DespawnAll);
                 rmcb.into_inner().reset();
             }
         }
@@ -120,47 +107,13 @@ fn update_queue(
     }
 }
 
-fn canonize_point(
-    sp: Point,
-    co: &mut Commands,
-    me: &mut ResMut<Assets<Mesh>>,
-    ma: &mut ResMut<Assets<ColorMaterial>>,
-    tzi: &mut TopZLayer,
-) {
-    co.spawn((
-        MaterialMesh2dBundle {
-            mesh: me.add(bevy::math::primitives::Circle::new(0.5)).into(),
-            material: ma.add(ColorMaterial::from(Color::WHITE)),
-            transform: Transform::from_translation(Vec3::new(
-                sp.coordinates.x,
-                sp.coordinates.y,
-                tzi.top() as f32,
-            )),
-            ..default()
-        },
-        REntity::Point(sp),
-        PickableBundle::default(),
-        On::<Pointer<Select>>::send_event::<Selection>(),
-        On::<Pointer<Deselect>>::send_event::<Selection>(),
-    ));
-}
-
-fn canonize_line(
-    //Input
-    sp: Line,
-    //Output
-    ewre: &mut EventWriter<REntity>,
-) {
-    ewre.send(sp.into());
-}
-
 impl std::fmt::Display for ConstructType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let a = match self {
             ConstructType::Arc => "Arc",
             ConstructType::Circle => "Circle",
-            ConstructType::Line => "Line",
-            ConstructType::Point => "Point",
+            ConstructType::LineBy2Click => "Line",
+            ConstructType::PointBy1Click => "Point",
             ConstructType::Text => "Text",
         };
         f.write_fmt(format_args!("{}", a))

@@ -120,8 +120,8 @@ fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
 fn insert_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::KeyP)] => Act::Insert(ConstructType::Point),
-        [None, Some(KeyCode::KeyL)] => Act::Insert(ConstructType::Line),
+        [None, Some(KeyCode::KeyP)] => Act::Insert(ConstructType::PointBy1Click),
+        [None, Some(KeyCode::KeyL)] => Act::Insert(ConstructType::LineBy2Click),
         [None, Some(KeyCode::KeyA)] => Act::Insert(ConstructType::Arc),
         [None, Some(KeyCode::KeyC)] => Act::Insert(ConstructType::Circle),
         [None, Some(KeyCode::KeyT)] => Act::Insert(ConstructType::Text),

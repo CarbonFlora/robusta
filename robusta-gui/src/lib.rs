@@ -1,11 +1,11 @@
 use self::leaves::taglist::view_taglist;
-use self::plugins::dock::DockBufferModify;
 use self::plugins::cameraui::Menu;
+use self::plugins::dock::DockBufferModify;
 use self::plugins::{
     construction::{ConstructType, ConstructionBuffer, ConstructionInput},
     dock::DockBuffer,
     keystroke::Act,
-    phantom::{despawn_all_phantoms, index_point, PhantomSnaps, RPhantomPointer},
+    phantom::{index_point, RPhantomPointer},
     selection::{deselect_all, Selected},
     snap::{toggle_snap, UpdateSnapPoints},
     tag::{Tag, TagCharacteristics, TagList, TagListModify, TagModify},
