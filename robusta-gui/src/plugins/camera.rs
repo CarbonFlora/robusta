@@ -126,6 +126,7 @@ fn fit_view_rect(re: &Query<&REntity>) -> Rect {
             REntity::Text(sp) => a.push(&sp.bud_position),
             REntity::SnapPoint(_) => (),
             REntity::PhantomPoint => (),
+            REntity::PhantomStatic(_) => (),
         }
     }
 

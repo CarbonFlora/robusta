@@ -1,5 +1,5 @@
 use self::{
-    phantom::RPhantomPointer, point::Point, selection::PickableSelectionBundle, snap::SnapBundle,
+    phantom::RPhantomStatic, point::Point, selection::PickableSelectionBundle, snap::SnapBundle,
 };
 
 use super::*;
@@ -80,6 +80,13 @@ pub fn update_spawn_rentities(
                     REntity::Point(sp.clone()),
                     sp.mesh(&mut me, &mut ma, &mut tz),
                     SnapBundle::default(),
+                ));
+            }
+            REntity::PhantomStatic(sp) => {
+                co.spawn((
+                    REntity::Point(sp.clone()),
+                    sp.mesh(&mut me, &mut ma, &mut tz),
+                    RPhantomStatic,
                 ));
             }
         };

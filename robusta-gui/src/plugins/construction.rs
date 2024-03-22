@@ -54,6 +54,17 @@ pub enum ConstructType {
     Text,
 }
 
+pub fn insert(
+    oct: &ConstructType,
+    rmcb: &mut ResMut<ConstructionBuffer>,
+    ewre: &mut EventWriter<REntity>,
+    ewrsp: &mut EventWriter<UpdateSnapPoints>,
+) {
+    rmcb.build = Some(*oct);
+    ewrsp.send(UpdateSnapPoints(true));
+    ewre.send(REntity::PhantomPoint);
+}
+
 #[allow(clippy::too_many_arguments)]
 fn update_queue(
     //Input
@@ -74,7 +85,7 @@ fn update_queue(
         rmcb.buf.dedup();
     }
 
-    match rmcb
+    let ore: Option<REntity> = match rmcb
         .build
         .as_ref()
         .expect("Encountered construction with no build criteria.")
@@ -85,25 +96,29 @@ fn update_queue(
             if rmcb.buf.len() == 2 {
                 let pt1 = rmcb.buf[0].coords;
                 let pt2 = rmcb.buf[1].coords;
-                ewre.send(REntity::Line(Line::new([
+                Some(REntity::Line(Line::new([
                     Point::new(pt1.x, pt1.y, pt1.z),
                     Point::new(pt2.x, pt2.y, pt2.z),
-                ])));
-                ewrsp.send(UpdateSnapPoints(false));
-                ewpa.send(PhantomAct::DespawnAll);
-                rmcb.into_inner().reset();
+                ])))
+            } else {
+                None
             }
         }
         ConstructType::PointBy1Click => {
             if rmcb.buf.len() == 1 {
                 let pt1 = rmcb.buf[0].coords;
-                ewre.send(REntity::Point(Point::new(pt1.x, pt1.y, pt1.z)));
-                ewrsp.send(UpdateSnapPoints(false));
-                ewpa.send(PhantomAct::DespawnAll);
-                rmcb.into_inner().reset();
+                Some(REntity::Point(Point::new(pt1.x, pt1.y, pt1.z)))
+            } else {
+                None
             }
         }
         ConstructType::Text => todo!(),
+    };
+    if let Some(re) = ore {
+        ewre.send(re);
+        ewrsp.send(UpdateSnapPoints(false));
+        ewpa.send(PhantomAct::DespawnAll);
+        rmcb.into_inner().reset();
     }
 }
 

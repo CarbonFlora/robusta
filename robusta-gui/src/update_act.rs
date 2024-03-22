@@ -1,4 +1,4 @@
-use self::plugins::phantom::PhantomAct;
+use self::plugins::{construction::insert, phantom::PhantomAct};
 
 use super::*;
 
@@ -11,7 +11,7 @@ pub fn update_act(
     mut uis: ResMut<UiState>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut co: Commands,
-    mut erre: EventWriter<REntity>,
+    mut ewre: EventWriter<REntity>,
     mut dsel: EventWriter<Pointer<Deselect>>,
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
@@ -32,7 +32,7 @@ pub fn update_act(
             Act::EguiFocus(ew) => uis.new_focus(ew),
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             // Act::OpenCADTerm => uis.cad_state.cad_term = Some(String::new()),
-            Act::Insert(sp) => insert(sp, &mut rmcb, &mut erre, &mut ewrsp),
+            Act::Insert(sp) => insert(sp, &mut rmcb, &mut ewre, &mut ewrsp),
             Act::ToggleSnap(a) => toggle_snap(&mut ss, a, &mut ewrsp),
             Act::ClearSnaps => {
                 ss.reset();
@@ -41,7 +41,7 @@ pub fn update_act(
             Act::CameraUIMenu(sp) => {
                 ewm.send(sp.clone());
             }
-            Act::Confirm => index_point(&qrerpp, &mut ewci),
+            Act::Confirm => index_point(&qrerpp, &mut ewci, &mut ewre),
             Act::Exit => uis.close_all(&mut ewrsp, &mut rmcb, &mut ewm, &mut ewpa),
             Act::QuitWithoutSaving => {
                 app_exit_events.send(bevy::app::AppExit);
@@ -85,15 +85,4 @@ fn snap_acts(mut text_buffer: SplitWhitespace) -> Act {
         "tangent" | "tan" => Act::ToggleSnap(SnapType::Tangent),
         _ => Act::None,
     }
-}
-
-fn insert(
-    oct: &ConstructType,
-    rmcb: &mut ResMut<ConstructionBuffer>,
-    erre: &mut EventWriter<REntity>,
-    ewrsp: &mut EventWriter<UpdateSnapPoints>,
-) {
-    rmcb.build = Some(*oct);
-    ewrsp.send(UpdateSnapPoints(true));
-    erre.send(REntity::PhantomPoint);
 }

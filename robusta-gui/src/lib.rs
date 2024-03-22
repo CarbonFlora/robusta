@@ -49,6 +49,7 @@ pub enum REntity {
     Point(primitives::point::Point),
     Text(primitives::text::Text),
     PhantomPoint,
+    PhantomStatic(primitives::point::Point),
     SnapPoint(primitives::point::Point),
 }
 

@@ -2,6 +2,7 @@ use crate::REntity;
 
 use self::{
     construction::ConstructionInput,
+    point::Point,
     snap::{SnapPoint, SnapTo},
 };
 
@@ -11,6 +12,7 @@ pub struct PhantomPlugin;
 impl bevy::app::Plugin for PhantomPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(PhantomSnaps::new())
+            .add_event::<PhantomAct>()
             .add_systems(PreUpdate, update_phantom_snap)
             .add_systems(Update, update_rphantom_pointer_location)
             .add_systems(Update, update_phantoms);
@@ -39,8 +41,12 @@ pub enum PhantomAct {
 }
 
 /// This is a marker component to delineate a point entity in the process of being placed.
-#[derive(Debug, Component, Default)]
+#[derive(Debug, Component)]
 pub struct RPhantomPointer;
+
+/// This is an additional marker component to delineate a static phantom point.
+#[derive(Debug, Component)]
+pub struct RPhantomStatic;
 
 pub fn update_phantoms(
     //Input
@@ -48,6 +54,7 @@ pub fn update_phantoms(
     //Output
     mut co: Commands,
     qewrpp: Query<Entity, With<RPhantomPointer>>,
+    qewrps: Query<Entity, With<RPhantomStatic>>,
     mut rmps: ResMut<PhantomSnaps>,
 ) {
     for pa in erpa.read() {
@@ -55,6 +62,10 @@ pub fn update_phantoms(
             PhantomAct::DespawnAll => {
                 for e in qewrpp.iter() {
                     co.entity(e).remove::<RPhantomPointer>();
+                    co.entity(e).despawn();
+                }
+                for e in qewrps.iter() {
+                    co.entity(e).remove::<RPhantomStatic>();
                     co.entity(e).despawn();
                 }
                 rmps.snap_to = None;
@@ -117,6 +128,7 @@ pub fn update_rphantom_pointer_location(
 pub fn index_point(
     qre: &Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
     ewci: &mut EventWriter<ConstructionInput>,
+    ewre: &mut EventWriter<REntity>,
 ) {
     let re = match qre.get_single() {
         Ok(w) => w,
@@ -124,89 +136,8 @@ pub fn index_point(
     };
     let xyz = re.unwrap_point().coordinates;
     let coords = Vec3::new(xyz.x, xyz.y, xyz.z);
+    let mut point = Point::new(coords.x, coords.y, coords.z);
+    point.set_appearance(Color::FUCHSIA, 0.4);
+    ewre.send(REntity::PhantomStatic(point));
     ewci.send(ConstructionInput { coords });
 }
-
-// #[allow(clippy::type_complexity)]
-// pub fn update_rphantom(
-//     pr: Res<PhantomSnaps>,
-//     preg: Res<PhantomREntityGeo>,
-//     mut ewp: Query<(&mut Transform, &mut REntity), (With<RPhantom>, Without<bevy_pancam::PanCam>)>,
-//     w: Query<&Window, With<PrimaryWindow>>,
-//     transform: Query<(&Camera, &GlobalTransform), With<bevy_pancam::PanCam>>,
-// ) {
-//     let (ca, gt) = transform.single();
-//     for (tr, re) in ewp.iter_mut() {
-//         let tr = tr.into_inner();
-//         let re = re.into_inner();
-//         match re {
-//             REntity::Arc(sp) => update_rphantom_definition(&mut sp.definition, &preg),
-//             REntity::Circle(sp) => update_rphantom_definition(&mut sp.definition, &preg),
-//             REntity::Line(sp) => update_rphantom_definition(&mut sp.definition, &preg),
-//             REntity::Point(sp) => update_rphantom_pointer(&w, ca, gt, &pr, sp, tr),
-//             REntity::Text(sp) => update_rphantom_definition(&mut sp.definition, &preg),
-//         }
-//     }
-// }
-
-// pub fn update_rphantom_mesh(
-//     mut qmcre: Query<(&mut Mesh2dHandle, &REntity), With<RPhantom>>,
-//     mut me: ResMut<Assets<Mesh>>,
-// ) {
-//     let lw = 0.3f32;
-
-//     for (m, re) in qmcre.iter_mut() {
-//         match re {
-//             REntity::Arc(_) => todo!(),
-//             REntity::Circle(_) => todo!(),
-//             REntity::Line(sp) => {
-//                 let spec = sp.specifications();
-//                 me.insert(&m.0, line_mesh(lw, spec.length, spec.h_angle));
-//             }
-//             REntity::Point(_) => (),
-//             REntity::Text(_) => todo!(),
-//         }
-//     }
-// }
-
-// fn update_rphantom_definition(sp: &mut [Point], preg: &Res<PhantomREntityGeo>) {
-//     let mut a = preg.definition.iter();
-//     for p in sp {
-//         if let Some(c) = a.next() {
-//             p.xy_mut(c.x, c.y);
-//         }
-//     }
-// }
-
-// pub fn canonize(
-//     c: &mut Commands,
-//     ewp: &Query<Entity, With<RPhantom>>,
-//     ewrsp: &mut EventWriter<UpdateSnapPoints>,
-// ) {
-//     ewrsp.send(UpdateSnapPoints(false));
-//     for e in ewp.iter() {
-//         normalize(c, e);
-//     }
-// }
-
-// fn normalize(c: &mut Commands, e: Entity) {
-//     c.entity(e).insert((
-//         PickableBundle::default(),
-//         On::<Pointer<Select>>::send_event::<Selection>(),
-//         On::<Pointer<Deselect>>::send_event::<Selection>(),
-//     ));
-//     c.entity(e).remove::<RPhantom>();
-// }
-
-// pub fn spawn_phantom_line(
-//     co: &mut Commands,
-//     me: &mut ResMut<Assets<Mesh>>,
-//     ma: &mut ResMut<Assets<ColorMaterial>>,
-//     tzi: &mut TopZLayer,
-//     ewrsp: &mut EventWriter<UpdateSnapPoints>,
-// ) {
-//     ewrsp.send(UpdateSnapPoints(true));
-//     let sp = Line::new([Point::new(0., 0., 0.), Point::new(1., 0., 0.)]);
-//     let id = spawn_line_mesh(sp, co, me, ma, tzi);
-//     co.entity(id).insert(RPhantom);
-// }

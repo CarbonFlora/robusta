@@ -87,8 +87,9 @@ fn spawn_simple_snap_points(
             REntity::Line(sp) => line_snaps(sp, ss, &mut vp),
             REntity::Point(sp) => point_snap(sp, ss, &mut vp),
             REntity::Text(_) => (),
-            REntity::PhantomPoint => (),
             REntity::SnapPoint(sp) => vp.push(sp.clone()),
+            REntity::PhantomPoint => (),
+            REntity::PhantomStatic(_) => (),
         }
     }
     ewre.send_batch(vp.iter().map(|p| REntity::SnapPoint(p.as_snap())));

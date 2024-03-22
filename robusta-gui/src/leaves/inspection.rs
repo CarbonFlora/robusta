@@ -70,6 +70,7 @@ fn inspection_bundle(
                 }
                 REntity::SnapPoint(_) => (),
                 REntity::PhantomPoint => (),
+                REntity::PhantomStatic(_) => (),
             }
 
             tag_bundle(ui_idd, ewa, ewdbm, ewm, selected, &mut ib.temporary_name);
