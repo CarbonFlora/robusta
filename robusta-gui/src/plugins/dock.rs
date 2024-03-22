@@ -121,7 +121,7 @@ fn update_dockbuffer(
             DockBufferModify::TagListAdd(t) => {
                 db.taglist
                     .ordered_tag_flags
-                    .push((t.clone(), TagFlags::all_none()));
+                    .push((t.clone(), TagFlags::all_none(), false));
             }
             DockBufferModify::TagListRemove(t) => {
                 let i = db

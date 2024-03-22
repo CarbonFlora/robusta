@@ -1,6 +1,5 @@
 use std::ops::{Index, IndexMut};
 
-use egui::Sense;
 use egui_extras::{Column, TableBuilder};
 
 use self::plugins::{
@@ -12,19 +11,15 @@ use super::*;
 
 #[derive(Debug, Resource, Clone)]
 pub struct TaglistBuffer {
-    pub ordered_tag_flags: Vec<(Tag, TagFlags)>,
-    pub egui_selection: HashMap<usize, Tag>,
-    pub is_selection_mode: bool,
+    pub ordered_tag_flags: Vec<(Tag, TagFlags, Selected)>,
 }
+
+type Selected = bool;
 
 impl Default for TaglistBuffer {
     fn default() -> Self {
-        let ordered_tag_flags = vec![(Tag::new("Default".to_string()), TagFlags::default())];
-        Self {
-            ordered_tag_flags,
-            egui_selection: HashMap::new(),
-            is_selection_mode: false,
-        }
+        let ordered_tag_flags = vec![(Tag::new("Default".to_string()), TagFlags::default(), false)];
+        Self { ordered_tag_flags }
     }
 }
 
@@ -42,30 +37,25 @@ pub fn view_taglist(
             let tag = Tag::placeholder(Some(tb.ordered_tag_flags.len()));
             ewa.send(Act::ModifyTaglist(TagListModify::Add(tag)));
         }
-        if tb.is_selection_mode && ui.button("⊟").clicked() {
-            for a in tb.egui_selection.values() {
-                ewa.send(Act::ModifyTaglist(TagListModify::Remove(a.clone())));
+        if ui.button("⊟").clicked() {
+            for a in tb.ordered_tag_flags.iter().filter(|x| x.2) {
+                ewa.send(Act::ModifyTaglist(TagListModify::Remove(a.0.clone())));
             }
         }
-        ui.checkbox(&mut tb.is_selection_mode, "Selection Mode");
     });
 
-    let table = match tb.is_selection_mode {
-        true => TableBuilder::new(ui)
-            .striped(true)
-            .resizable(true)
-            .sense(Sense::click())
-            .column(Column::auto())
-            .column(Column::remainder()),
-        false => TableBuilder::new(ui)
-            .striped(true)
-            .resizable(true)
-            .column(Column::auto())
-            .column(Column::remainder()),
-    };
+    let table = TableBuilder::new(ui)
+        .striped(true)
+        .resizable(true)
+        .column(Column::exact(20.))
+        .column(Column::initial(100.))
+        .column(Column::remainder());
 
     table
         .header(20.0, |mut header| {
+            header.col(|ui| {
+                ui.strong("Sel");
+            });
             header.col(|ui| {
                 ui.strong("Tag");
             });
@@ -76,23 +66,17 @@ pub fn view_taglist(
         .body(|body| {
             body.rows(20.0, tb.ordered_tag_flags.len(), |mut row| {
                 let row_index = row.index();
-                row.set_selected(tb.egui_selection.contains_key(&row_index));
+                row.set_selected(tb.ordered_tag_flags[row_index].2);
 
+                row.col(|ui| {
+                    ui.checkbox(&mut tb.ordered_tag_flags[row_index].2, "");
+                });
                 row.col(|ui| {
                     ui.label(&tb.ordered_tag_flags.index(row_index).0.name);
                 });
                 row.col(|ui| {
                     tag_flag_egui(ui, tb, ewm, row_index, ewa);
                 });
-
-                if row.response().clicked() {
-                    match tb.egui_selection.contains_key(&row_index) {
-                        true => tb.egui_selection.remove(&row_index),
-                        false => tb
-                            .egui_selection
-                            .insert(row_index, tb.ordered_tag_flags.index(row_index).0.clone()),
-                    };
-                }
             });
         });
 }
@@ -101,7 +85,7 @@ fn tag_flag_egui(
     //Util
     ui: &mut egui::Ui,
     tb: &mut TaglistBuffer,
-    ewm: &mut ModalResources,
+    _ewm: &mut ModalResources,
     row_index: usize,
     //Output
     ewa: &mut EventWriter<Act>,
