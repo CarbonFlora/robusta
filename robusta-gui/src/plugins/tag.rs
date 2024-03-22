@@ -1,4 +1,4 @@
-use bevy::utils::hashbrown::HashSet;
+use bevy::{sprite::Mesh2dHandle, utils::hashbrown::HashSet};
 use egui::Color32;
 
 use super::*;
@@ -7,9 +7,15 @@ pub struct TagPlugin;
 impl bevy::app::Plugin for TagPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TagCharacteristics::new())
+            .add_event::<RefreshStyle>()
             .add_systems(PreUpdate, update_act_tag)
-            .add_systems(Update, update_entity_tags);
+            .add_systems(Update, update_entity_with_tags);
     }
+}
+
+#[derive(Debug, Event, PartialEq, Eq, Hash, Clone)]
+pub enum RefreshStyle {
+    Color(Color32),
 }
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
@@ -161,7 +167,17 @@ pub enum TagListModify {
     NewColor(Tag, Option<Color32>),
 }
 
-pub fn update_entity_tags(rtc: Res<TagCharacteristics>) {
+pub fn update_entity_with_tags(
+    mut errs: EventReader<RefreshStyle>,
+    rtc: Res<TagCharacteristics>,
+    mut a: Query<(&Mesh2dHandle, &Handle<ColorMaterial>, &mut REntity), With<REntity>>,
+) {
+    for rs in errs.read() {
+        match rs {
+            RefreshStyle::Color(c) => todo!(),
+        }
+    }
+
     // if rtc.is_changed() {
     //     println!("tc has changed.");
     // }
@@ -175,6 +191,7 @@ pub fn update_act_tag(
     //Output
     mut rmtc: ResMut<TagCharacteristics>,
     mut ewdbm: EventWriter<DockBufferModify>,
+    mut ewrs: EventWriter<RefreshStyle>,
 ) {
     for act in era.read() {
         match act {
@@ -212,6 +229,9 @@ pub fn update_act_tag(
                     TagListModify::NewColor(t, c32) => {
                         let tf = rmtc.get_mut(t);
                         tf.color = *c32;
+                        if let Some(c) = c32 {
+                            ewrs.send(RefreshStyle::Color(*c));
+                        }
                     }
                 };
             }
