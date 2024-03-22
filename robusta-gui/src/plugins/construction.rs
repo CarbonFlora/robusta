@@ -7,8 +7,7 @@ impl bevy::app::Plugin for ConstructionPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(ConstructionBuffer::new())
             .add_event::<ConstructionInput>()
-            .add_systems(Update, update_queue);
-        // .add_systems(Update, update_construction);
+            .add_systems(Update, update_construction);
     }
 }
 
@@ -66,7 +65,7 @@ pub fn insert(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn update_queue(
+fn update_construction(
     //Input
     mut erra: EventReader<ConstructionInput>,
     //Util
@@ -127,8 +126,8 @@ impl std::fmt::Display for ConstructType {
         let a = match self {
             ConstructType::Arc => "Arc",
             ConstructType::Circle => "Circle",
-            ConstructType::LineBy2Click => "Line",
-            ConstructType::PointBy1Click => "Point",
+            ConstructType::LineBy2Click => "Line by 2 points",
+            ConstructType::PointBy1Click => "Point by 1 click.",
             ConstructType::Text => "Text",
         };
         f.write_fmt(format_args!("{}", a))

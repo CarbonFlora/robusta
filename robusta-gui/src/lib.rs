@@ -1,4 +1,3 @@
-use self::leaves::taglist::view_taglist;
 use self::plugins::cameraui::Menu;
 use self::plugins::dock::DockBufferModify;
 use self::plugins::{
@@ -8,7 +7,7 @@ use self::plugins::{
     phantom::{index_point, RPhantomPointer},
     selection::{deselect_all, Selected},
     snap::{toggle_snap, UpdateSnapPoints},
-    tag::{Tag, TagCharacteristics, TagList, TagListModify, TagModify},
+    tag::{Tag, TagList, TagListModify, TagModify},
     RCADPlugins,
 };
 use ::bevy::render::{

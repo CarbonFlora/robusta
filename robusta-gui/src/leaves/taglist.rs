@@ -3,33 +3,54 @@ use std::ops::{Index, IndexMut};
 use egui::Sense;
 use egui_extras::{Column, TableBuilder};
 
-use self::plugins::tag::{Tag, TagListModify};
+use self::plugins::{
+    keystroke::ModalResources,
+    tag::{Tag, TagFlags, TagListModify},
+};
 
 use super::*;
 
+#[derive(Debug, Resource, Clone)]
+pub struct TaglistBuffer {
+    pub ordered_tag_flags: Vec<(Tag, TagFlags)>,
+    pub egui_selection: HashMap<usize, Tag>,
+    pub is_selection_mode: bool,
+}
+
+impl Default for TaglistBuffer {
+    fn default() -> Self {
+        let ordered_tag_flags = vec![(Tag::new("Default".to_string()), TagFlags::default())];
+        Self {
+            ordered_tag_flags,
+            egui_selection: HashMap::new(),
+            is_selection_mode: false,
+        }
+    }
+}
+
 pub fn view_taglist(
     //Util
-    tc: &mut TagCharacteristics,
     ui: &mut egui::Ui,
+    tb: &mut TaglistBuffer,
+    ewm: &mut ModalResources,
     //Output
     ewa: &mut EventWriter<Act>,
-    db: &mut DockBuffer,
 ) {
     ui.separator();
     ui.horizontal(|ui| {
         if ui.button("⊞").clicked() {
-            let tag = Tag::placeholder(Some(tc.len()));
+            let tag = Tag::placeholder(Some(tb.ordered_tag_flags.len()));
             ewa.send(Act::ModifyTaglist(TagListModify::Add(tag)));
         }
-        if db.is_selection_mode && ui.button("⊟").clicked() {
-            for a in db.egui_selection.values() {
+        if tb.is_selection_mode && ui.button("⊟").clicked() {
+            for a in tb.egui_selection.values() {
                 ewa.send(Act::ModifyTaglist(TagListModify::Remove(a.clone())));
             }
         }
-        ui.checkbox(&mut db.is_selection_mode, "Selection Mode");
+        ui.checkbox(&mut tb.is_selection_mode, "Selection Mode");
     });
 
-    let table = match db.is_selection_mode {
+    let table = match tb.is_selection_mode {
         true => TableBuilder::new(ui)
             .striped(true)
             .resizable(true)
@@ -53,24 +74,23 @@ pub fn view_taglist(
             });
         })
         .body(|body| {
-            body.rows(20.0, tc.len(), |mut row| {
+            body.rows(20.0, tb.ordered_tag_flags.len(), |mut row| {
                 let row_index = row.index();
-                row.set_selected(db.egui_selection.contains_key(&row_index));
+                row.set_selected(tb.egui_selection.contains_key(&row_index));
 
                 row.col(|ui| {
-                    ui.label(&tc.index(row_index).0.name);
+                    ui.label(&tb.ordered_tag_flags.index(row_index).0.name);
                 });
                 row.col(|ui| {
-                    tag_flag_egui(ui, tc, db, row_index);
-                    // ui.label(format!("{:?}", &tc.index(row_index).1));
+                    tag_flag_egui(ui, tb, ewm, row_index, ewa);
                 });
 
                 if row.response().clicked() {
-                    match db.egui_selection.contains_key(&row_index) {
-                        true => db.egui_selection.remove(&row_index),
-                        false => db
+                    match tb.egui_selection.contains_key(&row_index) {
+                        true => tb.egui_selection.remove(&row_index),
+                        false => tb
                             .egui_selection
-                            .insert(row_index, tc.index(row_index).0.clone()),
+                            .insert(row_index, tb.ordered_tag_flags.index(row_index).0.clone()),
                     };
                 }
             });
@@ -78,15 +98,23 @@ pub fn view_taglist(
 }
 
 fn tag_flag_egui(
+    //Util
     ui: &mut egui::Ui,
-    tc: &mut TagCharacteristics,
-    db: &mut DockBuffer,
+    tb: &mut TaglistBuffer,
+    ewm: &mut ModalResources,
     row_index: usize,
+    //Output
+    ewa: &mut EventWriter<Act>,
 ) {
-    let a = tc.index_mut(row_index);
+    let a = tb.ordered_tag_flags.index_mut(row_index);
     ui.horizontal_wrapped(|ui| {
         if let Some(color) = &mut a.1.color {
-            ui.color_edit_button_srgba(color);
+            if ui.color_edit_button_srgba(color).lost_focus() {
+                ewa.send(Act::ModifyTaglist(TagListModify::NewColor(
+                    a.0.clone(),
+                    Some(*color),
+                )));
+            };
         }
     });
 }

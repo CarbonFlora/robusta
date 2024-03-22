@@ -1,4 +1,7 @@
-use self::plugins::{keystroke::ModalResources, phantom::PhantomAct};
+use self::{
+    leaves::taglist::view_taglist,
+    plugins::{keystroke::ModalResources, phantom::PhantomAct},
+};
 
 use super::*;
 
@@ -104,19 +107,15 @@ impl UiState {
         &mut self,
         ctx: &mut egui::Context,
         act_write: EventWriter<Act>,
-        ewdbm: EventWriter<DockBufferModify>,
         ewm: &mut ModalResources,
         dock_buffer: &mut DockBuffer,
         ss: &SnapSettings,
-        tc: &mut TagCharacteristics,
     ) {
         let mut tab_viewer = TabViewer {
             act_write,
-            ewdbm,
             ewm,
             db: dock_buffer,
             ss,
-            tc,
         };
         DockArea::new(&mut self.dock_state)
             .style(Style::from_egui(ctx.style().as_ref()))
@@ -255,11 +254,9 @@ pub struct CADPanel {}
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
     act_write: EventWriter<'a, Act>,
-    ewdbm: EventWriter<'a, DockBufferModify>,
     ewm: &'a mut ModalResources,
     ss: &'a SnapSettings,
     db: &'a mut DockBuffer,
-    tc: &'a mut TagCharacteristics,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -276,12 +273,14 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Inspect => view_inspection(
                 ui,
                 &mut self.db.inspection,
-                &mut self.act_write,
-                &mut self.ewdbm,
                 self.ewm,
+                &mut self.act_write,
+                // &mut self.ewdbm,
             ),
             EguiWindow::StateRibbon => view_stateribbon(ui, self.ss),
-            EguiWindow::Taglist => view_taglist(self.tc, ui, &mut self.act_write, self.db),
+            EguiWindow::Taglist => {
+                view_taglist(ui, &mut self.db.taglist, self.ewm, &mut self.act_write)
+            }
         }
     }
 

@@ -10,33 +10,29 @@ pub struct InspectionBuffer {
     pub temporary_name: String,
 }
 
-impl InspectionBuffer {
-    pub fn sync(&mut self) {
-        //if buffers get too large, it may be cleaner to have a dedicated sync function to update the buffer with what is actually happening in the world.
-    }
-}
-
 pub fn view_inspection(
+    //Util
     ui: &mut egui::Ui,
     ib: &mut InspectionBuffer,
-    ewa: &mut EventWriter<Act>,
-    ewdbm: &mut EventWriter<DockBufferModify>,
-    ewm: &mut ModalResources,
+    ewm: &mut ModalResources, //Change this when typing.
+    //Output
+    ewa: &mut EventWriter<Act>, //Use this to communicate out.
 ) {
     ui.separator();
     if ib.selected_list.is_empty() {
         ui.label("No Selected Entities.");
     } else {
-        inspection_bundle(ui, ib, ewa, ewdbm, ewm);
+        inspection_bundle(ui, ib, ewm, ewa);
     }
 }
 
 fn inspection_bundle(
+    //Util
     ui: &mut egui::Ui,
     ib: &mut InspectionBuffer,
-    ewa: &mut EventWriter<Act>,
-    ewdbm: &mut EventWriter<DockBufferModify>,
     ewm: &mut ModalResources,
+    //Output
+    ewa: &mut EventWriter<Act>,
 ) {
     for (i, selected) in ib.selected_list.iter_mut().enumerate() {
         ui.push_id(i, |ui_idd| {
@@ -73,7 +69,7 @@ fn inspection_bundle(
                 REntity::PhantomStatic(_) => (),
             }
 
-            tag_bundle(ui_idd, ewa, ewdbm, ewm, selected, &mut ib.temporary_name);
+            tag_bundle(ui_idd, ewm, selected, &mut ib.temporary_name, ewa);
             ui_idd.separator();
 
             if let Some(c) = c {
@@ -84,13 +80,14 @@ fn inspection_bundle(
 }
 
 fn tag_bundle(
+    //Util
     ui: &mut egui::Ui,
-    ewa: &mut EventWriter<Act>,
-    ewdbm: &mut EventWriter<DockBufferModify>,
     ewm: &mut ModalResources,
     //Intersection Buffer Parts
     selected: &mut (REntity, TagList, EditingTags),
     string_buffer: &mut String,
+    //Output
+    ewa: &mut EventWriter<Act>,
 ) {
     ui.horizontal_wrapped(|ui| {
         ui.menu_button("⛭", |ui| {
@@ -101,11 +98,9 @@ fn tag_bundle(
                         selected.0.clone(),
                         TagModify::Add(a.clone()),
                     ));
-                    ewdbm.send(DockBufferModify::AddTag(selected.0.clone(), a));
                 }
                 if ui_collapse.button("⊟").clicked() {
                     ewa.send(Act::ModifyTag(selected.0.clone(), TagModify::RemoveAll));
-                    ewdbm.send(DockBufferModify::RemoveAllTags(selected.0.clone()));
                 }
             });
         });
@@ -121,23 +116,7 @@ fn tag_bundle(
                     let response = ui.text_edit_singleline(string_buffer);
                     if response.lost_focus() {
                         ewm.mode = Mode::Normal;
-                        ewa.send_batch([
-                            Act::ModifyTag(selected.0.clone(), TagModify::Remove(tag.clone())),
-                            Act::ModifyTag(
-                                selected.0.clone(),
-                                TagModify::Add(Tag::new(string_buffer.to_string())),
-                            ),
-                        ]);
-                        ewdbm.send_batch([
-                            DockBufferModify::RemoveTag(selected.0.clone(), tag.clone()),
-                            DockBufferModify::AddTag(
-                                selected.0.clone(),
-                                Tag::new(string_buffer.to_string()),
-                            ),
-                        ]);
-
-                        string_buffer.clear();
-                        selected.2.clear();
+                        act_deliver(ewa, &mut selected.0, &mut selected.2, string_buffer, tag);
                     } else {
                         ewm.mode = Mode::Typing;
                     };
@@ -146,4 +125,25 @@ fn tag_bundle(
             }
         }
     });
+}
+
+fn act_deliver(
+    ewa: &mut EventWriter<Act>,
+    re: &mut REntity,
+    editing_tags: &mut EditingTags,
+    string_buffer: &mut String,
+    tag: &Tag,
+) {
+    let mut ewa_packages = vec![Act::ModifyTag(re.clone(), TagModify::Remove(tag.clone()))];
+
+    if !string_buffer.is_empty() {
+        ewa_packages.push(Act::ModifyTag(
+            re.clone(),
+            TagModify::Add(Tag::new(string_buffer.to_string())),
+        ));
+    }
+
+    ewa.send_batch(ewa_packages);
+    string_buffer.clear();
+    editing_tags.clear();
 }

@@ -1,6 +1,7 @@
 use self::{
     keystroke::ModalResources,
-    leaves::{history::HistoryBuffer, inspection::InspectionBuffer},
+    leaves::{history::HistoryBuffer, inspection::InspectionBuffer, taglist::TaglistBuffer},
+    tag::TagFlags,
 };
 
 use super::*;
@@ -11,7 +12,7 @@ impl bevy::app::Plugin for DockPlugin {
         app.insert_resource(DockBuffer::new())
             .add_event::<DockBufferModify>()
             .add_systems(Startup, spawn_window)
-            .add_systems(Update, event_entity_to_rentity)
+            .add_systems(Update, update_dockbuffer)
             .add_systems(Update, update_dock);
     }
 }
@@ -20,14 +21,16 @@ impl bevy::app::Plugin for DockPlugin {
 pub struct DockBuffer {
     pub history: HistoryBuffer,
     pub inspection: InspectionBuffer,
-    pub nth_n: String,
-    pub egui_selection: HashMap<usize, Tag>,
-    pub is_selection_mode: bool,
+    pub taglist: TaglistBuffer,
 }
 
 impl DockBuffer {
     pub fn new() -> Self {
-        Self::default()
+        Self {
+            history: HistoryBuffer::default(),
+            inspection: InspectionBuffer::default(),
+            taglist: TaglistBuffer::default(),
+        }
     }
 }
 
@@ -38,6 +41,9 @@ pub enum DockBufferModify {
     AddTag(REntity, Tag),
     RemoveTag(REntity, Tag),
     RemoveAllTags(REntity),
+    TagListAdd(Tag),
+    TagListRemove(Tag),
+    // TagListFlagUpdate(Tag, Flag),
 }
 
 /// Spawn a new window with reasonable defaults.
@@ -56,28 +62,19 @@ fn spawn_window(mut co: Commands) {
 #[allow(clippy::too_many_arguments)]
 fn update_dock(
     act_write: EventWriter<Act>,
-    ewdbm: EventWriter<DockBufferModify>,
     mut ewm: ResMut<ModalResources>,
     mut ui_state: ResMut<UiState>,
     ss: Res<SnapSettings>,
     qec: Query<&mut EguiContext, With<CADPanel>>,
     mut db: ResMut<DockBuffer>,
-    mut tc: ResMut<TagCharacteristics>,
 ) {
     if let Ok(mut w) = qec.get_single().cloned() {
-        ui_state.ui(
-            w.get_mut(),
-            act_write,
-            ewdbm,
-            &mut ewm,
-            &mut db,
-            &ss,
-            &mut tc,
-        );
+        ui_state.ui(w.get_mut(), act_write, &mut ewm, &mut db, &ss);
     }
 }
 
-fn event_entity_to_rentity(
+///This updates the dockbuffer with what is actually true in Resources.
+fn update_dockbuffer(
     mut ewdbm: EventReader<DockBufferModify>,
     mut db: ResMut<DockBuffer>,
     qret: Query<(&REntity, &TagList)>,
@@ -121,6 +118,26 @@ fn event_entity_to_rentity(
                     }
                 }
             }
+            DockBufferModify::TagListAdd(t) => {
+                db.taglist
+                    .ordered_tag_flags
+                    .push((t.clone(), TagFlags::all_none()));
+            }
+            DockBufferModify::TagListRemove(t) => {
+                let i = db
+                    .taglist
+                    .ordered_tag_flags
+                    .iter()
+                    .position(|x| &x.0 == t)
+                    .unwrap();
+                db.taglist.ordered_tag_flags.remove(i);
+            } // DockBufferModify::TagListFlagUpdate(t, f) => {
+              //     for i in &mut db.taglist.ordered_tag_flags {
+              //         if &i.0 == t {
+              //             i.1.update(f);
+              //         }
+              //     }
+              // }
         }
     }
 }

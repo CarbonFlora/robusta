@@ -1,6 +1,5 @@
-use std::ops::{Index, IndexMut};
-
 use bevy::utils::hashbrown::HashSet;
+use egui::Color32;
 
 use super::*;
 
@@ -8,7 +7,8 @@ pub struct TagPlugin;
 impl bevy::app::Plugin for TagPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TagCharacteristics::new())
-            .add_systems(PreUpdate, update_act_tag);
+            .add_systems(PreUpdate, update_act_tag)
+            .add_systems(Update, update_entity_tags);
     }
 }
 
@@ -59,71 +59,42 @@ impl Default for TagList {
     }
 }
 
-// impl Tags {
-//     pub fn new() -> Self {
-//         let mut a = Self {
-//             taglist: HashSet::new(),
-//             ordered_taglist: Vec::new(),
-//         };
-//         a.update_order();
-//         a
-//     }
-
-//     fn update_order(&mut self) {
-//         let mut a = self.taglist.iter().map(|x| x.clone()).collect::<Vec<_>>();
-//         a.sort_by(|a, b| a.name.cmp(&b.name));
-//         self.ordered_taglist = a;
-//     }
-
-//     /// Also can be used to update an existing entry.
-//     pub fn insert(&mut self, k: Tag) {
-//         self.taglist.insert(k);
-//         self.update_order();
-//     }
-
-//     pub fn remove(&mut self, k: &Tag) {
-//         self.taglist.remove(k);
-//         self.update_order();
-//     }
-
-//     pub fn len(&self) -> usize {
-//         self.taglist.len()
-//     }
-
-//     #[must_use]
-//     pub fn is_empty(&self) -> bool {
-//         self.taglist.len() == 0
-//     }
-
-//     pub fn ordered_tag_list(&self) -> &[Tag] {
-//         &self.ordered_taglist
-//     }
-// }
-
 #[derive(Debug, Clone)]
 pub struct TagFlags {
     pub color: Option<egui::Color32>,
-    thickness: Option<f32>,
+    pub thickness: Option<f32>,
+}
+
+impl TagFlags {
+    pub fn update(&mut self, flag: &Flag) {
+        match flag {
+            Flag::Color(sp) => {
+                self.color = *sp;
+            }
+            Flag::Thickness(sp) => {
+                self.thickness = *sp;
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Flag {
+    Color(Option<egui::Color32>),
+    Thickness(Option<f32>),
 }
 
 #[derive(Debug, Resource, Default)]
 pub struct TagCharacteristics {
     tag_flags: HashMap<Tag, TagFlags>,
-    ordered_tag_flags: Vec<(Tag, TagFlags)>,
 }
 
 impl TagCharacteristics {
     pub fn new() -> Self {
         let mut tag_flags = HashMap::new();
         tag_flags.insert(Tag::new("Default".to_string()), TagFlags::default());
-        let ordered_tag_list = Vec::new();
 
-        let mut a = Self {
-            tag_flags,
-            ordered_tag_flags: ordered_tag_list,
-        };
-        a.update_order();
-        a
+        Self { tag_flags }
     }
 
     pub fn get(&mut self, t: &Tag) -> &TagFlags {
@@ -133,25 +104,19 @@ impl TagCharacteristics {
         self.tag_flags.get(t).unwrap()
     }
 
-    /// Also can be used to update an existing entry.
+    pub fn get_mut(&mut self, t: &Tag) -> &mut TagFlags {
+        if !self.tag_flags.contains_key(t) {
+            self.tag_flags.insert(t.clone(), TagFlags::default());
+        }
+        self.tag_flags.get_mut(t).unwrap()
+    }
+
     pub fn insert(&mut self, k: Tag, v: TagFlags) {
         self.tag_flags.insert(k, v);
-        self.update_order();
     }
 
     pub fn remove(&mut self, k: &Tag) {
         self.tag_flags.remove(k);
-        self.update_order();
-    }
-
-    fn update_order(&mut self) {
-        let mut pairs = self
-            .tag_flags
-            .iter()
-            .map(|x| (x.0.clone(), x.1.clone()))
-            .collect::<Vec<_>>();
-        pairs.sort_by(|a, b| a.0.name.cmp(&b.0.name));
-        self.ordered_tag_flags = pairs;
     }
 
     pub fn len(&self) -> usize {
@@ -162,39 +127,7 @@ impl TagCharacteristics {
     pub fn is_empty(&self) -> bool {
         self.tag_flags.len() == 0
     }
-
-    pub fn ordered_tag_list(&self) -> &[(Tag, TagFlags)] {
-        &self.ordered_tag_flags
-    }
 }
-
-impl Index<usize> for TagCharacteristics {
-    type Output = (Tag, TagFlags);
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.ordered_tag_flags[index]
-    }
-}
-
-impl IndexMut<usize> for TagCharacteristics {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.ordered_tag_flags[index]
-    }
-}
-
-// impl Index<usize> for TagList {
-//     type Output = Tag;
-
-//     fn index(&self, index: usize) -> &Self::Output {
-//         &self.ordered_taglist[index]
-//     }
-// }
-
-// impl IndexMut<usize> for TagList {
-//     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-//         &mut self.ordered_taglist[index]
-//     }
-// }
 
 impl Default for TagFlags {
     fn default() -> Self {
@@ -225,13 +158,23 @@ pub enum TagModify {
 pub enum TagListModify {
     Add(Tag),
     Remove(Tag),
+    NewColor(Tag, Option<Color32>),
+}
+
+pub fn update_entity_tags(rtc: Res<TagCharacteristics>) {
+    // if rtc.is_changed() {
+    //     println!("tc has changed.");
+    // }
 }
 
 pub fn update_act_tag(
+    //Input
     mut era: EventReader<Act>,
+    //Util
     mut es: Query<(&REntity, &mut TagList), With<Selected>>,
+    //Output
     mut rmtc: ResMut<TagCharacteristics>,
-    mut db: ResMut<DockBuffer>,
+    mut ewdbm: EventWriter<DockBufferModify>,
 ) {
     for act in era.read() {
         match act {
@@ -242,23 +185,33 @@ pub fn update_act_tag(
                     .expect("REntity in selection doesn't exist in world.");
 
                 match tm {
-                    TagModify::Add(sp) => ret.1.taglist.insert(sp.clone()),
-                    TagModify::Remove(sp) => ret.1.taglist.remove(sp),
+                    TagModify::Add(sp) => {
+                        ret.1.taglist.insert(sp.clone());
+                        ewdbm.send(DockBufferModify::AddTag(ret.0.clone(), sp.clone()));
+                    }
+                    TagModify::Remove(sp) => {
+                        ret.1.taglist.remove(sp);
+                        ewdbm.send(DockBufferModify::RemoveTag(ret.0.clone(), sp.clone()));
+                    }
                     TagModify::RemoveAll => {
                         ret.1.taglist.clear();
-                        true
+                        ewdbm.send(DockBufferModify::RemoveAllTags(ret.0.clone()));
                     }
                 };
-                println!("{:?}", ret.1.taglist);
             }
             Act::ModifyTaglist(tlm) => {
                 match tlm {
                     TagListModify::Add(t) => {
                         rmtc.insert(t.clone(), TagFlags::all_none());
+                        ewdbm.send(DockBufferModify::TagListAdd(t.clone()));
                     }
                     TagListModify::Remove(t) => {
                         rmtc.remove(t);
-                        db.egui_selection.clear();
+                        ewdbm.send(DockBufferModify::TagListRemove(t.clone()));
+                    }
+                    TagListModify::NewColor(t, c32) => {
+                        let tf = rmtc.get_mut(t);
+                        tf.color = *c32;
                     }
                 };
             }
@@ -283,6 +236,9 @@ impl std::fmt::Display for TagListModify {
         let b = match self {
             TagListModify::Add(sp) => format!("Added tag to list: {}", sp.name),
             TagListModify::Remove(sp) => format!("Removed tag from list: {}", sp.name),
+            TagListModify::NewColor(t, c32) => {
+                format!("Changed tag \"{}\" color to {:?}", t.name, c32)
+            }
         };
         f.write_fmt(format_args!("{b}"))
     }
