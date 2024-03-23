@@ -14,9 +14,7 @@ impl bevy::app::Plugin for TagPlugin {
 }
 
 #[derive(Debug, Event, PartialEq, Eq, Hash, Clone)]
-pub enum RefreshStyle {
-    Color(Color32),
-}
+pub struct RefreshStyle;
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
 pub struct Tag {
@@ -168,13 +166,26 @@ pub enum TagListModify {
 }
 
 pub fn update_entity_with_tags(
+    //Input
     mut errs: EventReader<RefreshStyle>,
+    //Util
     rtc: Res<TagCharacteristics>,
-    mut a: Query<(&Mesh2dHandle, &Handle<ColorMaterial>, &mut REntity), With<REntity>>,
+    //Output
+    mut qare: Query<
+        (
+            &Mesh2dHandle,
+            &Handle<ColorMaterial>,
+            &mut REntity,
+            &TagList,
+        ),
+        With<REntity>,
+    >,
 ) {
-    for rs in errs.read() {
-        match rs {
-            RefreshStyle::Color(c) => todo!(),
+    let hm = &rtc.tag_flags;
+
+    for _ in errs.read() {
+        for (m2dh, hcm, re, tl) in qare.iter_mut() {
+            //todo
         }
     }
 
@@ -229,9 +240,7 @@ pub fn update_act_tag(
                     TagListModify::NewColor(t, c32) => {
                         let tf = rmtc.get_mut(t);
                         tf.color = *c32;
-                        if let Some(c) = c32 {
-                            ewrs.send(RefreshStyle::Color(*c));
-                        }
+                        ewrs.send(RefreshStyle);
                     }
                 };
             }
