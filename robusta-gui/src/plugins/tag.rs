@@ -1,3 +1,5 @@
+use std::borrow::Borrow;
+
 use bevy::{sprite::Mesh2dHandle, utils::hashbrown::HashSet};
 use egui::Color32;
 
@@ -50,16 +52,23 @@ impl Tag {
 
 #[derive(Debug, Component, Clone)]
 pub struct TagList {
-    pub taglist: HashSet<Tag>,
+    pub taglist: Vec<Tag>,
     // pub ordered_taglist: Vec<Tag>,
 }
 
 impl Default for TagList {
     fn default() -> Self {
-        let mut taglist = HashSet::new();
-        taglist.insert(Tag::new("Default".to_string()));
+        let taglist = vec![Tag::new("Default".to_string())];
+        // let mut taglist = HashSet::new();
+        // taglist.insert(Tag::new("Default".to_string()));
 
         Self { taglist }
+    }
+}
+
+impl TagList {
+    pub fn remove_tag(&mut self, tag: &Tag) {
+        self.taglist.retain(|x| x != tag);
     }
 }
 
@@ -165,16 +174,20 @@ pub enum TagListModify {
     NewColor(Tag, Option<Color32>),
 }
 
+#[allow(clippy::type_complexity)]
 pub fn update_entity_with_tags(
     //Input
     mut errs: EventReader<RefreshStyle>,
     //Util
     rtc: Res<TagCharacteristics>,
+    mut mesh_assets: ResMut<Assets<Mesh>>,
+    mut colorm_assets: ResMut<Assets<ColorMaterial>>,
     //Output
     mut qare: Query<
         (
-            &Mesh2dHandle,
-            &Handle<ColorMaterial>,
+            &mut Mesh2dHandle,
+            // &mut Handle<Mesh>,
+            &mut Handle<ColorMaterial>,
             &mut REntity,
             &TagList,
         ),
@@ -184,8 +197,14 @@ pub fn update_entity_with_tags(
     let hm = &rtc.tag_flags;
 
     for _ in errs.read() {
-        for (m2dh, hcm, re, tl) in qare.iter_mut() {
-            //todo
+        for (m2dh, hcm, mut re, tl) in qare.iter_mut() {
+            let a = tl.taglist.iter().rev();
+            //turn these into events.
+            //todo!()
+            //1. instead of refreshing every rentity, only apply to entities that have the tag.
+            //2. send events to update the specific entities.
+            let mut mesh = mesh_assets.get_mut(m2dh.0.id());
+            let mut colorm = colorm_assets.get_mut(hcm.id());
         }
     }
 
@@ -214,11 +233,11 @@ pub fn update_act_tag(
 
                 match tm {
                     TagModify::Add(sp) => {
-                        ret.1.taglist.insert(sp.clone());
+                        ret.1.taglist.push(sp.clone());
                         ewdbm.send(DockBufferModify::AddTag(ret.0.clone(), sp.clone()));
                     }
                     TagModify::Remove(sp) => {
-                        ret.1.taglist.remove(sp);
+                        ret.1.remove_tag(sp);
                         ewdbm.send(DockBufferModify::RemoveTag(ret.0.clone(), sp.clone()));
                     }
                     TagModify::RemoveAll => {

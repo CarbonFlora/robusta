@@ -100,14 +100,14 @@ fn update_dockbuffer(
             DockBufferModify::AddTag(rentity, tag) => {
                 for i in &mut db.inspection.selected_list {
                     if &i.0 == rentity {
-                        i.1.taglist.insert(tag.clone());
+                        i.1.taglist.push(tag.clone());
                     }
                 }
             }
             DockBufferModify::RemoveTag(rentity, tag) => {
                 for i in &mut db.inspection.selected_list {
                     if &i.0 == rentity {
-                        i.1.taglist.remove(tag);
+                        i.1.remove_tag(tag);
                     }
                 }
             }

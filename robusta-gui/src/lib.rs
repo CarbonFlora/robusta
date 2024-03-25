@@ -90,6 +90,8 @@ impl REntity {
             _ => panic!("Unwrapped a non-point using custom unwrap."),
         }
     }
+
+    // pub fn refresh_style(&mut self, $) {}
 }
 
 pub fn draw_first(ui_state: Res<UiState>, mut ewre: EventWriter<REntity>) {
