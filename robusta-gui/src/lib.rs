@@ -1,5 +1,6 @@
 use self::plugins::cameraui::Menu;
 use self::plugins::dock::DockBufferModify;
+use self::plugins::style::RefreshStyle;
 use self::plugins::{
     construction::{ConstructType, ConstructionBuffer, ConstructionInput},
     dock::DockBuffer,
@@ -20,6 +21,7 @@ use bevy_egui::EguiContext;
 use bevy_mod_picking::{events::Pointer, prelude::*, selection::Deselect};
 use bevy_window::PrimaryWindow;
 use dxf::{entities::EntityType, Drawing};
+use egui::Color32;
 use egui_dock::{DockArea, DockState, NodeIndex, Style};
 use parsedxf::{lwp_to_lines, pl_to_lines};
 use primitives::*;

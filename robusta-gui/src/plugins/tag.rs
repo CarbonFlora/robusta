@@ -1,22 +1,12 @@
-use std::borrow::Borrow;
-
-use bevy::{sprite::Mesh2dHandle, utils::hashbrown::HashSet};
-use egui::Color32;
-
 use super::*;
 
 pub struct TagPlugin;
 impl bevy::app::Plugin for TagPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(TagCharacteristics::new())
-            .add_event::<RefreshStyle>()
-            .add_systems(PreUpdate, update_act_tag)
-            .add_systems(Update, update_entity_with_tags);
+            .add_systems(PreUpdate, update_act_tag);
     }
 }
-
-#[derive(Debug, Event, PartialEq, Eq, Hash, Clone)]
-pub struct RefreshStyle;
 
 #[derive(Debug, Default, PartialEq, Eq, Hash, Clone)]
 pub struct Tag {
@@ -99,7 +89,7 @@ pub enum Flag {
 
 #[derive(Debug, Resource, Default)]
 pub struct TagCharacteristics {
-    tag_flags: HashMap<Tag, TagFlags>,
+    pub tag_flags: HashMap<Tag, TagFlags>,
 }
 
 impl TagCharacteristics {
@@ -174,45 +164,6 @@ pub enum TagListModify {
     NewColor(Tag, Option<Color32>),
 }
 
-#[allow(clippy::type_complexity)]
-pub fn update_entity_with_tags(
-    //Input
-    mut errs: EventReader<RefreshStyle>,
-    //Util
-    rtc: Res<TagCharacteristics>,
-    mut mesh_assets: ResMut<Assets<Mesh>>,
-    mut colorm_assets: ResMut<Assets<ColorMaterial>>,
-    //Output
-    mut qare: Query<
-        (
-            &mut Mesh2dHandle,
-            // &mut Handle<Mesh>,
-            &mut Handle<ColorMaterial>,
-            &mut REntity,
-            &TagList,
-        ),
-        With<REntity>,
-    >,
-) {
-    let hm = &rtc.tag_flags;
-
-    for _ in errs.read() {
-        for (m2dh, hcm, mut re, tl) in qare.iter_mut() {
-            let a = tl.taglist.iter().rev();
-            //turn these into events.
-            //todo!()
-            //1. instead of refreshing every rentity, only apply to entities that have the tag.
-            //2. send events to update the specific entities.
-            let mut mesh = mesh_assets.get_mut(m2dh.0.id());
-            let mut colorm = colorm_assets.get_mut(hcm.id());
-        }
-    }
-
-    // if rtc.is_changed() {
-    //     println!("tc has changed.");
-    // }
-}
-
 pub fn update_act_tag(
     //Input
     mut era: EventReader<Act>,
@@ -259,7 +210,7 @@ pub fn update_act_tag(
                     TagListModify::NewColor(t, c32) => {
                         let tf = rmtc.get_mut(t);
                         tf.color = *c32;
-                        ewrs.send(RefreshStyle);
+                        ewrs.send(RefreshStyle::Color);
                     }
                 };
             }

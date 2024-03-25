@@ -89,27 +89,26 @@ impl Arc {
     ) -> MaterialMesh2dBundle<ColorMaterial> {
         let lw = 0.3f32;
         MaterialMesh2dBundle {
-            mesh: me.add(arc_mesh(lw, self)).into(),
+            mesh: me.add(self.arc_mesh(lw)).into(),
             material: ma.add(ColorMaterial::from(Color::WHITE)),
             transform: Transform::from_translation(Vec3::new(0., 0., tz.top() as f32)),
             ..default()
         }
     }
-}
+    pub fn arc_mesh(&self, line_width: f32) -> Mesh {
+        let lw_half = line_width / 2.0f32;
+        let num_segments = 30u32;
+        let vertexes: Vec<[f32; 3]> = arc_vertexes(num_segments, self, lw_half);
+        let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
 
-fn arc_mesh(line_width: f32, arc: &arc::Arc) -> Mesh {
-    let lw_half = line_width / 2.0f32;
-    let num_segments = 30u32;
-    let vertexes: Vec<[f32; 3]> = arc_vertexes(num_segments, arc, lw_half);
-    let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
-
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
-    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
-    .with_inserted_indices(Indices::U32(triangle_indexes))
+        Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        )
+        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
+        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
+        .with_inserted_indices(Indices::U32(triangle_indexes))
+    }
 }
 
 fn arc_vertexes(num_segments: u32, arc: &arc::Arc, lw_half: f32) -> Vec<[f32; 3]> {

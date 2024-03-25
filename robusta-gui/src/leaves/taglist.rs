@@ -93,7 +93,7 @@ fn tag_flag_egui(
     let a = tb.ordered_tag_flags.index_mut(row_index);
     ui.horizontal_wrapped(|ui| {
         if let Some(color) = &mut a.1.color {
-            if ui.color_edit_button_srgba(color).lost_focus() {
+            if ui.color_edit_button_srgba(color).changed() {
                 ewa.send(Act::ModifyTaglist(TagListModify::NewColor(
                     a.0.clone(),
                     Some(*color),

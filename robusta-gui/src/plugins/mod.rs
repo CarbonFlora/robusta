@@ -7,14 +7,15 @@ pub mod keystroke;
 pub mod phantom;
 pub mod selection;
 pub mod snap;
+pub mod style;
 pub mod tag;
 pub mod unsorted;
 
 use self::{
     camera::RCameraPlugin, cameraui::CameraUIPlugin, construction::ConstructionPlugin,
     diagnostic::DiagnosticPlugin, dock::DockPlugin, keystroke::KeyStrokePlugin,
-    phantom::PhantomPlugin, selection::RSelectionPlugin, snap::SnapPlugin, tag::TagPlugin,
-    unsorted::UnsortedPlugin,
+    phantom::PhantomPlugin, selection::RSelectionPlugin, snap::SnapPlugin, style::StylePlugin,
+    tag::TagPlugin, unsorted::UnsortedPlugin,
 };
 
 use super::*;
@@ -36,6 +37,7 @@ impl bevy::app::PluginGroup for RCADPlugins {
         builder = builder.add(ConstructionPlugin);
         builder = builder.add(DiagnosticPlugin);
         builder = builder.add(TagPlugin);
+        builder = builder.add(StylePlugin);
 
         builder
     }
