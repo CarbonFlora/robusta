@@ -48,9 +48,10 @@ pub struct TagList {
 
 impl Default for TagList {
     fn default() -> Self {
-        let taglist = vec![Tag::new("Default".to_string())];
+        // let taglist = vec![Tag::new("Default".to_string())]; //Per the readme, no default tag to prevent human errors.
         // let mut taglist = HashSet::new();
         // taglist.insert(Tag::new("Default".to_string()));
+        let taglist = Vec::new();
 
         Self { taglist }
     }
@@ -79,6 +80,33 @@ impl TagFlags {
             }
         }
     }
+
+    pub fn color_or_default(&self) -> Color {
+        let color = self
+            .color
+            .unwrap_or_else(|| Self::default().color.unwrap())
+            .to_normalized_gamma_f32();
+        Color::rgba(color[0], color[1], color[2], color[3])
+    }
+
+    pub fn thickness_or_default(&self) -> f32 {
+        self.thickness
+            .unwrap_or_else(|| Self::default().thickness.unwrap())
+    }
+
+    pub fn toggle_color(&mut self) {
+        self.color = match self.color {
+            Some(_) => None,
+            None => Some(Color32::WHITE),
+        }
+    }
+
+    pub fn toggle_thickness(&mut self) {
+        self.thickness = match self.thickness {
+            Some(_) => None,
+            None => Some(1.),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -87,7 +115,7 @@ pub enum Flag {
     Thickness(Option<f32>),
 }
 
-#[derive(Debug, Resource, Default)]
+#[derive(Debug, Resource)]
 pub struct TagCharacteristics {
     pub tag_flags: HashMap<Tag, TagFlags>,
 }
@@ -95,7 +123,9 @@ pub struct TagCharacteristics {
 impl TagCharacteristics {
     pub fn new() -> Self {
         let mut tag_flags = HashMap::new();
-        tag_flags.insert(Tag::new("Default".to_string()), TagFlags::default());
+        tag_flags.insert(Tag::new("CAD-Default".to_string()), TagFlags::default());
+        tag_flags.insert(Tag::new("CAD-Construct".to_string()), TagFlags::construct());
+        tag_flags.insert(Tag::new("CAD-Transient".to_string()), TagFlags::transient());
 
         Self { tag_flags }
     }
@@ -135,7 +165,7 @@ impl TagCharacteristics {
 impl Default for TagFlags {
     fn default() -> Self {
         Self {
-            color: Some(egui::Color32::WHITE),
+            color: Some(egui::Color32::from_rgb(0, 120, 120)),
             thickness: Some(1.),
         }
     }
@@ -146,6 +176,20 @@ impl TagFlags {
         TagFlags {
             color: None,
             thickness: None,
+        }
+    }
+
+    pub fn construct() -> Self {
+        TagFlags {
+            color: Some(egui::Color32::from_rgb(255, 165, 0)), //orange
+            thickness: Some(TagFlags::default().thickness.unwrap() * 2.),
+        }
+    }
+
+    pub fn transient() -> Self {
+        TagFlags {
+            color: Some(egui::Color32::LIGHT_BLUE),
+            thickness: Some(TagFlags::default().thickness.unwrap() * 2.),
         }
     }
 }
@@ -196,6 +240,7 @@ pub fn update_act_tag(
                         ewdbm.send(DockBufferModify::RemoveAllTags(ret.0.clone()));
                     }
                 };
+                ewrs.send(RefreshStyle::Color);
             }
             Act::ModifyTaglist(tlm) => {
                 match tlm {
@@ -210,9 +255,9 @@ pub fn update_act_tag(
                     TagListModify::NewColor(t, c32) => {
                         let tf = rmtc.get_mut(t);
                         tf.color = *c32;
-                        ewrs.send(RefreshStyle::Color);
                     }
                 };
+                ewrs.send(RefreshStyle::Color);
             }
             _ => (),
         }

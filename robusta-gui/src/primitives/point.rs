@@ -3,23 +3,12 @@ use super::*;
 #[derive(Debug, Clone, PartialEq)]
 pub struct Point {
     pub coordinates: nalgebra::Point3<f32>,
-    pub appearance: PointAppearance,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct PointAppearance {
-    color: Color,
-    size: f32,
 }
 
 impl Point {
     pub fn new(x: f32, y: f32, z: f32) -> Self {
         Point {
             coordinates: nalgebra::Point3::new(x, y, z),
-            appearance: PointAppearance {
-                color: Color::WHITE,
-                size: 0.5f32,
-            },
         }
     }
 
@@ -47,22 +36,16 @@ impl Point {
         )
     }
 
-    pub fn set_appearance(&mut self, color: Color, size: f32) {
-        self.appearance.color = color;
-        self.appearance.size = size;
-    }
-
     pub fn mesh(
         &self,
+        tf: &TagFlags,
         me: &mut ResMut<Assets<Mesh>>,
         ma: &mut ResMut<Assets<ColorMaterial>>,
         tz: &mut TopZLayer,
     ) -> MaterialMesh2dBundle<ColorMaterial> {
         MaterialMesh2dBundle {
-            mesh: me
-                .add(bevy::math::primitives::Circle::new(self.appearance.size))
-                .into(),
-            material: ma.add(ColorMaterial::from(self.appearance.color)),
+            mesh: me.add(self.point_mesh(tf.thickness_or_default())).into(),
+            material: ma.add(ColorMaterial::from(tf.color_or_default())),
             transform: Transform::from_translation(Vec3::new(
                 self.coordinates.x,
                 self.coordinates.y,
@@ -72,14 +55,8 @@ impl Point {
         }
     }
 
-    pub fn as_snap(&self) -> Self {
-        Self {
-            coordinates: self.coordinates,
-            appearance: PointAppearance {
-                color: Color::ORANGE,
-                size: 0.2,
-            },
-        }
+    pub fn point_mesh(&self, thickness: f32) -> Mesh {
+        bevy::math::primitives::Circle::new(thickness / 2.).into()
     }
 }
 

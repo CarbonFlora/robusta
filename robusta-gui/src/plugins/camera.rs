@@ -8,8 +8,13 @@ impl bevy::app::Plugin for RCameraPlugin {
     }
 }
 
-fn camera_startup(mut co: Commands, dp: ResMut<bevy_mod_picking::debug::DebugPickingMode>) {
+fn camera_startup(
+    mut co: Commands,
+    dp: ResMut<bevy_mod_picking::debug::DebugPickingMode>,
+    hs: ResMut<bevy_mod_picking::highlight::HighlightPluginSettings>, //waiting on issue resolution
+) {
     *dp.into_inner() = bevy_mod_picking::debug::DebugPickingMode::Disabled;
+    // *hs.into_inner() = bevy_mod_picking::highlight::HighlightPluginSettings { is_enabled: false };
 
     co.spawn(Camera2dBundle::default())
         .insert((bevy_pancam::PanCam {

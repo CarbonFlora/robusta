@@ -45,33 +45,33 @@ impl Circle {
 
     pub fn mesh(
         &self,
+        tf: &TagFlags,
         me: &mut ResMut<Assets<Mesh>>,
         ma: &mut ResMut<Assets<ColorMaterial>>,
         tz: &mut TopZLayer,
     ) -> MaterialMesh2dBundle<ColorMaterial> {
-        let lw = 0.3f32;
         MaterialMesh2dBundle {
-            mesh: me.add(circle_mesh(lw, self)).into(),
-            material: ma.add(ColorMaterial::from(Color::WHITE)),
+            mesh: me.add(self.circle_mesh(tf.thickness_or_default())).into(),
+            material: ma.add(ColorMaterial::from(tf.color_or_default())),
             transform: Transform::from_translation(Vec3::new(0., 0., tz.top() as f32)),
             ..default()
         }
     }
-}
 
-fn circle_mesh(line_width: f32, circle: &circle::Circle) -> Mesh {
-    let lw_half = line_width / 2.0f32;
-    let num_segments = 30u32;
-    let vertexes: Vec<[f32; 3]> = circle_vertexes(num_segments, circle, lw_half);
-    let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
+    pub fn circle_mesh(&self, line_width: f32) -> Mesh {
+        let lw_half = line_width / 2.0f32;
+        let num_segments = 30u32;
+        let vertexes: Vec<[f32; 3]> = circle_vertexes(num_segments, self, lw_half);
+        let triangle_indexes: Vec<u32> = arc_indexes(num_segments);
 
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
-    .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
-    .with_inserted_indices(Indices::U32(triangle_indexes))
+        Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        )
+        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, vec![[0., 0., 1.]; vertexes.len()])
+        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, vertexes)
+        .with_inserted_indices(Indices::U32(triangle_indexes))
+    }
 }
 
 fn arc_indexes(num_segments: u32) -> Vec<u32> {

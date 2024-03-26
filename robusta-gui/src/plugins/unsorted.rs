@@ -1,5 +1,9 @@
 use self::{
-    phantom::RPhantomStatic, point::Point, selection::PickableSelectionBundle, snap::SnapBundle,
+    phantom::RPhantomStatic,
+    point::Point,
+    selection::PickableSelectionBundle,
+    snap::SnapBundle,
+    tag::{TagCharacteristics, TagFlags},
 };
 
 use super::*;
@@ -20,47 +24,59 @@ pub fn update_spawn_rentities(
     //Input
     mut erre: EventReader<REntity>,
     //Util
+    mut rtc: ResMut<TagCharacteristics>,
     mut me: ResMut<Assets<Mesh>>,
     mut ma: ResMut<Assets<ColorMaterial>>,
     mut tz: ResMut<TopZLayer>,
     //Output
     mut co: Commands,
 ) {
+    let an = TagFlags::all_none();
+    let cn = rtc
+        .get(&Tag {
+            name: "CAD-Construct".to_string(),
+        })
+        .clone();
+    let pn = rtc
+        .get(&Tag {
+            name: "CAD-Transient".to_string(),
+        })
+        .clone();
+
     for re in erre.read() {
         match re {
             REntity::Arc(sp) => {
                 co.spawn((
                     REntity::Arc(sp.clone()),
-                    sp.mesh(&mut me, &mut ma, &mut tz),
+                    sp.mesh(&an, &mut me, &mut ma, &mut tz),
                     PickableSelectionBundle::default(),
                 ));
             }
             REntity::Circle(sp) => {
                 co.spawn((
                     REntity::Circle(sp.clone()),
-                    sp.mesh(&mut me, &mut ma, &mut tz),
+                    sp.mesh(&an, &mut me, &mut ma, &mut tz),
                     PickableSelectionBundle::default(),
                 ));
             }
             REntity::Line(sp) => {
                 co.spawn((
                     REntity::Line(sp.clone()),
-                    sp.mesh(&mut me, &mut ma, &mut tz),
+                    sp.mesh(&an, &mut me, &mut ma, &mut tz),
                     PickableSelectionBundle::default(),
                 ));
             }
             REntity::Point(sp) => {
                 co.spawn((
                     REntity::Point(sp.clone()),
-                    sp.mesh(&mut me, &mut ma, &mut tz),
+                    sp.mesh(&an, &mut me, &mut ma, &mut tz),
                     PickableSelectionBundle::default(),
                 ));
             }
             REntity::Text(sp) => {
                 co.spawn((
                     REntity::Text(sp.clone()),
-                    sp.mesh(&mut me, &mut ma, &mut tz),
-                    // sp.text_mesh(&mut tz),
+                    sp.mesh(&cn, &mut me, &mut ma, &mut tz),
                     PickableSelectionBundle::default(),
                 ))
                 .with_children(|builder| {
@@ -70,21 +86,21 @@ pub fn update_spawn_rentities(
             REntity::PhantomPoint => {
                 co.spawn((
                     REntity::Point(Point::new(0., 0., 0.)),
-                    Point::new(0., 0., 0.).mesh(&mut me, &mut ma, &mut tz),
+                    Point::new(0., 0., 0.).mesh(&pn, &mut me, &mut ma, &mut tz),
                     RPhantomPointer,
                 ));
             }
             REntity::SnapPoint(sp) => {
                 co.spawn((
                     REntity::Point(sp.clone()),
-                    sp.mesh(&mut me, &mut ma, &mut tz),
+                    sp.mesh(&cn, &mut me, &mut ma, &mut tz),
                     SnapBundle::default(),
                 ));
             }
             REntity::PhantomStatic(sp) => {
                 co.spawn((
                     REntity::Point(sp.clone()),
-                    sp.mesh(&mut me, &mut ma, &mut tz),
+                    sp.mesh(&pn, &mut me, &mut ma, &mut tz),
                     RPhantomStatic,
                 ));
             }

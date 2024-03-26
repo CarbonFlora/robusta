@@ -92,3 +92,24 @@ In addition to the constraint system, have it so arcs and lines must be between 
 - Impliment a fuzzy-finder to the RTerm and its dictionary.
 - Icons to the constraints on the ribbon.
 - Similar to how helix/vim gives context clues on what mode you are in, give clues to what you are doing. Might be a good design philosophy where you are able to determine what is going on based on a screenshot alone.
+
+## Alignment of Text
+Horizontal:
+    Left, snap point is SW corner
+    Center, snap point is S middle
+    Right, snap point is SE corner
+    Aligned, no movement, it's two points to define the text? basically, convert to "left"
+    Middle, snap point is in the exact middle of horizontal and vertical
+    Fit, same as aligned, but slightly different.
+
+Vertical:
+    Baseline, this takes into account the font passsing through the x-axis. It's most common.
+    Bottom,
+    Middle,
+    Top,
+
+## Tag Behavior
+Undefined behavior like an entity without any tags (including Default), should prevent the CAD from compiling. This is to prevent human errors from plaguing the design file. 
+
+A compiling design file must possess the following:
+1. No untagged entities.

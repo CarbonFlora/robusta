@@ -64,7 +64,7 @@ fn spawn_shared_snap_points(
     res: &Query<&REntity, With<Selected>>,
     ewre: &mut EventWriter<REntity>,
 ) {
-    //Implement intersection functions
+    //Implement intersection functions (use aabb of entities for wide-phase collision detection, use REntity for narrow.)
     // point x line
     // line x line
     // line x arc
@@ -92,7 +92,7 @@ fn spawn_simple_snap_points(
             REntity::PhantomStatic(_) => (),
         }
     }
-    ewre.send_batch(vp.iter().map(|p| REntity::SnapPoint(p.as_snap())));
+    ewre.send_batch(vp.iter().map(|p| REntity::SnapPoint(p.clone())));
 }
 
 fn arc_snaps(sp: &arc::Arc, ss: &SnapSettings, vp: &mut Vec<point::Point>) {

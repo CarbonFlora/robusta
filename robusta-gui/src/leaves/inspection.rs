@@ -144,6 +144,7 @@ fn act_deliver(
     }
 
     ewa.send_batch(ewa_packages);
+    // ewrs.send(RefreshStyle::Color);
     string_buffer.clear();
     editing_tags.clear();
 }

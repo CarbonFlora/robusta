@@ -91,7 +91,19 @@ fn tag_flag_egui(
     ewa: &mut EventWriter<Act>,
 ) {
     let a = tb.ordered_tag_flags.index_mut(row_index);
+
     ui.horizontal_wrapped(|ui| {
+        ui.menu_button("⛭", |ui| {
+            ui.horizontal(|ui_collapse| {
+                if ui_collapse.button("🎨").clicked() {
+                    a.1.toggle_color();
+                }
+                if ui_collapse.button("🇦").clicked() {
+                    a.1.toggle_thickness();
+                }
+            });
+        });
+
         if let Some(color) = &mut a.1.color {
             if ui.color_edit_button_srgba(color).changed() {
                 ewa.send(Act::ModifyTaglist(TagListModify::NewColor(
@@ -99,6 +111,15 @@ fn tag_flag_egui(
                     Some(*color),
                 )));
             };
+        }
+        if let Some(thickness) = &mut a.1.thickness {
+            ui.label(format!("Thickness: {}", thickness));
+            // if ui.color_edit_button_srgba(color).changed() {
+            //     ewa.send(Act::ModifyTaglist(TagListModify::NewColor(
+            //         a.0.clone(),
+            //         Some(*color),
+            //     )));
+            // };
         }
     });
 }

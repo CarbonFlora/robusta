@@ -136,8 +136,7 @@ pub fn index_point(
     };
     let xyz = re.unwrap_point().coordinates;
     let coords = Vec3::new(xyz.x, xyz.y, xyz.z);
-    let mut point = Point::new(coords.x, coords.y, coords.z);
-    point.set_appearance(Color::FUCHSIA, 0.4);
+    let point = Point::new(coords.x, coords.y, coords.z);
     ewre.send(REntity::PhantomStatic(point));
     ewci.send(ConstructionInput { coords });
 }

@@ -14,7 +14,7 @@ rust-version.workspace = true
 [dependencies]
 regex = "1.10.3"
 bevy = { version = "0.13.0", features = [
-    "dynamic_linking",
+    "dynamic_linking", "wayland"
 ] } #todo!() when releasing officially, remove dynamic linking.
 bevy_window = { version = "0.13.0", features = ["serialize"] }
 bevy_asset = { version = "0.13.0", features = ["multi-threaded"] }

@@ -1,3 +1,5 @@
+use self::plugins::tag::TagFlags;
+
 use super::*;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -83,18 +85,19 @@ impl Arc {
 
     pub fn mesh(
         &self,
+        tf: &TagFlags,
         me: &mut ResMut<Assets<Mesh>>,
         ma: &mut ResMut<Assets<ColorMaterial>>,
         tz: &mut TopZLayer,
     ) -> MaterialMesh2dBundle<ColorMaterial> {
-        let lw = 0.3f32;
         MaterialMesh2dBundle {
-            mesh: me.add(self.arc_mesh(lw)).into(),
-            material: ma.add(ColorMaterial::from(Color::WHITE)),
+            mesh: me.add(self.arc_mesh(tf.thickness_or_default())).into(),
+            material: ma.add(ColorMaterial::from(tf.color_or_default())),
             transform: Transform::from_translation(Vec3::new(0., 0., tz.top() as f32)),
             ..default()
         }
     }
+
     pub fn arc_mesh(&self, line_width: f32) -> Mesh {
         let lw_half = line_width / 2.0f32;
         let num_segments = 30u32;

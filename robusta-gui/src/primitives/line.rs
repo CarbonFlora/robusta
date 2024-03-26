@@ -65,15 +65,14 @@ impl Line {
 
     pub fn mesh(
         &self,
+        tf: &TagFlags,
         me: &mut ResMut<Assets<Mesh>>,
         ma: &mut ResMut<Assets<ColorMaterial>>,
         tz: &mut TopZLayer,
     ) -> MaterialMesh2dBundle<ColorMaterial> {
-        let lw = 0.3f32;
-        let spec = self.specifications();
         MaterialMesh2dBundle {
-            mesh: me.add(line_mesh(lw, spec.length, spec.h_angle)).into(),
-            material: ma.add(ColorMaterial::from(Color::WHITE)),
+            mesh: me.add(self.line_mesh(tf.thickness_or_default())).into(),
+            material: ma.add(ColorMaterial::from(tf.color_or_default())),
             transform: Transform::from_translation(Vec3::new(
                 self.definition[0].coordinates.x,
                 self.definition[0].coordinates.y,
@@ -82,41 +81,44 @@ impl Line {
             ..default()
         }
     }
-}
 
-fn line_mesh(line_width: f32, length: f32, angle_rad: f32) -> Mesh {
-    let lw_half = line_width / 2.0f32;
-    Mesh::new(
-        PrimitiveTopology::TriangleList,
-        RenderAssetUsages::default(),
-    )
-    .with_inserted_attribute(
-        Mesh::ATTRIBUTE_POSITION,
-        vec![
-            [-lw_half * angle_rad.sin(), lw_half * angle_rad.cos(), 0.0],
-            [lw_half * angle_rad.sin(), -lw_half * angle_rad.cos(), 0.0],
-            [
-                length * angle_rad.cos() + lw_half * angle_rad.sin(),
-                length * angle_rad.sin() - lw_half * angle_rad.cos(),
-                0.0,
+    pub fn line_mesh(&self, line_width: f32) -> Mesh {
+        let lw_half = line_width / 2.0f32;
+        let spec = self.specifications();
+        let length = spec.length;
+        let angle_rad = spec.h_angle;
+        Mesh::new(
+            PrimitiveTopology::TriangleList,
+            RenderAssetUsages::default(),
+        )
+        .with_inserted_attribute(
+            Mesh::ATTRIBUTE_POSITION,
+            vec![
+                [-lw_half * angle_rad.sin(), lw_half * angle_rad.cos(), 0.0],
+                [lw_half * angle_rad.sin(), -lw_half * angle_rad.cos(), 0.0],
+                [
+                    length * angle_rad.cos() + lw_half * angle_rad.sin(),
+                    length * angle_rad.sin() - lw_half * angle_rad.cos(),
+                    0.0,
+                ],
+                [
+                    length * angle_rad.cos() - lw_half * angle_rad.sin(),
+                    length * angle_rad.sin() + lw_half * angle_rad.cos(),
+                    0.0,
+                ],
             ],
-            [
-                length * angle_rad.cos() - lw_half * angle_rad.sin(),
-                length * angle_rad.sin() + lw_half * angle_rad.cos(),
-                0.0,
+        )
+        .with_inserted_attribute(
+            Mesh::ATTRIBUTE_NORMAL,
+            vec![
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
+                [0.0, 0.0, 1.0],
             ],
-        ],
-    )
-    .with_inserted_attribute(
-        Mesh::ATTRIBUTE_NORMAL,
-        vec![
-            [0.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0],
-            [0.0, 0.0, 1.0],
-        ],
-    )
-    .with_inserted_indices(Indices::U32(vec![0, 3, 1, 1, 3, 2]))
+        )
+        .with_inserted_indices(Indices::U32(vec![0, 3, 1, 1, 3, 2]))
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]

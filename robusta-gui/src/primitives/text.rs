@@ -78,15 +78,19 @@ impl Text {
 
     pub fn mesh(
         &self,
+        tf: &TagFlags,
         me: &mut ResMut<Assets<Mesh>>,
         ma: &mut ResMut<Assets<ColorMaterial>>,
         tz: &mut TopZLayer,
     ) -> MaterialMesh2dBundle<ColorMaterial> {
         MaterialMesh2dBundle {
             mesh: me
-                .add(bevy::math::primitives::Rectangle::new(0.5, 0.5))
+                .add(bevy::math::primitives::Rectangle::new(
+                    tf.thickness_or_default(),
+                    tf.thickness_or_default(),
+                ))
                 .into(),
-            material: ma.add(ColorMaterial::from(Color::CYAN)),
+            material: ma.add(ColorMaterial::from(tf.color_or_default())),
             transform: Transform::from_translation(Vec3::new(
                 self.bud_position.coordinates.x,
                 self.bud_position.coordinates.y,

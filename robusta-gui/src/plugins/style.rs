@@ -28,19 +28,19 @@ pub fn update_rentity_color(
     //Output
     mut qare: Query<(&mut Handle<ColorMaterial>, &TagList), With<REntity>>,
 ) {
-    for _ in errs.read().filter(|x| x == &&RefreshStyle::Color) {
+    if errs
+        .read()
+        .filter(|x| x == &&RefreshStyle::Color)
+        .next()
+        .is_some()
+    {
         for (hcm, tl) in qare.iter_mut() {
             let colorm = match colorm_assets.get_mut(hcm.id()) {
                 Some(a) => a,
                 None => return,
             };
             if let Some(first_match) = tl.taglist.iter().find(|x| rtc.get(x).color.is_some()) {
-                let color = rtc
-                    .get(first_match)
-                    .color
-                    .unwrap()
-                    .to_normalized_gamma_f32();
-                colorm.color = Color::rgba(color[0], color[1], color[2], color[3]);
+                colorm.color = rtc.get(first_match).color_or_default();
             }
         }
     }
@@ -56,15 +56,20 @@ pub fn update_rentity_thickness(
     //Output
     mut qare: Query<(&mut Mesh2dHandle, &TagList, &REntity), With<REntity>>,
 ) {
-    for _ in errs.read().filter(|x| x == &&RefreshStyle::Thickness) {
+    if errs
+        .read()
+        .filter(|x| x == &&RefreshStyle::Thickness)
+        .next()
+        .is_some()
+    {
         for (hcm, tl, re) in qare.iter_mut() {
             if let Some(first_match) = tl.taglist.iter().find(|x| rtc.get(x).thickness.is_some()) {
                 let thickness = rtc.get(first_match).thickness.unwrap();
                 let mesh = match re {
                     REntity::Arc(sp) => sp.arc_mesh(thickness),
-                    REntity::Circle(sp) => todo!(),
-                    REntity::Line(_) => todo!(),
-                    REntity::Point(_) => todo!(),
+                    REntity::Circle(sp) => sp.circle_mesh(thickness),
+                    REntity::Line(sp) => sp.line_mesh(thickness),
+                    REntity::Point(sp) => sp.point_mesh(thickness),
                     REntity::Text(_) => todo!(),
                     REntity::PhantomPoint => todo!(),
                     REntity::PhantomStatic(_) => todo!(),
