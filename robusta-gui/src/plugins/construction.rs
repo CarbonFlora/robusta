@@ -1,4 +1,4 @@
-use self::{line::Line, phantom::PhantomAct, point::Point, snap::UpdateSnapPoints};
+use self::{arc::Arc, line::Line, phantom::PhantomAct, point::Point, snap::UpdateSnapPoints};
 
 use super::*;
 
@@ -46,7 +46,7 @@ pub struct RConstructionEntity;
 
 #[derive(Debug, Event, Clone, Copy, PartialEq)]
 pub enum ConstructType {
-    Arc,
+    ArcByEndEndMid,
     Circle,
     LineBy2Click,
     PointBy1Click,
@@ -89,15 +89,23 @@ fn update_construction(
         .as_ref()
         .expect("Encountered construction with no build criteria.")
     {
-        ConstructType::Arc => todo!(),
+        ConstructType::ArcByEndEndMid => {
+            if rmcb.buf.len() == 3 {
+                Some(REntity::Arc(Arc::new([
+                    rmcb.buf[0].coords.into(),
+                    rmcb.buf[1].coords.into(),
+                    rmcb.buf[2].coords.into(),
+                ])))
+            } else {
+                None
+            }
+        }
         ConstructType::Circle => todo!(),
         ConstructType::LineBy2Click => {
             if rmcb.buf.len() == 2 {
-                let pt1 = rmcb.buf[0].coords;
-                let pt2 = rmcb.buf[1].coords;
                 Some(REntity::Line(Line::new([
-                    Point::new(pt1.x, pt1.y, pt1.z),
-                    Point::new(pt2.x, pt2.y, pt2.z),
+                    rmcb.buf[0].coords.into(),
+                    rmcb.buf[0].coords.into(),
                 ])))
             } else {
                 None
@@ -105,8 +113,7 @@ fn update_construction(
         }
         ConstructType::PointBy1Click => {
             if rmcb.buf.len() == 1 {
-                let pt1 = rmcb.buf[0].coords;
-                Some(REntity::Point(Point::new(pt1.x, pt1.y, pt1.z)))
+                Some(REntity::Point(rmcb.buf[0].coords.into()))
             } else {
                 None
             }
@@ -124,7 +131,7 @@ fn update_construction(
 impl std::fmt::Display for ConstructType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let a = match self {
-            ConstructType::Arc => "Arc",
+            ConstructType::ArcByEndEndMid => "Arc",
             ConstructType::Circle => "Circle",
             ConstructType::LineBy2Click => "Line by 2 points",
             ConstructType::PointBy1Click => "Point by 1 click.",

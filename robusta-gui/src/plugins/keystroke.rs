@@ -122,7 +122,7 @@ fn insert_act(buffer: [Option<KeyCode>; 2]) -> Act {
         [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::KeyP)] => Act::Insert(ConstructType::PointBy1Click),
         [None, Some(KeyCode::KeyL)] => Act::Insert(ConstructType::LineBy2Click),
-        [None, Some(KeyCode::KeyA)] => Act::Insert(ConstructType::Arc),
+        [None, Some(KeyCode::KeyA)] => Act::Insert(ConstructType::ArcByEndEndMid),
         [None, Some(KeyCode::KeyC)] => Act::Insert(ConstructType::Circle),
         [None, Some(KeyCode::KeyT)] => Act::Insert(ConstructType::Text),
         [_, Some(KeyCode::Insert)] => Act::Confirm,

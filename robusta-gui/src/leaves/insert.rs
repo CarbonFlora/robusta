@@ -19,7 +19,7 @@ pub fn update_insert_egui(
             ui.horizontal(|ui| {
                 construct_type_button(ui, aw, ConstructType::PointBy1Click);
                 construct_type_button(ui, aw, ConstructType::LineBy2Click);
-                construct_type_button(ui, aw, ConstructType::Arc);
+                construct_type_button(ui, aw, ConstructType::ArcByEndEndMid);
                 construct_type_button(ui, aw, ConstructType::Circle);
                 construct_type_button(ui, aw, ConstructType::Text);
             });
