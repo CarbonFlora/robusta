@@ -1,6 +1,10 @@
 use self::{
     keystroke::ModalResources,
-    leaves::{history::HistoryBuffer, inspection::InspectionBuffer, taglist::TaglistBuffer},
+    leaves::{
+        history::HistoryBuffer,
+        inspection::InspectionBuffer,
+        taglist::{view_taglist, TaglistBuffer},
+    },
     tag::TagFlags,
 };
 
@@ -61,16 +65,29 @@ fn spawn_window(mut co: Commands) {
 
 #[allow(clippy::too_many_arguments)]
 fn update_dock(
-    act_write: EventWriter<Act>,
+    //Util
     mut ewm: ResMut<ModalResources>,
     mut ui_state: ResMut<UiState>,
     ss: Res<SnapSettings>,
-    qec: Query<&mut EguiContext, With<CADPanel>>,
+    mut qec: Query<&mut EguiContext, With<CADPanel>>,
     mut db: ResMut<DockBuffer>,
+    //Output
+    act_write: EventWriter<Act>,
 ) {
-    if let Ok(mut w) = qec.get_single().cloned() {
-        ui_state.ui(w.get_mut(), act_write, &mut ewm, &mut db, &ss);
-    }
+    let ctx = match qec.get_single_mut() {
+        Ok(mut w) => w.get_mut(),
+        Err(_) => todo!(),
+    };
+
+    let mut tab_viewer = TabViewer {
+        act_write: act_write,
+        ewm,
+        db: dock_buffer,
+        ss,
+    };
+    DockArea::new(&mut this.dock_state)
+        .style(Style::from_egui(ctx.style().as_ref()))
+        .show(ctx, &mut tab_viewer);
 }
 
 ///This updates the dockbuffer with what is actually true in Resources.
@@ -164,3 +181,76 @@ fn update_dockbuffer(
 //         }
 //     }
 // }
+#[derive(Component, Default)]
+pub struct CADPanel {}
+
+/// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
+struct TabViewer<'a> {
+    act_write: EventWriter<'a, Act>,
+    ewm: &'a mut ModalResources,
+    ss: &'a SnapSettings,
+    db: &'a mut DockBuffer,
+}
+
+impl egui_dock::TabViewer for TabViewer<'_> {
+    type Tab = EguiWindow;
+
+    fn ui(&mut self, ui: &mut egui_dock::egui::Ui, window: &mut Self::Tab) {
+        // let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
+        // let type_registry = type_registry.read();
+
+        match window {
+            EguiWindow::Empty => (),
+            EguiWindow::History => view_history(ui, &self.db.history),
+            EguiWindow::Points => (),
+            EguiWindow::Inspect => view_inspection(
+                ui,
+                &mut self.db.inspection,
+                self.ewm,
+                &mut self.act_write,
+                // &mut self.ewdbm,
+            ),
+            EguiWindow::StateRibbon => view_stateribbon(ui, self.ss),
+            EguiWindow::Taglist => {
+                view_taglist(ui, &mut self.db.taglist, self.ewm, &mut self.act_write)
+            }
+        }
+    }
+
+    fn title(&mut self, window: &mut Self::Tab) -> egui_dock::egui::WidgetText {
+        format!("{window:?}").into()
+    }
+
+    fn clear_background(&self, _window: &Self::Tab) -> bool {
+        true
+    }
+}
+
+fn view_stateribbon(ui: &mut egui::Ui, ss: &SnapSettings) {
+    ui.label(format!("{:?}", ss));
+}
+
+#[derive(Debug, Resource)]
+pub struct RDockState {
+    pub dock_state: DockState<EguiWindow>,
+}
+
+impl RDockState {
+    pub fn default_preset() -> Self {
+        let mut dock_state = DockState::new(vec![EguiWindow::History, EguiWindow::Taglist]);
+        let tree = dock_state.main_surface_mut();
+        let [old, _new] = tree.split_above(NodeIndex::root(), 0.1, vec![EguiWindow::StateRibbon]);
+        let [_old, _new] =
+            tree.split_left(old, 0.22, vec![EguiWindow::Inspect, EguiWindow::Points]);
+
+        Self { dock_state }
+    }
+
+    pub fn new_focus(&mut self, ew: &EguiWindow) {
+        if let Some(b) = self.dock_state.find_tab(ew) {
+            self.dock_state.set_active_tab(b);
+        } else {
+            self.dock_state.add_window(vec![ew.clone()]);
+        }
+    }
+}

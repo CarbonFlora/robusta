@@ -162,6 +162,12 @@ impl TagCharacteristics {
     }
 }
 
+impl Default for TagCharacteristics {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Default for TagFlags {
     fn default() -> Self {
         Self {

@@ -1,3 +1,5 @@
+use self::dock::CADPanel;
+
 use super::*;
 
 pub struct RCameraPlugin;

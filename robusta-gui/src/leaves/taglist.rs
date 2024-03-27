@@ -4,17 +4,23 @@ use egui_extras::{Column, TableBuilder};
 
 use self::plugins::{
     keystroke::ModalResources,
-    tag::{Tag, TagFlags, TagListModify},
+    tag::{Tag, TagCharacteristics, TagFlags, TagListModify},
 };
 
 use super::*;
+
+type Selected = bool;
 
 #[derive(Debug, Resource, Clone)]
 pub struct TaglistBuffer {
     pub ordered_tag_flags: Vec<(Tag, TagFlags, Selected)>,
 }
 
-type Selected = bool;
+// impl TaglistBuffer {
+//     pub fn refresh(&mut self, tc: &TagCharacteristics) {
+
+//     }
+// }
 
 impl Default for TaglistBuffer {
     fn default() -> Self {

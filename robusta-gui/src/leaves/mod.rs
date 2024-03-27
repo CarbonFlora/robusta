@@ -8,3 +8,5 @@ pub mod keystrokes;
 pub mod snap;
 pub mod taglist;
 pub mod term;
+
+pub trait LeafBuffer {}

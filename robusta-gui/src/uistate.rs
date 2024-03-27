@@ -10,7 +10,6 @@ type LoadedFiles = HashMap<Option<String>, InterchangeFormat>;
 #[derive(Resource)]
 pub struct UiState {
     pub loaded_files: LoadedFiles,
-    pub dock_state: DockState<EguiWindow>,
 }
 
 /// This is all available tabs to be accessed.
@@ -98,37 +97,28 @@ impl UiState {
     pub fn new(path: &Option<String>) -> Self {
         Self {
             loaded_files: load_files(path),
-            dock_state: ribbon_cadpanel(),
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
-    pub fn ui(
-        &mut self,
-        ctx: &mut egui::Context,
-        act_write: EventWriter<Act>,
-        ewm: &mut ModalResources,
-        dock_buffer: &mut DockBuffer,
-        ss: &SnapSettings,
-    ) {
-        let mut tab_viewer = TabViewer {
-            act_write,
-            ewm,
-            db: dock_buffer,
-            ss,
-        };
-        DockArea::new(&mut self.dock_state)
-            .style(Style::from_egui(ctx.style().as_ref()))
-            .show(ctx, &mut tab_viewer);
-    }
-
-    pub fn new_focus(&mut self, ew: &EguiWindow) {
-        if let Some(b) = self.dock_state.find_tab(ew) {
-            self.dock_state.set_active_tab(b);
-        } else {
-            self.dock_state.add_window(vec![ew.clone()]);
-        }
-    }
+    // #[allow(clippy::too_many_arguments)]
+    // pub fn ui(
+    //     &mut self,
+    //     ctx: &mut egui::Context,
+    //     act_write: EventWriter<Act>,
+    //     ewm: &mut ModalResources,
+    //     dock_buffer: &mut DockBuffer,
+    //     ss: &SnapSettings,
+    // ) {
+    //     let mut tab_viewer = TabViewer {
+    //         act_write,
+    //         ewm,
+    //         db: dock_buffer,
+    //         ss,
+    //     };
+    //     DockArea::new(&mut self.dock_state)
+    //         .style(Style::from_egui(ctx.style().as_ref()))
+    //         .show(ctx, &mut tab_viewer);
+    // }
 
     pub fn close_all(
         &mut self,
@@ -200,25 +190,6 @@ impl UiState {
     }
 }
 
-fn ribbon_cadpanel() -> DockState<EguiWindow> {
-    let mut state = DockState::new(vec![EguiWindow::History, EguiWindow::Taglist]);
-    let tree = state.main_surface_mut();
-    let [old, _new] = tree.split_above(NodeIndex::root(), 0.1, vec![EguiWindow::StateRibbon]);
-    let [_old, _new] = tree.split_left(old, 0.22, vec![EguiWindow::Inspect, EguiWindow::Points]);
-
-    state
-}
-
-fn _debug_cadpanel() -> DockState<EguiWindow> {
-    let mut state = DockState::new(vec![EguiWindow::Empty]);
-    let tree = state.main_surface_mut();
-    let [game, _inspector] = tree.split_right(NodeIndex::root(), 0.75, vec![EguiWindow::Inspect]);
-    let [game, _points] = tree.split_left(game, 0.2, vec![EguiWindow::Points]);
-    let [_game, _bottom] = tree.split_below(game, 0.8, vec![EguiWindow::Empty]);
-
-    state
-}
-
 fn load_files(path: &Option<String>) -> HashMap<Option<String>, InterchangeFormat> {
     let loaded_file = parse_dxf(path);
     let mut loaded_files = HashMap::new();
@@ -246,53 +217,4 @@ pub fn new_dxf() -> Drawing {
 
 pub enum InterchangeFormat {
     DXF(Drawing),
-}
-
-#[derive(Component, Default)]
-pub struct CADPanel {}
-
-/// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
-struct TabViewer<'a> {
-    act_write: EventWriter<'a, Act>,
-    ewm: &'a mut ModalResources,
-    ss: &'a SnapSettings,
-    db: &'a mut DockBuffer,
-}
-
-impl egui_dock::TabViewer for TabViewer<'_> {
-    type Tab = EguiWindow;
-
-    fn ui(&mut self, ui: &mut egui_dock::egui::Ui, window: &mut Self::Tab) {
-        // let type_registry = self.world.resource::<AppTypeRegistry>().0.clone();
-        // let type_registry = type_registry.read();
-
-        match window {
-            EguiWindow::Empty => (),
-            EguiWindow::History => view_history(ui, &self.db.history),
-            EguiWindow::Points => (),
-            EguiWindow::Inspect => view_inspection(
-                ui,
-                &mut self.db.inspection,
-                self.ewm,
-                &mut self.act_write,
-                // &mut self.ewdbm,
-            ),
-            EguiWindow::StateRibbon => view_stateribbon(ui, self.ss),
-            EguiWindow::Taglist => {
-                view_taglist(ui, &mut self.db.taglist, self.ewm, &mut self.act_write)
-            }
-        }
-    }
-
-    fn title(&mut self, window: &mut Self::Tab) -> egui_dock::egui::WidgetText {
-        format!("{window:?}").into()
-    }
-
-    fn clear_background(&self, _window: &Self::Tab) -> bool {
-        true
-    }
-}
-
-fn view_stateribbon(ui: &mut egui::Ui, ss: &SnapSettings) {
-    ui.label(format!("{:?}", ss));
 }

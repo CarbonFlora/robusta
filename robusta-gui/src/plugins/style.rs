@@ -28,12 +28,7 @@ pub fn update_rentity_color(
     //Output
     mut qare: Query<(&mut Handle<ColorMaterial>, &TagList), With<REntity>>,
 ) {
-    if errs
-        .read()
-        .filter(|x| x == &&RefreshStyle::Color)
-        .next()
-        .is_some()
-    {
+    if errs.read().any(|x| x == &RefreshStyle::Color) {
         for (hcm, tl) in qare.iter_mut() {
             let colorm = match colorm_assets.get_mut(hcm.id()) {
                 Some(a) => a,
@@ -56,12 +51,7 @@ pub fn update_rentity_thickness(
     //Output
     mut qare: Query<(&mut Mesh2dHandle, &TagList, &REntity), With<REntity>>,
 ) {
-    if errs
-        .read()
-        .filter(|x| x == &&RefreshStyle::Thickness)
-        .next()
-        .is_some()
-    {
+    if errs.read().any(|x| x == &RefreshStyle::Thickness) {
         for (hcm, tl, re) in qare.iter_mut() {
             if let Some(first_match) = tl.taglist.iter().find(|x| rtc.get(x).thickness.is_some()) {
                 let thickness = rtc.get(first_match).thickness.unwrap();
