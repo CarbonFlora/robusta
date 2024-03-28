@@ -1,4 +1,4 @@
-use self::{arc::Arc, line::Line, phantom::PhantomAct, point::Point, snap::UpdateSnapPoints};
+use self::{arc::Arc, line::Line, phantom::PhantomAct, snap::UpdateSnapPoints};
 
 use super::*;
 

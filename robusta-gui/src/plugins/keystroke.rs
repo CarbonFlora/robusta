@@ -8,7 +8,7 @@ use super::*;
 pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(KeyState::default())
+        app.insert_resource(ModeState::default())
             .add_event::<Mode>()
             .add_systems(PreUpdate, capture_keystrokes)
             .add_systems(Update, update_mode);
@@ -16,7 +16,7 @@ impl bevy::app::Plugin for KeyStrokePlugin {
 }
 
 #[derive(Debug, Resource, Default, PartialEq, Clone)]
-pub struct KeyState(pub Mode);
+pub struct ModeState(pub Mode);
 
 #[derive(Debug, Event, Default, PartialEq, Clone)]
 pub enum Mode {
@@ -27,21 +27,23 @@ pub enum Mode {
     Snap,
 }
 
-fn update_mode(mut erm: EventReader<Menu>, mut rmkm: ResMut<KeyState>) {
-    for a in erm.read() {
-        // rmkm.
-        // rmkm.into_inner() = match a {
-        //     Menu::NoMenu => &mut KeybindMode::Normal,
-        //     Menu::CadTerm(_) => &mut KeybindMode::Typing,
-        //     Menu::InsertMenu(_) => &mut KeybindMode::Insert,
-        //     Menu::SnapMenu(_) => &mut KeybindMode::Snap,
-        // };
+fn update_mode(mut erm: EventReader<Menu>, rmkm: ResMut<ModeState>) {
+    let a = match erm.read().last() {
+        Some(sp) => sp,
+        None => return,
+    };
+
+    rmkm.into_inner().0 = match a {
+        Menu::NoMenu => Mode::Normal,
+        Menu::CadTerm(_) => Mode::Typing,
+        Menu::InsertMenu(_) => Mode::Insert,
+        Menu::SnapMenu(_) => Mode::Snap,
     }
 }
 
 pub fn capture_keystrokes(
     // ui_state: Res<UiState>,
-    mr: Res<KeyState>,
+    mr: Res<ModeState>,
     kb: EventReader<KeyboardInput>,
     mb: EventReader<MouseButtonInput>,
     mut act_write: EventWriter<Act>,

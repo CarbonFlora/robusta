@@ -16,6 +16,7 @@ pub struct DockPlugin;
 impl bevy::app::Plugin for DockPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(DockBuffer::new())
+            .insert_resource(RDockState::default_preset())
             .add_event::<DockBufferModify>()
             .add_systems(Startup, spawn_window)
             .add_systems(Update, update_dockbuffer)
@@ -77,17 +78,18 @@ fn update_dock(
     mut rmrds: ResMut<RDockState>,
     mut qec: Query<&mut EguiContext, With<CADPanel>>,
     //carryover
-    db: ResMut<DockBuffer>,
+    mut db: ResMut<DockBuffer>,
     ewa: EventWriter<Act>,
 ) {
-    let ctx = match qec.get_single_mut() {
-        Ok(mut w) => w.get_mut(),
+    let mut ctx = match qec.get_single_mut() {
+        Ok(w) => w,
         Err(_) => return,
     };
 
+    let db = db.bypass_change_detection();
     DockArea::new(&mut rmrds.0)
-        .style(Style::from_egui(ctx.style().as_ref()))
-        .show(ctx, &mut TabViewer { db, ewa });
+        .style(Style::from_egui(ctx.get().style().as_ref()))
+        .show(ctx.get_mut(), &mut TabViewer { db, ewa });
 }
 
 ///This updates the dockbuffer with what is actually true in Resources.
@@ -158,7 +160,7 @@ pub struct CADPanel {}
 
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
-    db: ResMut<'a, DockBuffer>,
+    db: &'a mut DockBuffer,
     ewa: EventWriter<'a, Act>,
 }
 
@@ -173,9 +175,9 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Empty => (),
             EguiWindow::History => view_history(ui, &self.db.history),
             EguiWindow::Points => (),
-            EguiWindow::Inspect => view_inspection(ui, &mut self.db.inspection, &self.ewa),
+            EguiWindow::Inspect => view_inspection(ui, &mut self.db.inspection, &mut self.ewa),
             EguiWindow::StateRibbon => view_stateribbon(ui, &self.db.other),
-            EguiWindow::Taglist => view_taglist(ui, &mut self.db.taglist, &self.ewa),
+            EguiWindow::Taglist => view_taglist(ui, &mut self.db.taglist, &mut self.ewa),
         }
     }
 

@@ -7,7 +7,7 @@ use self::plugins::{
     keystroke::Act,
     phantom::{index_point, RPhantomPointer},
     selection::{deselect_all, Selected},
-    snap::{toggle_snap, UpdateSnapPoints},
+    snap::UpdateSnapPoints,
     tag::{Tag, TagList, TagListModify, TagModify},
     RCADPlugins,
 };

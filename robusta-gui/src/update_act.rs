@@ -28,7 +28,7 @@ pub fn update_act(
         uis.push_history(act, &mut db);
 
         match &binding {
-            Act::EguiFocus(ew) => uis.new_focus(ew),
+            // Act::EguiFocus(ew) => uis.new_focus(ew),
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             // Act::OpenCADTerm => uis.cad_state.cad_term = Some(String::new()),
             Act::Insert(sp) => insert(sp, &mut rmcb, &mut ewre, &mut ewrsp),
