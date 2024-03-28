@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Debug, Default, Clone, PartialEq)]
+#[derive(Debug, Resource, Default, Clone, PartialEq)]
 pub struct HistoryBuffer {
     pub latest_act: Act,
     pub all_history: String,

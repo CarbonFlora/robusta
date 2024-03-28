@@ -8,8 +8,15 @@ pub struct StylePlugin;
 impl bevy::app::Plugin for StylePlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<RefreshStyle>()
-            .add_systems(Update, update_rentity_color);
+            .add_systems(Update, update_rentity_color)
+            .add_systems(Update, update_test);
     }
+}
+
+fn update_test(rtc: Res<TagCharacteristics>) {
+    // if a.is_changed() {
+    //     println!("tagchar was changed.");
+    // }
 }
 
 #[derive(Debug, Event, PartialEq, Eq, Hash, Clone)]
@@ -23,7 +30,7 @@ pub fn update_rentity_color(
     //Input
     mut errs: EventReader<RefreshStyle>,
     //Util
-    mut rtc: ResMut<TagCharacteristics>,
+    rtc: Res<TagCharacteristics>,
     mut colorm_assets: ResMut<Assets<ColorMaterial>>,
     //Output
     mut qare: Query<(&mut Handle<ColorMaterial>, &TagList), With<REntity>>,
@@ -34,8 +41,11 @@ pub fn update_rentity_color(
                 Some(a) => a,
                 None => return,
             };
-            if let Some(first_match) = tl.0.iter().find(|x| rtc.get(x).color.is_some()) {
-                colorm.color = rtc.get(first_match).color_or_default();
+            if let Some(first_match) =
+                tl.0.iter()
+                    .find(|x| rtc.tag_flags.get(*x).is_some_and(|y| y.color.is_some()))
+            {
+                colorm.color = rtc.tag_flags.get(first_match).unwrap().color_or_default();
             }
         }
     }
@@ -46,15 +56,18 @@ pub fn update_rentity_thickness(
     //Input
     mut errs: EventReader<RefreshStyle>,
     //Util
-    mut rtc: ResMut<TagCharacteristics>,
+    rtc: Res<TagCharacteristics>,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     //Output
     mut qare: Query<(&mut Mesh2dHandle, &TagList, &REntity), With<REntity>>,
 ) {
     if errs.read().any(|x| x == &RefreshStyle::Thickness) {
         for (hcm, tl, re) in qare.iter_mut() {
-            if let Some(first_match) = tl.0.iter().find(|x| rtc.get(x).thickness.is_some()) {
-                let thickness = rtc.get(first_match).thickness.unwrap();
+            if let Some(first_match) =
+                tl.0.iter()
+                    .find(|x| rtc.tag_flags.get(*x).is_some_and(|y| y.thickness.is_some()))
+            {
+                let thickness = rtc.tag_flags.get(first_match).unwrap().thickness.unwrap();
                 let mesh = match re {
                     REntity::Arc(sp) => sp.arc_mesh(thickness),
                     REntity::Circle(sp) => sp.circle_mesh(thickness),

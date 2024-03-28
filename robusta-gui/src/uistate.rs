@@ -1,4 +1,4 @@
-use self::{leaves::taglist::view_taglist, plugins::phantom::PhantomAct};
+use self::plugins::phantom::PhantomAct;
 
 use super::*;
 
@@ -96,26 +96,6 @@ impl UiState {
             loaded_files: load_files(path),
         }
     }
-
-    // #[allow(clippy::too_many_arguments)]
-    // pub fn ui(
-    //     &mut self,
-    //     ctx: &mut egui::Context,
-    //     act_write: EventWriter<Act>,
-    //     ewm: &mut ModalResources,
-    //     dock_buffer: &mut DockBuffer,
-    //     ss: &SnapSettings,
-    // ) {
-    //     let mut tab_viewer = TabViewer {
-    //         act_write,
-    //         ewm,
-    //         db: dock_buffer,
-    //         ss,
-    //     };
-    //     DockArea::new(&mut self.dock_state)
-    //         .style(Style::from_egui(ctx.style().as_ref()))
-    //         .show(ctx, &mut tab_viewer);
-    // }
 
     pub fn close_all(
         &mut self,

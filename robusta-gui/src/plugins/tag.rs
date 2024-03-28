@@ -60,7 +60,7 @@ impl TagList {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct TagFlags {
     pub color: Option<egui::Color32>,
     pub thickness: Option<f32>,

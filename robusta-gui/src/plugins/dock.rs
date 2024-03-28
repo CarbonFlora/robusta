@@ -4,7 +4,7 @@ use self::{
         inspection::InspectionBuffer,
         taglist::{view_taglist, TaglistBuffer},
     },
-    tag::TagFlags,
+    tag::{TagCharacteristics, TagFlags},
 };
 
 use super::*;
@@ -44,6 +44,12 @@ impl DockBuffer {
             inspection: InspectionBuffer::default(),
             taglist: TaglistBuffer::default(),
             other: OtherBuffer::default(),
+        }
+    }
+
+    pub fn refresh(&mut self, rtc: Res<TagCharacteristics>) {
+        if rtc.is_changed() {
+            self.taglist
         }
     }
 }

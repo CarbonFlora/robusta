@@ -24,24 +24,26 @@ pub fn update_spawn_rentities(
     //Input
     mut erre: EventReader<REntity>,
     //Util
-    mut rtc: ResMut<TagCharacteristics>,
+    rtc: Res<TagCharacteristics>,
     mut me: ResMut<Assets<Mesh>>,
     mut ma: ResMut<Assets<ColorMaterial>>,
     mut tz: ResMut<TopZLayer>,
     //Output
     mut co: Commands,
 ) {
-    let an = TagFlags::all_none();
-    let cn = rtc
-        .get(&Tag {
-            name: "CAD-Construct".to_string(),
-        })
-        .clone();
-    let pn = rtc
-        .get(&Tag {
-            name: "CAD-Transient".to_string(),
-        })
-        .clone();
+    let an = TagFlags::all_none(); //newly spawned entities are not tagged rn.
+    let cn = match rtc.tag_flags.get(&Tag {
+        name: "CAD-Construct".to_string(),
+    }) {
+        Some(sp) => *sp,
+        None => TagFlags::all_none(),
+    };
+    let pn = match rtc.tag_flags.get(&Tag {
+        name: "CAD-Transient".to_string(),
+    }) {
+        Some(sp) => *sp,
+        None => TagFlags::all_none(),
+    };
 
     for re in erre.read() {
         match re {
