@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use egui_extras::{Column, TableBuilder};
 
-use self::plugins::tag::{Tag, TagFlags, TagListModify};
+use self::plugins::tag::{Tag, TagCharacteristics, TagFlags, TagListModify};
 
 use super::*;
 
@@ -20,26 +20,27 @@ impl Default for TaglistBuffer {
     }
 }
 
-pub fn view_taglist(
-    //Util
-    ui: &mut egui::Ui,
-    tb: &mut TaglistBuffer,
-    //Output
-    ewa: &mut EventWriter<Act>,
-) {
+pub fn view_taglist(ui: &mut egui::Ui, tb: &mut TaglistBuffer, ewa: &mut EventWriter<Act>) {
     ui.separator();
+    r1(ui, tb, ewa);
+    r2(ui, tb, ewa);
+}
+
+fn r1(ui: &mut egui::Ui, tb: &mut TaglistBuffer, ewa: &mut EventWriter<Act>) {
     ui.horizontal(|ui| {
         if ui.button("⊞").clicked() {
             let tag = Tag::placeholder(Some(tb.ordered_tag_flags.len()));
-            ewa.send(Act::ModifyTaglist(TagListModify::Add(tag)));
+            ewa.send(Act::Taglist(TagListModify::Add(tag)));
         }
         if ui.button("⊟").clicked() {
             for a in tb.ordered_tag_flags.iter().filter(|x| x.2) {
-                ewa.send(Act::ModifyTaglist(TagListModify::Remove(a.0.clone())));
+                ewa.send(Act::Taglist(TagListModify::Remove(a.0.clone())));
             }
         }
     });
+}
 
+fn r2(ui: &mut egui::Ui, tb: &mut TaglistBuffer, ewa: &mut EventWriter<Act>) {
     let table = TableBuilder::new(ui)
         .striped(true)
         .resizable(true)
@@ -100,7 +101,7 @@ fn tag_flag_egui(
 
         if let Some(color) = &mut tf.color {
             if ui.color_edit_button_srgba(color).changed() {
-                ewa.send(Act::ModifyTaglist(TagListModify::NewColor(
+                ewa.send(Act::Taglist(TagListModify::NewColor(
                     t.clone(),
                     Some(*color),
                 )));
@@ -108,12 +109,17 @@ fn tag_flag_egui(
         }
         if let Some(thickness) = &mut tf.thickness {
             ui.label(format!("Thickness: {}", thickness));
-            // if ui.color_edit_button_srgba(color).changed() {
-            //     ewa.send(Act::ModifyTaglist(TagListModify::NewColor(
-            //         a.0.clone(),
-            //         Some(*color),
-            //     )));
-            // };
         }
     });
+}
+
+pub fn refresh_taglist_buffer(mut db: ResMut<DockBuffer>, rtc: Res<TagCharacteristics>) {
+    if rtc.is_changed() {
+        let tb = &mut db.taglist;
+        tb.ordered_tag_flags = rtc
+            .tag_flags
+            .iter()
+            .map(|x| (x.0.clone(), *x.1, false))
+            .collect::<Vec<(Tag, TagFlags, Selected)>>();
+    }
 }

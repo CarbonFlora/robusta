@@ -2,7 +2,6 @@ use super::*;
 
 pub fn update_terminal_egui(
     aw: &mut EventWriter<Act>,
-    ewcui: &mut EventWriter<Menu>,
     buffer: &mut String,
     context: &mut Query<&mut EguiContext, With<PrimaryWindow>>,
 ) {
@@ -18,7 +17,7 @@ pub fn update_terminal_egui(
 
                     if response.lost_focus() {
                         aw.send(Act::TryAct(buffer.clone()));
-                        ewcui.send(Menu::NoMenu);
+                        aw.send(Act::CameraUIMenu(CameraUiMenu::NoMenu));
                         return;
                     }
 

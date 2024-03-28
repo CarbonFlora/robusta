@@ -4,19 +4,9 @@ use self::plugins::keystroke::Mode;
 
 use super::*;
 
-type EditingTags = HashSet<Tag>;
-
 #[derive(Debug, Resource, Default, Clone)]
 pub struct InspectionBuffer {
-    pub selected_list: Vec<(REntity, TagList, EditingTags)>,
-    pub str_buf: String,
-}
-
-impl InspectionBuffer {
-    pub fn soft_reset(&mut self) {
-        self.selected_list.iter_mut().for_each(|x| x.2.clear());
-        self.str_buf.clear();
-    }
+    pub selected_list: Vec<(REntity, TagList)>,
 }
 
 pub fn view_inspection(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut EventWriter<Act>) {
@@ -30,13 +20,14 @@ pub fn view_inspection(ui: &mut egui::Ui, ib: &mut InspectionBuffer, ewa: &mut E
         ui.push_id(i, |ui| {
             r1(ui, (i, ib), ewa);
             r2(ui, (i, ib), ewa);
+            r3(ui, (i, ib), ewa);
             ui.separator();
         });
     }
 }
 
 fn r1(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut EventWriter<Act>) {
-    let (re, _tl, _hs) = &ib.selected_list[i];
+    let (re, _tl) = &ib.selected_list[i];
     let mut c: Option<(f32, f32, f32, f32)> = None;
 
     match re {
@@ -76,14 +67,8 @@ fn r1(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut Even
 }
 
 fn r2(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut EventWriter<Act>) {
-    ui.horizontal_wrapped(|ui| {
-        r2c1(ui, (i, ib), ewa);
-        r2c2(ui, (i, ib), ewa);
-    });
-}
-
-fn r2c1(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut EventWriter<Act>) {
-    let (re, tl, _hs) = &ib.selected_list[i];
+    let (i, ib) = (i, ib);
+    let (re, tl) = &ib.selected_list[i];
     ui.menu_button("⛭", |ui| {
         ui.horizontal(|ui_collapse| {
             if ui_collapse.button("⊞").clicked() {
@@ -97,28 +82,57 @@ fn r2c1(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut Ev
     });
 }
 
-fn r2c2(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut EventWriter<Act>) {
-    let (re, tl, hs) = &mut ib.selected_list[i];
-    let sb = &mut ib.str_buf;
+fn r3(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut EventWriter<Act>) {
+    let (i, ib) = (i, ib);
+    let (re, tl) = &mut ib.selected_list[i];
 
-    for tag in tl.0.iter() {
-        match hs.contains(tag) {
-            false => {
-                if ui.small_button(tag.name.to_string()).clicked() {
-                    hs.insert(tag.clone());
-                }
-            }
-            true => {
-                let r = ui.text_edit_singleline(sb);
-                typing_keybind_mode(&r, ewa);
-                if r.lost_focus() {
-                    tag_rename(re, sb, tag, ewa);
-                    soft_reset(hs, sb);
-                }
-            }
+    for tag in tl.0.iter_mut() {
+        let r = ui.text_edit_singleline(&mut tag.name);
+        typing_keybind_mode(&r, ewa);
+        if r.lost_focus() {
+            tag_rename(re, &tag.name, tag, ewa);
         }
     }
 }
+
+// fn r2c1(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut EventWriter<Act>) {
+//     let (re, tl, _hs) = &ib.selected_list[i];
+//     ui.menu_button("⛭", |ui| {
+//         ui.horizontal(|ui_collapse| {
+//             if ui_collapse.button("⊞").clicked() {
+//                 let a = Tag::new(format!("Untitled-{}", tl.0.len() + 1));
+//                 ewa.send(Act::ModifyTag(re.clone(), TagModify::Add(a.clone())));
+//             }
+//             if ui_collapse.button("⊟").clicked() {
+//                 ewa.send(Act::ModifyTag(re.clone(), TagModify::RemoveAll));
+//             }
+//         });
+//     });
+// }
+
+// fn r2c2(ui: &mut egui::Ui, (i, ib): (usize, &mut InspectionBuffer), ewa: &mut EventWriter<Act>) {
+//     let (re, tl, hs) = &mut ib.selected_list[i];
+//     let sb = &mut ib.str_buf;
+
+//     for tag in tl.0.iter() {
+//         match *hs == Some(tag.clone()) {
+//             //this is spagetti code
+//             false => {
+//                 if ui.small_button(tag.name.to_string()).clicked() {
+//                     *hs = Some(tag.clone());
+//                 }
+//             }
+//             true => {
+//                 let r = ui.text_edit_singleline(sb);
+//                 typing_keybind_mode(&r, ewa);
+//                 if r.lost_focus() {
+//                     tag_rename(re, sb, tag, ewa);
+//                     soft_reset(hs, sb);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 pub fn typing_keybind_mode(r: &Response, ewa: &mut EventWriter<Act>) {
     if r.gained_focus() {
@@ -142,7 +156,13 @@ fn tag_rename(re: &REntity, sb: &String, tag: &Tag, ewa: &mut EventWriter<Act>) 
     ewa.send_batch(ewa_packages);
 }
 
-fn soft_reset(hs: &mut HashSet<Tag>, sb: &mut String) {
-    hs.clear();
-    sb.clear();
+pub fn refresh_inspection_buffer(
+    mut db: ResMut<DockBuffer>,
+    qretl: Query<(&REntity, &TagList), With<Selected>>,
+) {
+    let ib = &mut db.inspection;
+    ib.selected_list = qretl
+        .iter()
+        .map(|x| (x.0.clone(), x.1.clone()))
+        .collect::<Vec<(REntity, TagList)>>();
 }

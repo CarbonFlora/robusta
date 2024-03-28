@@ -9,7 +9,6 @@ pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(ModeState::default())
-            .add_event::<Mode>()
             .add_systems(PreUpdate, capture_keystrokes)
             .add_systems(Update, update_mode);
     }
@@ -18,7 +17,7 @@ impl bevy::app::Plugin for KeyStrokePlugin {
 #[derive(Debug, Resource, Default, PartialEq, Clone)]
 pub struct ModeState(pub Mode);
 
-#[derive(Debug, Event, Default, PartialEq, Clone)]
+#[derive(Debug, Default, PartialEq, Clone)]
 pub enum Mode {
     #[default]
     Normal,
@@ -27,17 +26,9 @@ pub enum Mode {
     Snap,
 }
 
-fn update_mode(mut erm: EventReader<Menu>, rmkm: ResMut<ModeState>) {
-    let a = match erm.read().last() {
-        Some(sp) => sp,
-        None => return,
-    };
-
-    rmkm.into_inner().0 = match a {
-        Menu::NoMenu => Mode::Normal,
-        Menu::CadTerm(_) => Mode::Typing,
-        Menu::InsertMenu(_) => Mode::Insert,
-        Menu::SnapMenu(_) => Mode::Snap,
+fn update_mode(mut ewa: EventReader<Act>, mut rmkm: ResMut<ModeState>) {
+    if let Some(Act::KeyState(sp)) = ewa.read().last() {
+        rmkm.0 = sp.clone()
     }
 }
 
@@ -94,9 +85,11 @@ fn to_buffer(
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
-        [None, Some(KeyCode::KeyT)] => Act::CameraUIMenu(Menu::CadTerm("".to_string())),
-        [None, Some(KeyCode::KeyI)] => Act::CameraUIMenu(Menu::InsertMenu(None)),
-        [None, Some(KeyCode::KeyS)] => Act::CameraUIMenu(Menu::SnapMenu((None, "".to_string()))),
+        [None, Some(KeyCode::KeyT)] => Act::CameraUIMenu(CameraUiMenu::CadTerm("".to_string())),
+        [None, Some(KeyCode::KeyI)] => Act::CameraUIMenu(CameraUiMenu::InsertMenu(None)),
+        [None, Some(KeyCode::KeyS)] => {
+            Act::CameraUIMenu(CameraUiMenu::SnapMenu((None, "".to_string())))
+        }
         [None, Some(KeyCode::ArrowLeft)] => Act::MoveCamera((-1., 0.)),
         [None, Some(KeyCode::ArrowDown)] => Act::MoveCamera((0., -1.)),
         [None, Some(KeyCode::ArrowUp)] => Act::MoveCamera((0., 1.)),
@@ -106,7 +99,7 @@ fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
         [Some(KeyCode::ControlLeft), Some(KeyCode::KeyO)] => Act::ZoomCamera(1.),
         [_, Some(KeyCode::Insert)] => Act::Confirm,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
-            Act::CameraUIMenu(Menu::CadTerm("".to_string()))
+            Act::CameraUIMenu(CameraUiMenu::CadTerm("".to_string()))
         }
         _ => Act::None,
     }
@@ -116,7 +109,7 @@ fn typing_act(buffer: [Option<KeyCode>; 2]) -> Act {
     match buffer {
         [None, Some(KeyCode::Escape)] => Act::Exit,
         [None, Some(KeyCode::Semicolon)] | [Some(KeyCode::ShiftLeft), Some(KeyCode::Semicolon)] => {
-            Act::CameraUIMenu(Menu::CadTerm("".to_string()))
+            Act::CameraUIMenu(CameraUiMenu::CadTerm("".to_string()))
         }
         _ => Act::None,
     }
@@ -149,25 +142,49 @@ fn snap_act(buffer: [Option<KeyCode>; 2]) -> Act {
     }
 }
 
+sort acts
 #[derive(Event, Debug, Default, PartialEq, Clone)]
 pub enum Act {
+    //Unsorted
     #[default]
     None,
     Exit,
     QuitWithoutSaving,
-    DeselectAll,
-    Confirm,
-    CameraUIMenu(Menu),
-    TryAct(String),
-    EguiFocus(EguiWindow),
-    PullCameraFocus(Rect),
-    FitView,
+    //Dock
+    //CameraUI
+    CameraUIMenu(CameraUiMenu),
+    //RCamera
     MoveCamera((f32, f32)),
     ZoomCamera(f32),
-    Insert(ConstructType),
+    PullCameraFocus(Rect),
+    FitView,
+    //RSelection
+    DeselectAll,
+    Confirm,
+    //Snap
     ToggleSnap(SnapType),
     ClearSnaps,
-    ModifyTag(REntity, TagModify),
-    ModifyTaglist(TagListModify),
+    //Keystroke
     KeyState(Mode),
+    TryAct(String),
+    //Phantom
+    //Construction
+    Insert(ConstructType),
+    //Diagnostic
+    //Tag
+    ModifyTag(REntity, TagModify),
+    Taglist(TagListModify),
+    //Style
 }
+// builder = builder.add(UnsortedPlugin);
+// builder = builder.add(DockPlugin);
+// builder = builder.add(CameraUIPlugin);
+// builder = builder.add(RCameraPlugin);
+// builder = builder.add(RSelectionPlugin);
+// builder = builder.add(SnapPlugin);
+// builder = builder.add(KeyStrokePlugin);
+// builder = builder.add(PhantomPlugin);
+// builder = builder.add(ConstructionPlugin);
+// builder = builder.add(DiagnosticPlugin);
+// builder = builder.add(TagPlugin);
+// builder = builder.add(StylePlugin);

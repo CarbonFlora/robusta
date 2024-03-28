@@ -1,10 +1,10 @@
 use self::{
     leaves::{
-        history::HistoryBuffer,
-        inspection::InspectionBuffer,
-        taglist::{view_taglist, TaglistBuffer},
+        history::{refresh_history_buffer, HistoryBuffer},
+        inspection::{refresh_inspection_buffer, InspectionBuffer},
+        taglist::{refresh_taglist_buffer, view_taglist, TaglistBuffer},
     },
-    tag::{TagCharacteristics, TagFlags},
+    phantom::PhantomAct,
 };
 
 use super::*;
@@ -17,10 +17,11 @@ impl bevy::app::Plugin for DockPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(DockBuffer::new())
             .insert_resource(RDockState::default_preset())
-            .add_event::<DockBufferModify>()
-            .add_systems(Startup, spawn_window)
-            .add_systems(Update, update_dockbuffer)
-            .add_systems(Update, update_dock);
+            .add_systems(Startup, spawn_cadpanel_window)
+            .add_systems(Update, refresh_history_buffer)
+            .add_systems(Update, refresh_inspection_buffer)
+            .add_systems(Update, refresh_taglist_buffer)
+            .add_systems(Update, draw_dock_egui);
     }
 }
 
@@ -46,28 +47,10 @@ impl DockBuffer {
             other: OtherBuffer::default(),
         }
     }
-
-    pub fn refresh(&mut self, rtc: Res<TagCharacteristics>) {
-        if rtc.is_changed() {
-            self.taglist
-        }
-    }
-}
-
-#[derive(Debug, Event)]
-pub enum DockBufferModify {
-    AddSelected(Entity),
-    RemoveSelected(Entity),
-    AddTag(REntity, Tag),
-    RemoveTag(REntity, Tag),
-    RemoveAllTags(REntity),
-    TagListAdd(Tag),
-    TagListRemove(Tag),
-    // TagListFlagUpdate(Tag, Flag),
 }
 
 /// Spawn a new window with reasonable defaults.
-fn spawn_window(mut co: Commands) {
+fn spawn_cadpanel_window(mut co: Commands) {
     co.spawn((
         window::Window {
             title: String::from("CADPanel"),
@@ -80,7 +63,7 @@ fn spawn_window(mut co: Commands) {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn update_dock(
+fn draw_dock_egui(
     mut rmrds: ResMut<RDockState>,
     mut qec: Query<&mut EguiContext, With<CADPanel>>,
     //carryover
@@ -96,69 +79,6 @@ fn update_dock(
     DockArea::new(&mut rmrds.0)
         .style(Style::from_egui(ctx.get().style().as_ref()))
         .show(ctx.get_mut(), &mut TabViewer { db, ewa });
-}
-
-///This updates the dockbuffer with what is actually true in Resources.
-fn update_dockbuffer(
-    mut ewdbm: EventReader<DockBufferModify>,
-    mut db: ResMut<DockBuffer>,
-    qret: Query<(&REntity, &TagList)>,
-) {
-    for dbm in ewdbm.read() {
-        match dbm {
-            DockBufferModify::AddSelected(e) => {
-                let b = qret.get(*e).unwrap();
-                db.inspection
-                    .selected_list
-                    .push((b.0.clone(), b.1.clone(), HashSet::new()));
-            }
-            DockBufferModify::RemoveSelected(e) => {
-                let b = qret.get(*e).unwrap();
-                let i = db
-                    .inspection
-                    .selected_list
-                    .iter()
-                    .position(|x| &x.0 == b.0)
-                    .unwrap();
-                db.inspection.selected_list.remove(i);
-            }
-            DockBufferModify::AddTag(rentity, tag) => {
-                for i in &mut db.inspection.selected_list {
-                    if &i.0 == rentity {
-                        i.1 .0.push(tag.clone());
-                    }
-                }
-            }
-            DockBufferModify::RemoveTag(rentity, tag) => {
-                for i in &mut db.inspection.selected_list {
-                    if &i.0 == rentity {
-                        i.1.remove_tag(tag);
-                    }
-                }
-            }
-            DockBufferModify::RemoveAllTags(rentity) => {
-                for i in &mut db.inspection.selected_list {
-                    if &i.0 == rentity {
-                        i.1 .0.clear();
-                    }
-                }
-            }
-            DockBufferModify::TagListAdd(t) => {
-                db.taglist
-                    .ordered_tag_flags
-                    .push((t.clone(), TagFlags::all_none(), false));
-            }
-            DockBufferModify::TagListRemove(t) => {
-                let i = db
-                    .taglist
-                    .ordered_tag_flags
-                    .iter()
-                    .position(|x| &x.0 == t)
-                    .unwrap();
-                db.taglist.ordered_tag_flags.remove(i);
-            }
-        }
-    }
 }
 
 #[derive(Component, Default)]

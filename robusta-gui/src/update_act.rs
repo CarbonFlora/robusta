@@ -7,16 +7,15 @@ pub fn update_act(
     mut era: EventReader<Act>,
     qrerpp: Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
     es: Query<(Entity, &Selected), With<Selected>>,
-    mut uis: ResMut<UiState>,
+    // mut uis: ResMut<UiState>,
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut co: Commands,
     mut ewre: EventWriter<REntity>,
     mut dsel: EventWriter<Pointer<Deselect>>,
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
-    mut db: ResMut<DockBuffer>,
-    mut ewm: EventWriter<Menu>,
-    mut ewpa: EventWriter<PhantomAct>,
+    // mut db: ResMut<DockBuffer>,
+    // mut ewpa: EventWriter<PhantomAct>,
     mut ewrsp: EventWriter<UpdateSnapPoints>,
 ) {
     for act in era.read() {
@@ -25,18 +24,13 @@ pub fn update_act(
             binding = to_act(string);
         }
 
-        uis.push_history(act, &mut db);
-
         match &binding {
             // Act::EguiFocus(ew) => uis.new_focus(ew),
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             // Act::OpenCADTerm => uis.cad_state.cad_term = Some(String::new()),
             Act::Insert(sp) => insert(sp, &mut rmcb, &mut ewre, &mut ewrsp),
-            Act::CameraUIMenu(sp) => {
-                ewm.send(sp.clone());
-            }
             Act::Confirm => index_point(&qrerpp, &mut ewci, &mut ewre),
-            Act::Exit => uis.close_all(&mut ewrsp, &mut rmcb, &mut ewm, &mut ewpa),
+            // Act::Exit => uis.close_all(&mut ewrsp, &mut rmcb, &mut ewm, &mut ewpa),
             Act::QuitWithoutSaving => {
                 app_exit_events.send(bevy::app::AppExit);
             }
@@ -55,7 +49,6 @@ fn to_act(input: &str) -> Act {
         .as_str()
     {
         "deselect" | "dsa" => Act::DeselectAll,
-        "inspect" => Act::EguiFocus(EguiWindow::Inspect),
         "fitview" | "fv" => Act::FitView,
         "snap" | "s" => snap_acts(text_buffer),
         "q!" => Act::QuitWithoutSaving,

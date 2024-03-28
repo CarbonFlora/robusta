@@ -218,7 +218,7 @@ pub fn update_act_tag(
     mut es: Query<(&REntity, &mut TagList), With<Selected>>,
     //Output
     mut rmtc: ResMut<TagCharacteristics>,
-    mut ewdbm: EventWriter<DockBufferModify>,
+    // mut ewdbm: EventWriter<DockBufferModify>,
     mut ewrs: EventWriter<RefreshStyle>,
 ) {
     for act in era.read() {
@@ -232,28 +232,28 @@ pub fn update_act_tag(
                 match tm {
                     TagModify::Add(sp) => {
                         ret.1 .0.push(sp.clone());
-                        ewdbm.send(DockBufferModify::AddTag(ret.0.clone(), sp.clone()));
+                        // ewdbm.send(DockBufferModify::AddTag(ret.0.clone(), sp.clone()));
                     }
                     TagModify::Remove(sp) => {
                         ret.1.remove_tag(sp);
-                        ewdbm.send(DockBufferModify::RemoveTag(ret.0.clone(), sp.clone()));
+                        // ewdbm.send(DockBufferModify::RemoveTag(ret.0.clone(), sp.clone()));
                     }
                     TagModify::RemoveAll => {
                         ret.1 .0.clear();
-                        ewdbm.send(DockBufferModify::RemoveAllTags(ret.0.clone()));
+                        // ewdbm.send(DockBufferModify::RemoveAllTags(ret.0.clone()));
                     }
                 };
                 ewrs.send(RefreshStyle::Color);
             }
-            Act::ModifyTaglist(tlm) => {
+            Act::Taglist(tlm) => {
                 match tlm {
                     TagListModify::Add(t) => {
                         rmtc.insert(t.clone(), TagFlags::all_none());
-                        ewdbm.send(DockBufferModify::TagListAdd(t.clone()));
+                        // ewdbm.send(DockBufferModify::TagListAdd(t.clone()));
                     }
                     TagListModify::Remove(t) => {
                         rmtc.remove(t);
-                        ewdbm.send(DockBufferModify::TagListRemove(t.clone()));
+                        // ewdbm.send(DockBufferModify::TagListRemove(t.clone()));
                     }
                     TagListModify::NewColor(t, c32) => {
                         let tf = rmtc.get_mut(t);

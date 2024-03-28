@@ -1,5 +1,4 @@
-use self::plugins::cameraui::Menu;
-use self::plugins::dock::DockBufferModify;
+use self::plugins::cameraui::CameraUiMenu;
 use self::plugins::style::RefreshStyle;
 use self::plugins::{
     construction::{ConstructType, ConstructionBuffer, ConstructionInput},
@@ -15,7 +14,6 @@ use ::bevy::render::{
     mesh::{Indices, PrimitiveTopology},
     render_asset::RenderAssetUsages,
 };
-use bevy::utils::hashbrown::HashSet;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle, utils::hashbrown::HashMap, window};
 use bevy_egui::EguiContext;
 use bevy_mod_picking::{events::Pointer, prelude::*, selection::Deselect};
