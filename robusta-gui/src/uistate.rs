@@ -1,7 +1,4 @@
-use self::{
-    leaves::taglist::view_taglist,
-    plugins::{keystroke::ModalResources, phantom::PhantomAct},
-};
+use self::{leaves::taglist::view_taglist, plugins::phantom::PhantomAct};
 
 use super::*;
 
@@ -37,7 +34,7 @@ impl TopZLayer {
     }
 }
 
-#[derive(Debug, Default, Resource)]
+#[derive(Debug, Default, Resource, Clone)]
 pub struct SnapSettings {
     pub endpoint: bool,
     pub midpoint: bool,
@@ -182,6 +179,10 @@ impl UiState {
                 "Menu opened: "
             }
             Act::ClearSnaps => todo!(),
+            Act::KeyState(sp) => {
+                meta_data = format!("{sp:?}");
+                "Keystate: "
+            }
         });
         hb.all_history.push_str(&meta_data);
         hb.all_history.push('\n');

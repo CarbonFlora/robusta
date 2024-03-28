@@ -1,5 +1,4 @@
 use self::{
-    keystroke::ModalResources,
     leaves::{
         history::HistoryBuffer,
         inspection::InspectionBuffer,
@@ -9,6 +8,9 @@ use self::{
 };
 
 use super::*;
+
+#[derive(Debug, Resource)]
+pub struct RDockState(DockState<EguiWindow>);
 
 pub struct DockPlugin;
 impl bevy::app::Plugin for DockPlugin {
@@ -26,6 +28,12 @@ pub struct DockBuffer {
     pub history: HistoryBuffer,
     pub inspection: InspectionBuffer,
     pub taglist: TaglistBuffer,
+    pub other: OtherBuffer,
+}
+
+#[derive(Debug, Resource, Clone, Default)]
+pub struct OtherBuffer {
+    pub snaps: SnapSettings,
 }
 
 impl DockBuffer {
@@ -34,6 +42,7 @@ impl DockBuffer {
             history: HistoryBuffer::default(),
             inspection: InspectionBuffer::default(),
             taglist: TaglistBuffer::default(),
+            other: OtherBuffer::default(),
         }
     }
 }
@@ -65,29 +74,20 @@ fn spawn_window(mut co: Commands) {
 
 #[allow(clippy::too_many_arguments)]
 fn update_dock(
-    //Util
-    mut ewm: ResMut<ModalResources>,
-    mut ui_state: ResMut<UiState>,
-    ss: Res<SnapSettings>,
+    mut rmrds: ResMut<RDockState>,
     mut qec: Query<&mut EguiContext, With<CADPanel>>,
-    mut db: ResMut<DockBuffer>,
-    //Output
-    act_write: EventWriter<Act>,
+    //carryover
+    db: ResMut<DockBuffer>,
+    ewa: EventWriter<Act>,
 ) {
     let ctx = match qec.get_single_mut() {
         Ok(mut w) => w.get_mut(),
-        Err(_) => todo!(),
+        Err(_) => return,
     };
 
-    let mut tab_viewer = TabViewer {
-        act_write: act_write,
-        ewm,
-        db: dock_buffer,
-        ss,
-    };
-    DockArea::new(&mut this.dock_state)
+    DockArea::new(&mut rmrds.0)
         .style(Style::from_egui(ctx.style().as_ref()))
-        .show(ctx, &mut tab_viewer);
+        .show(ctx, &mut TabViewer { db, ewa });
 }
 
 ///This updates the dockbuffer with what is actually true in Resources.
@@ -117,7 +117,7 @@ fn update_dockbuffer(
             DockBufferModify::AddTag(rentity, tag) => {
                 for i in &mut db.inspection.selected_list {
                     if &i.0 == rentity {
-                        i.1.taglist.push(tag.clone());
+                        i.1 .0.push(tag.clone());
                     }
                 }
             }
@@ -131,7 +131,7 @@ fn update_dockbuffer(
             DockBufferModify::RemoveAllTags(rentity) => {
                 for i in &mut db.inspection.selected_list {
                     if &i.0 == rentity {
-                        i.1.taglist.clear();
+                        i.1 .0.clear();
                     }
                 }
             }
@@ -148,48 +148,18 @@ fn update_dockbuffer(
                     .position(|x| &x.0 == t)
                     .unwrap();
                 db.taglist.ordered_tag_flags.remove(i);
-            } // DockBufferModify::TagListFlagUpdate(t, f) => {
-              //     for i in &mut db.taglist.ordered_tag_flags {
-              //         if &i.0 == t {
-              //             i.1.update(f);
-              //         }
-              //     }
-              // }
+            }
         }
     }
 }
 
-// fn update_inspector_buffer(mut era: EventReader<Act>, mut a: ResMut<InspectionBuffer>) {
-//     for act in era.read() {
-//         match act {
-//             Act::ModifyTag(re, tm) => {
-//                 let mut ret = es
-//                     .iter_mut()
-//                     .find(|x| x.0 == re)
-//                     .expect("REntity in selection doesn't exist in world.");
-
-//                 match tm {
-//                     TagModify::Add(sp) => ret.1.taglist.insert(sp.clone()),
-//                     TagModify::Remove(sp) => ret.1.taglist.remove(sp),
-//                     TagModify::RemoveAll => {
-//                         ret.1.taglist.clear();
-//                         true
-//                     }
-//                 };
-//             }
-//             _ => (),
-//         }
-//     }
-// }
 #[derive(Component, Default)]
 pub struct CADPanel {}
 
 /// This is a [`egui_dock`] implimentation. This also directly shows all the available tabs.
 struct TabViewer<'a> {
-    act_write: EventWriter<'a, Act>,
-    ewm: &'a mut ModalResources,
-    ss: &'a SnapSettings,
-    db: &'a mut DockBuffer,
+    db: ResMut<'a, DockBuffer>,
+    ewa: EventWriter<'a, Act>,
 }
 
 impl egui_dock::TabViewer for TabViewer<'_> {
@@ -203,17 +173,9 @@ impl egui_dock::TabViewer for TabViewer<'_> {
             EguiWindow::Empty => (),
             EguiWindow::History => view_history(ui, &self.db.history),
             EguiWindow::Points => (),
-            EguiWindow::Inspect => view_inspection(
-                ui,
-                &mut self.db.inspection,
-                self.ewm,
-                &mut self.act_write,
-                // &mut self.ewdbm,
-            ),
-            EguiWindow::StateRibbon => view_stateribbon(ui, self.ss),
-            EguiWindow::Taglist => {
-                view_taglist(ui, &mut self.db.taglist, self.ewm, &mut self.act_write)
-            }
+            EguiWindow::Inspect => view_inspection(ui, &mut self.db.inspection, &self.ewa),
+            EguiWindow::StateRibbon => view_stateribbon(ui, &self.db.other),
+            EguiWindow::Taglist => view_taglist(ui, &mut self.db.taglist, &self.ewa),
         }
     }
 
@@ -226,13 +188,8 @@ impl egui_dock::TabViewer for TabViewer<'_> {
     }
 }
 
-fn view_stateribbon(ui: &mut egui::Ui, ss: &SnapSettings) {
-    ui.label(format!("{:?}", ss));
-}
-
-#[derive(Debug, Resource)]
-pub struct RDockState {
-    pub dock_state: DockState<EguiWindow>,
+fn view_stateribbon(ui: &mut egui::Ui, ob: &OtherBuffer) {
+    ui.label(format!("{:?}", ob.snaps));
 }
 
 impl RDockState {
@@ -243,14 +200,14 @@ impl RDockState {
         let [_old, _new] =
             tree.split_left(old, 0.22, vec![EguiWindow::Inspect, EguiWindow::Points]);
 
-        Self { dock_state }
+        Self(dock_state)
     }
 
     pub fn new_focus(&mut self, ew: &EguiWindow) {
-        if let Some(b) = self.dock_state.find_tab(ew) {
-            self.dock_state.set_active_tab(b);
+        if let Some(b) = self.0.find_tab(ew) {
+            self.0.set_active_tab(b);
         } else {
-            self.dock_state.add_window(vec![ew.clone()]);
+            self.0.add_window(vec![ew.clone()]);
         }
     }
 }

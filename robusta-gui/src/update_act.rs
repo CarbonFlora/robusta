@@ -5,7 +5,6 @@ use super::*;
 #[allow(clippy::too_many_arguments)]
 pub fn update_act(
     mut era: EventReader<Act>,
-    mut ewrsp: EventWriter<UpdateSnapPoints>,
     qrerpp: Query<&REntity, (With<RPhantomPointer>, Without<bevy_pancam::PanCam>)>,
     es: Query<(Entity, &Selected), With<Selected>>,
     mut uis: ResMut<UiState>,
@@ -15,10 +14,10 @@ pub fn update_act(
     mut dsel: EventWriter<Pointer<Deselect>>,
     mut ewci: EventWriter<ConstructionInput>,
     mut rmcb: ResMut<ConstructionBuffer>,
-    mut ss: ResMut<SnapSettings>,
     mut db: ResMut<DockBuffer>,
     mut ewm: EventWriter<Menu>,
     mut ewpa: EventWriter<PhantomAct>,
+    mut ewrsp: EventWriter<UpdateSnapPoints>,
 ) {
     for act in era.read() {
         let mut binding = act.clone();
@@ -33,11 +32,6 @@ pub fn update_act(
             Act::DeselectAll => deselect_all(&mut co, &es, &mut dsel),
             // Act::OpenCADTerm => uis.cad_state.cad_term = Some(String::new()),
             Act::Insert(sp) => insert(sp, &mut rmcb, &mut ewre, &mut ewrsp),
-            Act::ToggleSnap(a) => toggle_snap(&mut ss, a, &mut ewrsp),
-            Act::ClearSnaps => {
-                ss.reset();
-                ewrsp.send(UpdateSnapPoints(true));
-            }
             Act::CameraUIMenu(sp) => {
                 ewm.send(sp.clone());
             }

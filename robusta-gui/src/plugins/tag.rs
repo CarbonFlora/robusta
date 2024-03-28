@@ -41,25 +41,22 @@ impl Tag {
 }
 
 #[derive(Debug, Component, Clone)]
-pub struct TagList {
-    pub taglist: Vec<Tag>,
-    // pub ordered_taglist: Vec<Tag>,
-}
+pub struct TagList(pub Vec<Tag>);
 
 impl Default for TagList {
     fn default() -> Self {
         // let taglist = vec![Tag::new("Default".to_string())]; //Per the readme, no default tag to prevent human errors.
         // let mut taglist = HashSet::new();
         // taglist.insert(Tag::new("Default".to_string()));
-        let taglist = Vec::new();
+        let taglist = vec![Tag::new("Default".to_string())];
 
-        Self { taglist }
+        Self(taglist)
     }
 }
 
 impl TagList {
     pub fn remove_tag(&mut self, tag: &Tag) {
-        self.taglist.retain(|x| x != tag);
+        self.0.retain(|x| x != tag);
     }
 }
 
@@ -234,7 +231,7 @@ pub fn update_act_tag(
 
                 match tm {
                     TagModify::Add(sp) => {
-                        ret.1.taglist.push(sp.clone());
+                        ret.1 .0.push(sp.clone());
                         ewdbm.send(DockBufferModify::AddTag(ret.0.clone(), sp.clone()));
                     }
                     TagModify::Remove(sp) => {
@@ -242,7 +239,7 @@ pub fn update_act_tag(
                         ewdbm.send(DockBufferModify::RemoveTag(ret.0.clone(), sp.clone()));
                     }
                     TagModify::RemoveAll => {
-                        ret.1.taglist.clear();
+                        ret.1 .0.clear();
                         ewdbm.send(DockBufferModify::RemoveAllTags(ret.0.clone()));
                     }
                 };

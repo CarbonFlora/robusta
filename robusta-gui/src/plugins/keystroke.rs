@@ -8,24 +8,17 @@ use super::*;
 pub struct KeyStrokePlugin;
 impl bevy::app::Plugin for KeyStrokePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(ModalResources::new())
+        app.insert_resource(KeyState::default())
+            .add_event::<Mode>()
             .add_systems(PreUpdate, capture_keystrokes)
             .add_systems(Update, update_mode);
     }
 }
 
-#[derive(Debug, Resource, Default)]
-pub struct ModalResources {
-    pub mode: Mode,
-}
+#[derive(Debug, Resource, Default, PartialEq, Clone)]
+pub struct KeyState(pub Mode);
 
-impl ModalResources {
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-#[derive(Debug, Default)]
+#[derive(Debug, Event, Default, PartialEq, Clone)]
 pub enum Mode {
     #[default]
     Normal,
@@ -34,24 +27,43 @@ pub enum Mode {
     Snap,
 }
 
-fn update_mode(mut er: EventReader<Menu>, mut rmmr: ResMut<ModalResources>) {
-    for a in er.read() {
-        rmmr.mode = match a {
-            Menu::NoMenu => Mode::Normal,
-            Menu::CadTerm(_) => Mode::Typing,
-            Menu::InsertMenu(_) => Mode::Insert,
-            Menu::SnapMenu(_) => Mode::Snap,
-        };
+fn update_mode(mut erm: EventReader<Menu>, mut rmkm: ResMut<KeyState>) {
+    for a in erm.read() {
+        // rmkm.
+        // rmkm.into_inner() = match a {
+        //     Menu::NoMenu => &mut KeybindMode::Normal,
+        //     Menu::CadTerm(_) => &mut KeybindMode::Typing,
+        //     Menu::InsertMenu(_) => &mut KeybindMode::Insert,
+        //     Menu::SnapMenu(_) => &mut KeybindMode::Snap,
+        // };
     }
 }
 
 pub fn capture_keystrokes(
     // ui_state: Res<UiState>,
-    mr: Res<ModalResources>,
-    mut kb: EventReader<KeyboardInput>,
-    mut mb: EventReader<MouseButtonInput>,
+    mr: Res<KeyState>,
+    kb: EventReader<KeyboardInput>,
+    mb: EventReader<MouseButtonInput>,
     mut act_write: EventWriter<Act>,
 ) {
+    let buffer = to_buffer(kb, mb);
+
+    let act = match mr.0 {
+        Mode::Normal => normal_act(buffer),
+        Mode::Typing => typing_act(buffer),
+        Mode::Insert => insert_act(buffer),
+        Mode::Snap => snap_act(buffer),
+    };
+
+    if act != Act::None {
+        act_write.send(act);
+    }
+}
+
+fn to_buffer(
+    mut kb: EventReader<KeyboardInput>,
+    mut mb: EventReader<MouseButtonInput>,
+) -> [Option<KeyCode>; 2] {
     let mut buffer = [None; 2];
 
     for k in kb.read().filter(|x| x.state == ButtonState::Pressed) {
@@ -74,16 +86,7 @@ pub fn capture_keystrokes(
         }
     }
 
-    let act = match mr.mode {
-        Mode::Normal => normal_act(buffer),
-        Mode::Typing => typing_act(buffer),
-        Mode::Insert => insert_act(buffer),
-        Mode::Snap => snap_act(buffer),
-    };
-
-    if act != Act::None {
-        act_write.send(act);
-    }
+    buffer
 }
 
 fn normal_act(buffer: [Option<KeyCode>; 2]) -> Act {
@@ -164,4 +167,5 @@ pub enum Act {
     ClearSnaps,
     ModifyTag(REntity, TagModify),
     ModifyTaglist(TagListModify),
+    KeyState(Mode),
 }

@@ -8,7 +8,25 @@ impl bevy::app::Plugin for SnapPlugin {
         app.insert_resource(SnapSettings::default())
             .add_event::<UpdateSnapPoints>()
             .add_event::<SnapTo>()
-            .add_systems(Update, update_snap_points);
+            .add_systems(Update, update_snap_points)
+            .add_systems(Update, update_snap_act);
+    }
+}
+
+pub fn update_snap_act(
+    mut era: EventReader<Act>,
+    mut ewrsp: EventWriter<UpdateSnapPoints>,
+    mut ss: ResMut<SnapSettings>,
+) {
+    for act in era.read() {
+        match act {
+            Act::ToggleSnap(a) => toggle_snap(&mut ss, a, &mut ewrsp),
+            Act::ClearSnaps => {
+                ss.reset();
+                ewrsp.send(UpdateSnapPoints(true));
+            }
+            _ => (),
+        }
     }
 }
 

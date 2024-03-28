@@ -34,7 +34,7 @@ pub fn update_rentity_color(
                 Some(a) => a,
                 None => return,
             };
-            if let Some(first_match) = tl.taglist.iter().find(|x| rtc.get(x).color.is_some()) {
+            if let Some(first_match) = tl.0.iter().find(|x| rtc.get(x).color.is_some()) {
                 colorm.color = rtc.get(first_match).color_or_default();
             }
         }
@@ -53,7 +53,7 @@ pub fn update_rentity_thickness(
 ) {
     if errs.read().any(|x| x == &RefreshStyle::Thickness) {
         for (hcm, tl, re) in qare.iter_mut() {
-            if let Some(first_match) = tl.taglist.iter().find(|x| rtc.get(x).thickness.is_some()) {
+            if let Some(first_match) = tl.0.iter().find(|x| rtc.get(x).thickness.is_some()) {
                 let thickness = rtc.get(first_match).thickness.unwrap();
                 let mesh = match re {
                     REntity::Arc(sp) => sp.arc_mesh(thickness),

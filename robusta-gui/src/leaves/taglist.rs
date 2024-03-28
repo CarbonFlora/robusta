@@ -2,10 +2,7 @@ use std::ops::{Index, IndexMut};
 
 use egui_extras::{Column, TableBuilder};
 
-use self::plugins::{
-    keystroke::ModalResources,
-    tag::{Tag, TagCharacteristics, TagFlags, TagListModify},
-};
+use self::plugins::tag::{Tag, TagFlags, TagListModify};
 
 use super::*;
 
@@ -33,9 +30,8 @@ pub fn view_taglist(
     //Util
     ui: &mut egui::Ui,
     tb: &mut TaglistBuffer,
-    ewm: &mut ModalResources,
     //Output
-    ewa: &mut EventWriter<Act>,
+    ewa: &EventWriter<Act>,
 ) {
     ui.separator();
     ui.horizontal(|ui| {
@@ -81,7 +77,7 @@ pub fn view_taglist(
                     ui.label(&tb.ordered_tag_flags.index(row_index).0.name);
                 });
                 row.col(|ui| {
-                    tag_flag_egui(ui, tb, ewm, row_index, ewa);
+                    tag_flag_egui(ui, tb, row_index, &ewa);
                 });
             });
         });
@@ -91,10 +87,9 @@ fn tag_flag_egui(
     //Util
     ui: &mut egui::Ui,
     tb: &mut TaglistBuffer,
-    _ewm: &mut ModalResources,
     row_index: usize,
     //Output
-    ewa: &mut EventWriter<Act>,
+    ewa: &EventWriter<Act>,
 ) {
     let a = tb.ordered_tag_flags.index_mut(row_index);
 
